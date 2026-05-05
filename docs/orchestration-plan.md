@@ -37,9 +37,12 @@
   - Mention "MCP gratuit sans monétisation" pricepertoken → reconfirmer Phase 3 (concurrence évolutive)
   - Breaking change Vercel AI SDK `streamText` → re-vérifier par @fullstack au scaffold `/api/sdk-status`
 
-### Phase 0 — Fondations stratégiques — `EN ATTENTE`
-- **Wave 1 (parallèle)** : @creative-strategy ("Positionnement & plateforme de marque") + @legal ("Audit juridique & conformité")
-- **Wave 2 (séquentiel après wave 1)** : @product-manager ("Vision produit & roadmap" + "Définir le scope V1" mergés)
+### Phase 0 — Fondations stratégiques — `EN COURS`
+- **Wave 1 (parallèle)** : @creative-strategy ("Positionnement & plateforme de marque") + @legal ("Audit juridique & conformité") — `COMPLETE 2026-05-05`
+  - @creative-strategy : 4 fichiers `docs/strategy/` (1217 lignes), 5/5/5/5/5, naming `DevRefs` confirmé, domaine `devrefs.dev` recommandé, Category Design B2A
+  - @legal : 4 fichiers `docs/legal/` (979 lignes), 5/5/5/5/5, GO CONDITIONNEL (4 actions P0 avant 1ère tx, recommandation rester sous franchise art. 293 B)
+  - Cohérence wave 1 : 0 placeholder, pricing/JWT/naming cohérents cross 8 fichiers
+- **Wave 2 (séquentiel après wave 1)** : @product-manager ("Vision produit & roadmap" + "Définir le scope V1" mergés) — `EN COURS`
 - **Wave 3 (séquentiel après wave 2)** : @data-analyst ("KPIs & tracking plan")
 - **Wave 4 (parallèle après wave 3)** : @creative-strategy + @copywriter ("Construire la messaging matrix") + @product-manager + @data-analyst + @growth + @legal ("Stratégie de pricing complète")
 - **Checkpoint utilisateur OBLIGATOIRE après Phase 0** (renforcement #9)
@@ -97,7 +100,7 @@
 |---|---|---|---|---|---|---|
 | 0a | 1 (@ia) | 0 | 0 | 0 | ~$3-5 | COMPLETE |
 | 0 (wave 1) | 2 (@creative-strategy + @legal) | 2 | 0 | 0 | ~$8-12 | COMPLETE |
-| 0 (wave 2) | 1 (@product-manager) | 0 | 0 | 0 | ~$4-6 | EN ATTENTE |
+| 0 (wave 2) | 1 (@product-manager) | 0 | 0 | 0 | ~$4-6 | EN COURS |
 | 0 (wave 3) | 1 (@data-analyst) | 0 | 0 | 0 | ~$3-5 | EN ATTENTE |
 | 0 (wave 4) | 6 multi (messaging + pricing) | partiel | 0 | 0 | ~$15-25 | EN ATTENTE |
 | 1 | 5 | 3 | — | — | ~$20-30 | EN ATTENTE |
