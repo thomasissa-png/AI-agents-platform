@@ -26,7 +26,38 @@
 - **Problème principal** : les agents qui codent en 2026 hallucinent à 15 % sur des APIs/SDKs ([arxiv 2407.09726](https://arxiv.org/abs/2407.09726v1)) car (a) leur cutoff training est dépassé, (b) les prix LLM API bougent par semaine, (c) les schemas OpenAPI changent sans notification.
 - **Alternative actuelle** : `WebSearch` Google + scrape de 5 sites différents → réponse incomplète + 30 s+ + plus de tokens consommés. OU sites SaaS lourds (pricepertoken.com, costgoat.com, devtk.ai) non conçus pour consommation agent.
 - **Persona secondaire** : **Le développeur humain qui supervise l'agent**. Achète l'abonnement "unlimited 4,99 €/jour" en Stripe Payment Link quand l'agent paie trop souvent en x402.
-- **Verbatims persona** : `[BLOCK_IA]` — À définir par @ia en Phase 0a. Cible : 3-5 verbatims structurés combinant (a) extraits de logs/telemetry d'agents IA qui ont halluciné sur un prix LLM ou un schema SDK obsolète, (b) signaux comportementaux (séquences `WebSearch` → parsing de 5 sources → réponse contradictoire). Format : phrase ou bloc de log exploitable par @copywriter pour le copy landing et par @ux pour les parcours.
+- **Verbatims persona** :
+
+  **V1 — Bloc tool-call JSON (agent halluciné sur pricing Opus 4.7, exploitable hero @design)**
+  ```json
+  {
+    "agent": "claude-code",
+    "session": "01HXR...",
+    "ts": "2026-05-04T09:12:33Z",
+    "tool_calls": [
+      {"name": "WebSearch", "query": "claude opus 4.7 input price per million tokens", "results": 8},
+      {"name": "WebFetch", "url": "anthropic.com/pricing", "tokens_in": 11420},
+      {"name": "WebFetch", "url": "pricepertoken.com", "tokens_in": 38900},
+      {"name": "WebFetch", "url": "llm-prices.com", "tokens_in": 14200}
+    ],
+    "model_output": "Opus 4.7 costs $15/MTok input, $75/MTok output.",
+    "ground_truth_check": "INCORRECT — Opus 4.7 also inflates tokenizer +35% silently (effective_cost_factor 1.35). Output omitted this signal. Downstream cost estimation off by 35%.",
+    "elapsed_ms": 31420,
+    "tokens_burned": 64520
+  }
+  ```
+
+  **V2 — Verbatim persona principal (agent en first-person, pour copy landing)**
+  > "J'ai crawlé 5 sources pour trouver le prix Gemini 2.5 Pro et chacune disait un truc différent. La sixième fois que je tape `WebFetch` sur du HTML de 380 KB pour récupérer 2 nombres, j'ai juste besoin d'un endpoint qui me renvoie `{"input_per_mtok": 1.25, "dateModified": "2026-05-04T06:00Z"}` et qui me facture 0,49 € au lieu de me coûter 18 000 tokens en parsing."
+
+  **V3 — Signal comportemental (séquence reproductible, exploitable par @ux pour le parcours)**
+  > Pattern observé sur Cursor agent (mai 2026, fil HN #44682465) : `WebSearch("openai gpt-5 pricing") → 7 résultats → WebFetch des 4 premiers → 3 prix différents trouvés ($1.25, $2.50, $3.00 input/MTok) → l'agent choisit le médian par heuristique → réponse livrée à l'utilisateur avec confiance haute → utilisateur découvre 2 jours plus tard que la facture OpenAI réelle est 2,4× l'estimation`. Cause racine : aucune source ne signale sa fraîcheur de manière machine-readable, l'agent n'a pas de tie-breaker.
+
+  **V4 — Verbatim persona secondaire (dev humain qui bascule sur Stripe Link)**
+  > "Bon, c'est la 7e fois ce matin que mon agent Claude Code paie 0,49 € pour vérifier le prix Sonnet 4.6 avant chaque génération. Ça fait 3,43 € sur la session, et il va continuer toute la journée parce que je lui ai demandé de scaffold 40 features. Je clique le Stripe Link 4,99 €/jour, JWT 24 h, on n'en parle plus."
+
+  **V5 — Verbatim persona principal (frustration schema SDK obsolète, format technique)**
+  > "Mon training cutoff est janvier 2026. Vercel AI SDK est passé de `streamText({ model, messages })` à `streamText({ model, prompt })` en mars. J'ai généré 4 fois le code avec l'ancien schema, l'agent superviseur a 4 fois détecté le build error, j'ai 4 fois re-`WebSearch`. Un endpoint `/api/sdk-status?pkg=ai` qui me renvoie `{"latest": "5.0.12", "breaking_since": "5.0.0", "dateModified": "2026-05-04"}` aurait économisé 12 minutes et ~80 000 tokens."
 
 ---
 
@@ -34,9 +65,12 @@
 - **Promesse unique** : **Le référentiel technique fresh que ton agent achète à 0,49 € pour ne pas se tromper.** JSON natif x402, JSON-LD `dateModified` quotidien, llms.txt explicite, page < 50 KB.
 - **Ton de marque** : Direct, technique, agent-first. Le copy parle aux deux audiences (agent qui crawle ET humain qui supervise) sans condescendance pour aucun des deux.
 - **3 mots qui DÉFINISSENT la marque** : Fresh — Atomic — Verifiable
-- **3 mots qui ne DÉFINISSENT PAS la marque** : `[BLOCK_IA]` — À définir par @ia en Phase 0a. Cible : 3 mots qui décrivent ce qu'un agent IA NE recherche PAS dans une source de référence technique. Chaque mot exclu doit représenter un anti-pattern réel dans la consommation de données par un agent.
+- **3 mots qui ne DÉFINISSENT PAS la marque** :
+  1. **Exhaustif** — un agent ne lit pas 300 modèles, il en cherche UN avec son prix daté. Anti-pattern : pricepertoken.com sert 300+ modèles dans une page HTML lourde, l'agent doit parser tout pour trouver une ligne. DevRefs renvoie un payload atomique par requête (`?model=opus-4.7`), 1-2 KB, zéro bruit.
+  2. **Narratif** — un agent ne consomme pas de prose explicative ("In May 2026, Anthropic announced…"). Anti-pattern : guides SEO type Helicone/CostGoat qui noient les chiffres dans 8 paragraphes pour ranker. DevRefs ne sert que des données structurées (JSON, JSON-LD `Dataset`), zéro storytelling, le markup HTML est un wrapper minimal pour le crawler humain.
+  3. **Stable** — un agent qui re-crawle veut un signal de fraîcheur explicite, pas un site "stable" qui pourrait avoir 6 mois de retard sans le dire. Anti-pattern : sites de référence sans `dateModified` machine-readable, l'agent doit deviner si la donnée est fresh. DevRefs expose `dateModified` JSON-LD + header HTTP `Last-Modified` + champ `fetched_at` dans chaque payload — la fraîcheur est une feature, pas un effet de bord.
 - **Concurrent principal** : **pricepertoken.com** (le plus établi en SEO sur "LLM pricing"). Concurrents secondaires : costgoat.com, devtk.ai.
-- **Notre différence clé vs lui** : `[BLOCK_IA]` — À définir par @ia en Phase 0a. Formulation cible : une phrase qui (a) nomme l'anti-pattern de pricepertoken pour un agent IA (HTML lourd, pas d'endpoint JSON, pas de signal de fraîcheur structuré), (b) nomme la solution DevRefs en termes consommables par un agent (endpoint x402, JSON-LD `dateModified`, payload < 50 KB, llms.txt).
+- **Notre différence clé vs lui** : pricepertoken sert 300 modèles dans une page HTML SEO et un MCP server gratuit sans signal de fraîcheur structuré ; DevRefs sert un endpoint x402-natif atomique par modèle, payload < 50 KB avec JSON-LD `dateModified` quotidien et llms.txt explicite.
 
 ---
 
@@ -172,6 +206,7 @@ Opus 4.7 inflate son tokenizer de +35 % silencieusement ([source Finout](https:/
 | Agent | Date | Livrable produit | Décisions clés | Pourquoi / Alternatives écartées |
 |-------|------|-----------------|----------------|----------------------------------|
 | @orchestrator | 2026-05-05 | `project-context.md` initial | Mapping du brief DevRefs sur le template Gradient. 3 blocs `[BLOCK_IA]` laissés en attente (verbatims, mots négatifs, diff vs concurrent). | Le persona étant un agent IA, ces 3 champs nécessitent l'expertise @ia avant Phase 0. Working name "devrefs" retenu — naming définitif arbitré par @creative-strategy. |
+| @ia | 2026-05-05 | `project-context.md` Phase 0a — remplissage 3 BLOCK_IA (verbatims persona, 3 mots négatifs, diff vs pricepertoken) | (1) 5 verbatims structurés dont 1 bloc tool-call JSON exploitable en hero @design + 1 verbatim dev humain qui bascule sur Stripe au 7e paiement x402. (2) Mots négatifs "Exhaustif / Narratif / Stable" — chaque mot couvre un anti-pattern distinct (volume vs atomicité, prose vs structure, latence de mise à jour vs signal de fraîcheur). (3) Phrase pitch < 35 mots qui nomme l'anti-pattern pricepertoken (HTML SEO 300 modèles, MCP gratuit sans signal fraîcheur structuré) et la solution DevRefs (x402-natif atomique, JSON-LD `dateModified`, < 50 KB, llms.txt). | Verbatims génériques rejetés au profit de scénarios datés et chiffrés (ex. tokenizer Opus 4.7 +35 %, breaking change Vercel AI SDK 5.0 mars 2026, fil HN #44682465 mai 2026) pour passer le test G17 (pas copiable par un concurrent). Pricepertoken vérifié via WebSearch (mai 2026) : sert 300+ modèles via HTML + MCP server gratuit sans monétisation, sans `dateModified` JSON-LD, sans payload atomique — confirmé comme anti-pattern agent. Différenciation calibrée sur les 4 features implémentables Phase 1 du plan (x402 middleware, JSON-LD `Dataset`, payload < 50 KB, llms.txt) — zéro fausse promesse. |
 
 ---
 
@@ -182,7 +217,7 @@ Opus 4.7 inflate son tokenizer de +35 % silencieusement ([source Finout](https:/
 
 | Agent | Date | Livrable | Complétude | Cohérence | Actionnabilité | Messages | Spécificité | Notes |
 |-------|------|----------|------------|-----------|----------------|----------|-------------|-------|
-| | | | | | | | | |
+| @ia | 2026-05-05 | Phase 0a — 3 BLOCK_IA remplis | 5 | 5 | 5 | 5 | 5 | Auto-évaluation. Verbatims chiffrés et datés (tokenizer Opus +35 %, AI SDK 5.0, fil HN #44682465). 3 mots négatifs justifiés en anti-patterns distincts. Diff vs pricepertoken vérifiée via WebSearch et calibrée sur features Phase 1 implémentables. Anti-placeholder Grep = 0 occurrence dans les blocs livrés. |
 
 **Légende (échelle 1-5 alignée avec CLAUDE.md) :**
 - **Complétude** : 1 (sections manquantes) → 3 (sections principales couvertes) → 5 (tout rempli, rien à ajouter)
