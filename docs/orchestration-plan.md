@@ -96,6 +96,27 @@
 - **Sub-phase 5b (revue finale chirurgicale OBLIGATOIRE)** : @qa + @fullstack + @ux + @design ("Revue finale page par page (dernier kilomètre)") — audit 21 dimensions par page, correction P0+P1+P2.
 - **Sub-phase 5c (lancement)** : Checklist jour de lancement (GO/NO-GO final) + @infrastructure ("Monitoring post-launch").
 
+## Phase 0 v2 — PIVOT PURE B2A 100% AGENTS IA (Thomas 2026-05-05)
+
+**Décision fondatrice** : "100% agents IA point final, 2 offres, no-brainer chacune, rentable bien sûr".
+- Pricing repris @ia : Pack Standard $10 (10K calls) + Audit one-shot $9,99 + Subscription Pro $29/mo V2.
+- Cible 600€/mois = 66 transactions/mois (~2,2/jour) — réaliste mix Pack + Audit.
+- Stripe humain BANNI comme pilier (peut rester option marginale top-up wallet sponsor).
+- Persona principal payeur unique = agent IA. Persona secondaire = sponsor wallet (top-up only).
+
+### Phase 0 v2 wave brand+specs — `COMPLETE 2026-05-05`
+- @ia : 4 specs `docs/ia/` (1274 lignes, 5/5/5/5/5) — agent-integration + agent-economics + x402-response-spec + agent-audit-spec
+- @creative-strategy : 4 livrables `docs/strategy/` refondus + project-context (5/5/5/5/5) — promesse v2 = hero v2 = "Cost intelligence for AI agents — know before you spend, optimize after you ship"
+- Cohérence cross-v2 : 0 placeholder, pricing/hero cohérents 7 fichiers, mentions Stripe résiduelles = bannissements explicites
+
+### Phase 0 v2 wave 2 — `EN ATTENTE prochaine session`
+- @product-manager refonte v1-scope/roadmap/backlog/discovery-map/assumption-map/pricing-strategy (intégration 3e endpoint /api/agent-audit + pricing pack pré-payé)
+- @data-analyst refonte kpi-framework/tracking-plan/dashboard-specs (KPIs adaptés pricing pack + B2A pure)
+
+### Phase 0 v2 wave 3 — `EN ATTENTE session 3`
+- @legal review CGU/privacy/mentions (retirer sections Stripe humain, ajouter clause `/api/agent-audit` + garantie ROI 50% refund si savings_pct < 15% à 30j)
+- Checkpoint final V2 → lancement Phase 1 (build)
+
 ## Métriques live
 
 | Phase | Agents | Parallèles | Relances | P0 | Coût estimé | Statut |
@@ -146,3 +167,63 @@ Pour reprendre en nouvelle session :
 ```
 Lis project-context.md et docs/orchestration-plan.md, continue où on s'est arrêté.
 ```
+
+---
+
+## 📋 MEMO DE REPRISE — Prochaine session (Phase 0 v2 wave 2)
+
+**Statut au 2026-05-05 (fin session 1)** :
+- Phase 0 v1 : waves 1-3 produites (4730 lignes) — **OBSOLÈTES sur les zones impactées par le pivot v2** (cf. ci-dessous)
+- Audits triangulés @ia/@elon/@moi : 5,78/10 moyen → AJUSTER
+- **Décision fondateur 2026-05-05** : pivot 100% B2A pure agents IA, 2 offres x402, Stripe humain banni
+- Phase 0 v2 wave brand+specs : **COMPLETE** (4 specs @ia + 4 livrables strategy refondus, 5/5/5/5/5 chacun, cohérence cross-fichiers PASS)
+- Compteur producteur Tasks session 1 : 8 (cap atteint)
+- 4 P1 learnings capitalisés et propagés (Coinbase x402 DPA, TVA hybride, B2A 2 testeurs, pivot business model en cours Phase 0)
+
+**À faire en SESSION 2 (commande de reprise ci-dessus)** :
+
+### Étape 1 — Lecture de reprise (5 min)
+1. `project-context.md` (sections Promesse + Modèle économique + Cible mises à jour v2)
+2. `docs/orchestration-plan.md` (ce fichier)
+3. `docs/strategy/brand-platform.md` v2 (promesse Cost intelligence + 2 offres + sponsor wallet)
+4. `docs/ia/agent-economics.md` (pricing officiel : Pack Standard $10 + Audit $9.99)
+5. `docs/ia/agent-audit-spec.md` (3e endpoint `/api/agent-audit` à intégrer en v1-scope)
+
+### Étape 2 — Wave 2 v2 : @product-manager refonte (1 Task producteur)
+**Mission** : refondre 6 livrables produit pour intégrer le pivot.
+- `docs/product/v1-scope.md` v2 — AJOUTER 3e endpoint `/api/agent-audit` + pricing pack pré-payé en remplacement de la grille 0,49 €/query + 4,99 €/jour Stripe ; SUPPRIMER Stripe Payment Link humain comme feature pilier ; conserver Stripe en option marginale top-up wallet sponsor.
+- `docs/product/roadmap.md` v2 — RICE re-scorée avec 3e endpoint, chemin critique re-tracé (middleware x402 unifié pour 3 endpoints, pas 2).
+- `docs/product/backlog.md` v2 — user stories audit endpoint (US-16 à US-20 par exemple), V4 verbatim humain réécrit en sponsor.
+- `docs/product/discovery-map.md` v2 — opportunité O5 (auto-optimisation agent post-flight) ajoutée.
+- `docs/product/assumption-map.md` v2 — H9 ajouté (audit ROI 30-50% économies réelles validable).
+- `docs/product/pricing-strategy.md` v2 — NOUVEAU fichier : pack pré-payé x402, garantie 50% refund si savings < 15% à 30j.
+- Référence inputs : 4 specs @ia + 4 livrables @creative-strategy v2 + lessons-learned.
+
+### Étape 3 — Wave 3 v2 : @data-analyst refonte (1 Task producteur)
+**Mission** : refondre 4 livrables analytics pour pricing pack + B2A pure.
+- `docs/analytics/kpi-framework.md` v2 — KPI North Star = revenu net x402 (Stripe humain retiré formule), AARRR adapté pricing pack (events `pack_purchased`, `pack_quota_consumed`), validation persona sponsor wallet (top-up events).
+- `docs/analytics/tracking-plan.md` v2 — ajouter events `pack_*` + `audit_*`, retirer events `stripe_*` humain (sauf top-up sponsor optionnel marginal).
+- `docs/analytics/dashboard-specs.md` v2 — 4 zones recadrées (Revenue x402 / Activation funnel agent / Cohérence promesse↔réalité / Discovery Dev.to+Reddit), retirer zone humain.
+- `docs/dev-decisions.md` v2 — append section "Implémentation pricing pack" (KV quota lookup, signature x402 par pack pas par call) + "Implémentation audit endpoint" (heuristiques statiques sans IA runtime).
+
+**Compteur cible session 2** : 2 Tasks producteur (PM + DA), checkpoint utilisateur intermédiaire si nécessaire.
+
+**À faire en SESSION 3** :
+- @legal review CGU/privacy/mentions v2 (retirer sections Stripe humain pilier, ajouter clause `/api/agent-audit` + garantie ROI)
+- Checkpoint final V2 Phase 0 (présenter consolidation + GO/AJUSTER avant Phase 1)
+- Lancement Phase 1 (build) si GO : @ux + @design + @copywriter + @product-manager (specs fonctionnelles) + @qa (tests dérivés)
+
+**Risques connus à monitorer** :
+- R1 P1 — adoption x402 < 2% en 2026 = pari fondateur assumé. Mitigation : test E1 J7 binaire, packs réduisent volume nécessaire.
+- R2 P1 — Anthropic / OpenAI peut shipper Token Counting + Optimizer natif 6-12 mois. Mitigation : audit cross-provider exclusif.
+- R3 P2 — Coinbase x402 facilitator stabilité. Mitigation : code Worker portable + plan B Solana V2.
+- R4 P2 — Audit ROI sur-estimé sur agent déjà optimisé. Mitigation : garantie CGV "savings_pct < 15% à 30j → refund 50%".
+
+**Décisions verrouillées (ne pas re-débattre en session 2)** :
+- Naming DevRefs + domaine devrefs.dev
+- Pivot 100% B2A pure agents IA
+- 2 offres : Calcul coût + Audit (3 endpoints)
+- Pricing : Pack Standard $10 / Audit $9.99 / Subscription Pro $29/mo V2
+- Hero : "Cost intelligence for AI agents — know before you spend, optimize after you ship"
+- Persona principal payeur unique = agent IA / persona secondaire = sponsor wallet
+- 3e offre future V2 : Cost Regression Alerts (sticky non-commoditizable)

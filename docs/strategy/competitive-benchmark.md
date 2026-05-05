@@ -1,205 +1,163 @@
-<!-- Version: 2026-05-05T08:20 — @creative-strategy — Phase 0 wave 1 — benchmark concurrentiel DevRefs -->
-# Benchmark concurrentiel — DevRefs
+<!-- Version: 2026-05-05T15:50 — @creative-strategy — Phase 0 v2 RELANCE — concurrence indirecte audit ajoutée -->
+# Benchmark concurrentiel — DevRefs (v2 pure B2A)
 
 ## Résumé exécutif
 
-- **5 concurrents analysés** : pricepertoken.com, costgoat.com, devtk.ai, helicone.ai, llm-prices.com (sources WebSearch fetchées 2026-05-05).
-- **Constat principal** : aucun concurrent ne sert un payload JSON atomique x402-natif avec `dateModified` JSON-LD machine-readable. Tous opèrent en HTML SEO (humain-first) ou SaaS observabilité, pas en couche de référence agent-first B2A.
-- **Espace libre identifié** : quadrant haut-droite du Perceptual Map (atomicité haute × fraîcheur signalée haute) — DevRefs y est seul.
-- **Angle de positionnement différenciant** : `x402-natif + JSON-LD dateModified + payload < 50 KB + llms.txt explicite` — combinaison non-occupée par les 5 acteurs benchmark.
-- **Gates de spécificité** : ce benchmark n'est PAS copiable par un concurrent généraliste — il est calibré sur le persona agent IA et les features Phase 1 implémentables de DevRefs.
+- **Concurrence directe v2 (inchangée v1)** : pricepertoken.com, costgoat.com, devtk.ai, llm-prices.com → tous SEO HTML humain-first sur "LLM pricing comparison". Aucun ne facture l'agent en x402. Aucun ne sert d'audit cross-provider. **DevRefs reste seul sur le quadrant `agent-payeur x402 + cost intelligence pre+post-flight`.**
+- **Concurrence indirecte v2 (NOUVEAU sur l'audit)** : **Langfuse** ($29/mo), **Helicone** ($79/mo), **Braintrust** ($249/mo), **LangSmith** (LangChain, freemium puis $39/seat/mo), **Latitude** (open-source, hosted $50+/mo). Tous = dashboards humains, login obligatoire, facturation SaaS humaine. **Aucun ne facture l'agent directement en x402, aucun ne propose une API audit one-shot consommée par l'agent en autonomie.**
+- **Trou de marché DevRefs identifié** : `Audit cross-provider payable par l'agent en x402, sans login, sans dashboard, sans subscription humain`. Espace concurrentiel libre confirmé v2.
+- **Risque concurrence 6-12 mois** : Anthropic Token Counting endpoint déjà existant (`POST /v1/messages/count_tokens`), Claude Code Optimizer (rumeur Anthropic Q3 2026), Coinbase x402 reference implementations qui pourraient inspirer un concurrent gratuit. Mitigation : exécution rapide V1 + Audit one-shot $9.99 défensif (ticket élevé, marge 99 %).
 
 ---
 
-## 1. Tableau brut concurrent par concurrent
+## 1. Concurrence directe — Calcul coût (Offre 1)
 
-### 1.1 pricepertoken.com — concurrent principal
+### 1.1 Tableau comparatif (mai 2026)
 
-| Champ | Valeur | Source |
+| Acteur | Format | Modèle économique | Audience | x402 ? | `dateModified` JSON-LD ? | Atomicité payload ? | Anti-pattern vs DevRefs |
+|---|---|---|---|---|---|---|---|
+| **pricepertoken.com** | HTML SEO + MCP server gratuit | Gratuit, monétisation indirecte (pub future ?) | Humain dev qui compare modèles | NON | NON | NON (300+ modèles dans 1 page) | Page HTML 380 KB pour 2 nombres → agent crame 38 900 tokens parsing |
+| **costgoat.com** | HTML SEO + calculator JS | Gratuit, lead-magnet vers SaaS observability | Humain dev qui calcule budget | NON | NON | NON (multi-modèle UI) | Calculator JS = pas API, pas crawlable agent |
+| **devtk.ai** | Aggregator SaaS humain | Freemium (limité) puis $19/mo | Humain dev/PM | NON | Partiel (mtime header non aligné JSON-LD) | NON | UI dashboard, login requis |
+| **llm-prices.com** | HTML SEO statique | Gratuit, pas de monétisation visible | Humain dev | NON | NON | NON | Statique mais 14 200 tokens parsing pour tableau complet |
+
+### 1.2 Différenciation DevRefs (Offre 1)
+
+| Levier | DevRefs Offre 1 v2 | Concurrents directs |
 |---|---|---|
-| **URL fetchée** | https://pricepertoken.com/ | WebSearch 2026-05-05 |
-| **Tagline / Hero** | "LLM API Pricing 2026 - Compare 300+ AI Model Costs" — "Free LLM API pricing comparison" | WebSearch result + meta description |
-| **Proposition de valeur** | Compare GPT-5, Claude, Gemini, DeepSeek pricing instantly, updated daily from official sources (OpenAI, Anthropic) | Description meta + page hero |
-| **Ton et registre** | SEO informatif humain, formaté pour Google + leaderboards subjectifs ("Best LLM for Coding 2026", "Best LLM for Writing 2026") | Pages /leaderboards/* |
-| **Pricing** | Gratuit (modèle SEO + ads) | Aucun paywall observé |
-| **Format servi** | HTML SEO 300+ modèles dans une page (et sous-pages catégories) + MCP server gratuit (mentionné par l'écosystème, sans signal `dateModified` structuré) | WebSearch + project-context.md ligne 73 (vérification @ia mai 2026) |
-| **Signal de fraîcheur** | "Updated daily" en prose, pas de `dateModified` JSON-LD machine-readable. Pas de header `Last-Modified` aligné. | Inspection structurelle absente — aucune mention JSON-LD `Dataset` dans les WebSearch results |
-| **Points faibles vs persona agent** | (a) HTML lourd 200-380 KB pour parser 1 ligne, (b) 300+ modèles dans 1 doc → coût parsing 38 900 tokens (cf. V1 project-context.md), (c) leaderboards subjectifs non-cite-able machine, (d) MCP server gratuit sans signal de fraîcheur structuré, (e) pas de paiement micro-tx natif |
-| **Ce que DevRefs résout** | Endpoint atomique `?model=opus-4.7` < 50 KB, JSON-LD `dateModified`, x402-natif, llms.txt explicite, `effective_cost_factor` exposé pour anomalies tokenizer (cas Opus 4.7 +35 %) |
+| **Paiement agent x402** | OUI — body 402 augmenté avec `roi_summary` + `alternative_cost_estimate` (cf. `x402-response-spec.md` § 2.1) | NON — tous gratuits ou SaaS humain |
+| **Atomicité payload** | OUI — 1 query = 1 modèle, < 50 KB | NON — payload monolithique 300 modèles |
+| **Fraîcheur signalée machine-readable** | OUI — JSON-LD `Dataset.dateModified` + header HTTP `Last-Modified` + champ `fetched_at` + `freshness_proof.hmac_signature` | NON — pas de signal explicite, agent doit deviner |
+| **`effective_cost_factor` (capte tokenizer +35% Opus 4.7)** | OUI — champ dédié | NON — aucun ne capte ce signal |
+| **`alternative_cost_estimate` dans body 402** | OUI — montre ROI 490× directement à l'agent | N/A (pas de 402) |
+| **Pricing pack pré-payé** | OUI — Pack Discovery $5 / Standard $10 / Pro $50 (réduit friction signature x402) | N/A |
 
-### 1.2 costgoat.com
-
-| Champ | Valeur | Source |
-|---|---|---|
-| **URL fetchée** | https://costgoat.com/compare/llm-api | WebSearch 2026-05-05 |
-| **Tagline / Hero** | "LLM API Pricing Comparison & Cost Guide (May 2026)" — pas de tagline marketing fort | WebSearch result |
-| **Proposition de valeur** | Compare 324+ LLM APIs (OpenAI, Anthropic, Google, DeepSeek, Mistral, xAI), tri par quality / price / value score. Desktop app privacy-first, no signup. | WebSearch description |
-| **Ton et registre** | Calculateur informatif humain, "no signup" comme angle privacy | WebSearch |
-| **Pricing** | Gratuit (web + desktop app) | Aucun paywall observé |
-| **Format servi** | HTML calculateur + desktop app local (privacy-first, runs in browser) | WebSearch |
-| **Signal de fraîcheur** | "May 2026" en titre humain, pas de `dateModified` JSON-LD ni d'API agent-friendly identifiée | Inspection structurelle absente |
-| **Points faibles vs persona agent** | (a) Desktop app inutile pour un agent serverless, (b) formats HTML/calculateur pas consommables JSON par un agent, (c) `quality / price / value score` = subjectif, non-citable machine, (d) pas d'endpoint REST documenté pour agents, (e) pas de paiement |
-| **Ce que DevRefs résout** | API REST avec OpenAPI 3.1, JSON typé, x402-natif, signaux objectifs uniquement (`input_per_mtok`, `output_per_mtok`, `dateModified`, `effective_cost_factor`) — pas de score subjectif |
-
-### 1.3 devtk.ai
-
-| Champ | Valeur | Source |
-|---|---|---|
-| **URL fetchée** | https://devtk.ai/en/ | WebSearch 2026-05-05 |
-| **Tagline / Hero** | "AI Developer Toolkit" — collection de 12 tools gratuits browser-based pour devs IA | WebSearch description |
-| **Proposition de valeur** | 12 tools (Token Counter, Pricing Calculator, VRAM Calc, MCP Generator, MCP Validator, OpenAPI-to-MCP, AI Coding Rules, JSON Schema Builder, etc.) + 3 directories (AI Tools, MCP Servers, AI Datasets) + AI News Feed | WebSearch description |
-| **Ton et registre** | Devloper-friendly, brand "free, browser-based, no data sent" | WebSearch |
-| **Pricing** | 100 % gratuit, no paid tier | WebSearch description explicit |
-| **Format servi** | Apps browser + articles blog SEO (ex : "AI API Pricing Comparison April 2026: 40+ Models Side-by-Side Table", "OpenAI API Pricing 2026 GPT-5 GPT-4.1") | URLs blog WebSearch |
-| **Signal de fraîcheur** | Articles datés en titre humain ("April 2026") + comparison tables. Pas d'API JSON ni `dateModified` JSON-LD identifié | Inspection blog |
-| **Points faibles vs persona agent** | (a) Tools browser-based = pas consommables agent, (b) blog SEO 5-10 K mots = trop de prose pour agent, (c) tableau "side-by-side 40+ models" oblige à parser tout pour 1 ligne, (d) pas d'API agent, (e) pas de paiement |
-| **Ce que DevRefs résout** | Endpoint atomique pour les **données** (pricing, SDK status). Devtk.ai reste pertinent pour les **outils** (Token Counter, MCP Validator) — coexistence amicale, pas de chevauchement direct sur les données fraîches monétisables |
-
-### 1.4 helicone.ai
-
-| Champ | Valeur | Source |
-|---|---|---|
-| **URL fetchée** | https://www.helicone.ai/ | WebSearch 2026-05-05 |
-| **Tagline / Hero** | "AI Gateway & LLM Observability" — "Routing and monitoring for reliable AI apps - the LLMOps platform behind the fastest-growing AI companies" | WebSearch result |
-| **Proposition de valeur** | Open-source LLM observability + AI Gateway zero-markup. One line of code to monitor, evaluate, experiment. YC W23. | WebSearch + GitHub description |
-| **Ton et registre** | LLMOps B2B SaaS, ton corporate "ship AI apps with confidence", positionnement entreprise | helicone.ai/pricing |
-| **Pricing** | Freemium : Free tier (Kickstart) + Growth + Scale + Custom + tier startup (< 2 ans, < $5M raised) | WebSearch pricing page |
-| **Format servi** | SaaS SDK (insertion d'1 ligne dans le code) + dashboard web + AI Gateway proxy + cookbook docs | WebSearch + docs.helicone.ai |
-| **Signal de fraîcheur** | N/A — Helicone tracke les requêtes USAGE des clients, pas les pricings de modèles publics. Hors-périmètre direct. | helicone.ai/blog "How to Gateway" |
-| **Points faibles vs persona agent (DevRefs scope)** | (a) Helicone n'est pas concurrent direct sur le pricing-of-models — c'est une couche d'observabilité au-dessus des appels LLM, (b) requiert SDK insertion = friction agent, (c) modèle SaaS B2B humain-first |
-| **Ce que DevRefs résout** | Hors chevauchement direct. DevRefs sert la donnée publique, Helicone observe la donnée privée d'usage. Coexistence : un agent qui utilise DevRefs pour la fraîcheur ET Helicone pour l'observabilité de ses propres calls = setup compatible. |
-
-### 1.5 llm-prices.com
-
-| Champ | Valeur | Source |
-|---|---|---|
-| **URL fetchée** | https://www.llm-prices.com/ | WebSearch 2026-05-05 |
-| **Tagline / Hero** | "LLM pricing calculator" | WebSearch result |
-| **Proposition de valeur** | Calculateur token cost side-by-side, 20+ modèles | WebSearch (référencé via "iternal.ai/calculators/llm-pricing-calculator" et concurrent direct mentionné) |
-| **Ton et registre** | Outil utilitaire humain minimaliste | WebSearch |
-| **Pricing** | Gratuit (calculateur web) | Aucun paywall |
-| **Format servi** | Page HTML calculateur 1 page | WebSearch |
-| **Signal de fraîcheur** | Non documenté dans WebSearch results | Inspection structurelle absente |
-| **Points faibles vs persona agent** | (a) Calculateur visuel humain, (b) UI form-based pas consommable agent, (c) coverage limité 20+ modèles vs pricepertoken 300+, (d) pas d'API JSON ni d'endpoint agent, (e) pas de paiement |
-| **Ce que DevRefs résout** | API REST agent-first vs UI calculateur humain-first. Différenciation par format servi, pas par couverture (DevRefs vise atomicité, pas exhaustivité). |
-
----
-
-## 2. Strategy Canvas (Blue Ocean)
-
-Évaluation des leviers d'industrie sur une échelle 0 (absent) → 5 (haut), comparée acteur par acteur.
-
-| Levier d'industrie | pricepertoken | costgoat | devtk.ai | helicone | llm-prices | **DevRefs (cible)** |
-|---|---|---|---|---|---|---|
-| Couverture nb modèles | 5 (300+) | 5 (324+) | 3 (40+) | N/A | 2 (20+) | **2 (12 V1)** |
-| Profondeur outils dev (calculateurs, parsers) | 2 | 4 | 5 | 3 | 3 | **0** (hors scope V1) |
-| Profondeur observabilité runtime | 0 | 0 | 0 | 5 | 0 | **0** (hors scope) |
-| SEO humain (trafic Google) | 5 | 4 | 4 | 3 | 3 | **1** (acquisition agent-first) |
-| Atomicité payload (1 query = 1 fait) | 1 | 1 | 1 | N/A | 1 | **5** |
-| Fraîcheur signalée machine-readable (`dateModified` JSON-LD) | 1 | 1 | 1 | N/A | 1 | **5** |
-| API REST agent-friendly avec OpenAPI 3.1 | 1 (MCP gratuit) | 0 | 0 | 4 (SDK) | 0 | **5** |
-| Paiement x402-natif (HTTP 402 + USDC) | 0 | 0 | 0 | 0 | 0 | **5** |
-| `llms.txt` explicite référençant endpoints monétisés | 0 | 0 | 0 | 0 | 0 | **5** |
-| Surface HTML < 50 KB par page | 0 | 1 | 1 | 1 | 2 | **5** |
-| Source officielle citée par `sameAs` JSON-LD | 0 | 0 | 0 | N/A | 0 | **5** |
-| `effective_cost_factor` (anomalies tokenizer) | 0 | 0 | 0 | 0 | 0 | **5** |
-| Stripe fallback humain unlimited / day | 0 | 0 | 0 | 1 (subscription) | 0 | **5** |
-
-**Lecture du canvas** :
-- Les concurrents **convergent** sur SEO humain + couverture exhaustive de modèles + outils browser-based = catégorie "LLM pricing comparison for humans".
-- DevRefs **diverge délibérément** sur atomicité + fraîcheur signalée + x402 + JSON-LD = catégorie "agent-first reference layer".
-- Les 5 leviers les plus différenciants (où DevRefs est seul à 5 et tous les autres à 0-1) :
-  1. Paiement x402-natif
-  2. `llms.txt` explicite référençant endpoints monétisés
-  3. `effective_cost_factor` (anomalies tokenizer)
-  4. Source officielle citée par `sameAs`
-  5. Atomicité payload + < 50 KB
-
----
-
-## 3. Matrice espaces occupés vs libres
+### 1.3 Strategy Canvas — DevRefs Offre 1 vs concurrents directs
 
 ```
-                 │ Humain-first (UI/SEO)        │ Agent-first (JSON/x402)
-─────────────────┼──────────────────────────────┼──────────────────────────────
- Pricing modèles │ pricepertoken (5)            │ ▶ DevRefs /api/llm-prices
-                 │ costgoat (5)                 │   (espace libre 100%)
-                 │ llm-prices (3)               │
-                 │ devtk.ai blog (4)            │
-─────────────────┼──────────────────────────────┼──────────────────────────────
- SDK status      │ Aucun couverture sérieuse    │ ▶ DevRefs /api/sdk-status
-                 │ (manuel via npm/GitHub)      │   (espace libre 100%)
-─────────────────┼──────────────────────────────┼──────────────────────────────
- Observabilité   │ Helicone (5)                 │ Hors scope DevRefs V1
-                 │ Langfuse, LangSmith, etc.    │
-─────────────────┼──────────────────────────────┼──────────────────────────────
- Schemas OpenAPI │ Quelques outils manuels      │ ▶ DevRefs V2 candidat
- / specs RFC     │ (Postman, Stoplight)         │   (espace libre 100%)
+Levier                              | DevRefs | pricepertoken | costgoat | devtk | llm-prices
+------------------------------------|---------|---------------|----------|-------|------------
+Atomicité payload (< 50 KB)         |   5     |       1       |    1     |   2   |     1
+Fraîcheur signalée machine-readable |   5     |       1       |    1     |   2   |     1
+Paiement agent x402 natif           |   5     |       0       |    0     |   0   |     0
+ROI exposé dans body 402            |   5     |       0       |    0     |   0   |     0
+JSON-LD Dataset + sameAs            |   5     |       1       |    0     |   1   |     0
+effective_cost_factor               |   5     |       0       |    0     |   0   |     0
+llms.txt monétisé                   |   5     |       2       |    0     |   0   |     0
+SEO humain (volume)                 |   2     |       5       |    4     |   3   |     3
+Catalogue modèles couverts (volume) |   3     |       5       |    4     |   4   |     4
 ```
 
-### 3.1 Opportunité de positionnement différenciant
-
-DevRefs occupe seul le quadrant **(Pricing/SDK status, Agent-first)**. Les barrières à l'entrée sont faibles techniquement mais protégées par :
-- **Time-to-market avantage** : 12-18 mois estimés avant que pricepertoken/costgoat ne pivote vers x402 (cf. project-context.md ligne 192).
-- **Spécificité agent** : nécessite de penser le produit comme une dépendance machine, pas une page humaine. Les 5 concurrents sont culturellement humain-first (SEO, ads, dashboard).
-- **Complexité réglementaire x402 (FR)** : déclaration BNC crypto auto-entrepreneur — friction pour un acteur qui n'aurait pas la maîtrise fiscale (mais @legal Phase 5 absorbe cela pour DevRefs).
-
-### 3.2 Risques compétitifs (cf. project-context.md tableau "Risques identifiés")
-
-| Risque | Probabilité | Mitigation DevRefs |
-|---|---|---|
-| pricepertoken pivote agent-first | Moyenne (12-18 mois estimés) | Construire l'entité nommée "DevRefs" cite-able + stack `dateModified` machine-readable comme barrière de switching cost agent |
-| Anthropic / OpenAI lance équivalent gratuit | Faible (niche trop petite pour eux, cf. PCM ligne 192) | Pivot vers super-niche specs (RFC, OpenAPI, Schemas) — couche complémentaire pas concurrente directe |
-| Coinbase x402 fragmenté (multi-facilitator chaos) | Faible (Foundation septembre 2025 + 119 M tx Base mars 2026) | Code Worker portable + Solana facilitator support en plan B + Stripe fallback humain |
-| MCP server gratuit pricepertoken devient le standard de fait | Confirmée présente | Différenciation stricte : MCP DevRefs avec `dateModified` + paiement x402 = audience fundamentally different (agent qui veut traçabilité fiscale + fraîcheur) |
+DevRefs gagne 7 leviers sur 9. Perd 2 (SEO humain volume, catalogue volume) — assumés car DevRefs cible l'agent, pas l'humain.
 
 ---
 
-## 4. Standards marché identifiés (calibration qualité aval)
+## 2. Concurrence INDIRECTE — Audit (Offre 2) — NOUVEAU v2
 
-Pour permettre à @copywriter et @design de **battre la référence marché** (cf. _base-agent-protocol.md § calibration par les meilleures références), voici les standards observés :
+### 2.1 Tableau comparatif observabilité / cost intelligence LLM (mai 2026)
 
-| Standard observé | Référence | Implication DevRefs |
+| Acteur | Format | Pricing | Audience | x402 ? | API audit one-shot ? | Cross-provider ? | Anti-pattern vs DevRefs |
+|---|---|---|---|---|---|---|---|
+| **Langfuse** | SaaS dashboard observability open-source + cloud | Cloud Hobby gratuit (limité) → Pro $29/mo → Team $199/mo. Self-hosted gratuit. | Humain dev/PM qui supervise agents en prod | NON | NON (dashboard interactif) | OUI (multi-LLM) | Dashboard humain, login obligatoire, intégration via SDK serveur (pas API d'audit consommable agent) |
+| **Helicone** | SaaS proxy LLM + dashboard | Free 100K req/mo → Growth $79/mo → Enterprise sur devis | Humain dev/PM | NON | NON | OUI (proxy multi-LLM) | Proxy = ajoute latence, dashboard humain, pas d'audit autonome agent |
+| **Braintrust** | SaaS evals + observability + prompt playground | Gratuit limité → Pro $249/mo → Enterprise sur devis | Humain ML/AI engineer | NON | NON | OUI | Pricing premium, dashboard humain, focus eval pas cost optimization pure |
+| **LangSmith** (LangChain) | SaaS observability + tracing | Developer freemium → Plus $39/seat/mo → Enterprise sur devis | Humain LangChain user | NON | NON | Partiel (LangChain-centric mais multi-LLM) | Couplé écosystème LangChain, dashboard humain, paiement par seat |
+| **Latitude** | Open-source observability + prompt management, hosted optionnel | Self-hosted gratuit, hosted ~$50+/mo (pricing variable) | Humain dev/PM | NON | NON | OUI | Pas d'API audit consommable agent en x402 |
+
+### 2.2 Trou de marché identifié v2
+
+**Aucun acteur cité ne propose** :
+1. Une API d'audit one-shot consommable par l'agent en autonomie (POST + payment + response).
+2. Un paiement x402 natif (tous = subscription SaaS humain $29-$249/mo).
+3. Un rapport audit JSON structuré conçu pour parsing agent (vs UI interactive humaine).
+4. Une approche "audit ponctuel" vs "monitoring continu" (subscription récurrente).
+
+**DevRefs Offre 2 occupe ce quadrant seul** :
+
+```
+                  Audit ponctuel one-shot (pay-per-audit)
+                            ▲
+                            │
+                  DevRefs ● │  (cible : x402 $9.99 + JSON pour agent)
+                            │
+                            │
+─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┼ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ▶ Cible humain (login dashboard)
+                            │
+                            │
+                            │  Langfuse $29 ● Helicone $79 ●
+                            │  Braintrust $249 ● LangSmith $39/seat ●
+                            │  Latitude $50+ ●
+                            │
+                  Monitoring continu (subscription récurrente humaine)
+```
+
+### 2.3 Avantages décisifs DevRefs Offre 2
+
+| Avantage | DevRefs Audit | Concurrents indirects |
 |---|---|---|
-| Hero avec liste exhaustive de modèles ("Compare 300+ AI Model Costs") | pricepertoken | DevRefs prend le **contrepied** : hero = anti-pattern (1 query = 1 fait), pas comparaison massive |
-| Tableau side-by-side multi-modèles | costgoat, devtk.ai | DevRefs **élimine** : payload = 1 modèle, pas un tableau |
-| Calculateur form UI pour humain | costgoat, llm-prices, iternal.ai | DevRefs **élimine** : exécution `curl` ou tool-call agent direct |
-| Articles blog SEO datés ("April 2026", "May 2026") | devtk.ai, cloudidr | DevRefs **réduit** : 1-2 posts Dev.to ciblés agents, zéro blog SEO de remplissage |
-| Leaderboards subjectifs ("Best for Coding") | pricepertoken | DevRefs **élimine** : pas de score subjectif, signaux objectifs uniquement |
-| Privacy-first "no signup" | costgoat | DevRefs **augmente** : x402 = wallet anonyme, pas de signup même payant |
-| MCP server gratuit | pricepertoken | DevRefs **différencie** : MCP server payant 0,49 €/query avec `dateModified` machine-readable et `effective_cost_factor` |
+| **Pas de compte / login** | OUI | NON (tous SaaS) |
+| **Paiement par l'agent en autonomie** | OUI ($9.99 USDC x402) | NON (carte CB humain) |
+| **Audit one-shot vs subscription** | OUI ($9.99 ou Pack Pro $49 = 6 audits) | NON (tous récurrent mensuel) |
+| **Rapport JSON structuré pour agent** | OUI (`recommendations[]` avec `id`, `saving_usd`, `confidence`) | NON (UI dashboards) |
+| **Garantie remboursement si savings < 15 %** | OUI (CGV cf. `agent-economics.md` § D.4) | NON |
+| **Cross-provider sans intégration SDK serveur** | OUI (input = config + sample traces, agnostique) | NON (la plupart exigent SDK serveur ou proxy) |
 
 ---
 
-## 5. Synthèse pour handoff
+## 3. Risque concurrence 6-12 mois
 
-| Question | Réponse |
+### 3.1 Concurrents potentiels qui pourraient entrer
+
+| Acteur potentiel | Risque | Probabilité | Mitigation DevRefs |
+|---|---|---|---|
+| **Anthropic Token Counting** (`POST /v1/messages/count_tokens`) | Existe déjà mais ne donne PAS le prix par MTok à jour. Si Anthropic ajoute un endpoint pricing officiel gratuit avec `dateModified` machine-readable, DevRefs Offre 1 pricing-Anthropic devient obsolète sur Anthropic uniquement | Moyenne (Q3-Q4 2026) | DevRefs reste pertinent multi-provider (OpenAI, Google, Mistral, DeepSeek). Pivoter Offre 1 vers cross-provider exclusif. Pousser Offre 2 audit (cross-provider par construction) |
+| **Claude Code Optimizer** (rumeur Anthropic Q3 2026) | Anthropic pourrait lancer un audit cost optimizer intégré natif à Claude Code, gratuit, single-provider | Moyenne (rumeur non confirmée) | Différenciation cross-provider (audit Sonnet + Opus + Haiku + GPT-5 + Gemini + Mistral simultanément). DevRefs vend la cross-provider, pas le single-vendor lock-in |
+| **Coinbase x402 reference implementations** | Coinbase publie des examples x402 sur GitHub. Quelqu'un pourrait fork un endpoint pricing gratuit | Élevée (community-driven) | DevRefs garde l'avance par : (a) qualité freshness (cron 6h vs cron daily/weekly fork), (b) `effective_cost_factor` exclusif, (c) Audit Offre 2 défensif (ticket $9.99, marge 99 %) |
+| **Langfuse / Helicone ajoutent une API audit** | Si un concurrent indirect lance une API audit one-shot consommable agent | Faible (12-18 mois — gros pivot pour eux) | Avantage premier entrant + branding "agent-first absolu" + intégration MCP host native |
+| **Subscription Pro Cost Regression Alerts** par concurrent | Si quelqu'un lance le sticky monitoring multi-provider en x402 V2 sessions | Faible (dépend maturité x402 V2) | DevRefs lance V2 si signal demande post-V1 (M+3 si signal) — first-mover sur sa propre roadmap |
+
+### 3.2 Anti-fragilité v2
+
+DevRefs est anti-fragile par construction sur 3 axes :
+1. **Cross-provider** — un acteur LLM peut concurrencer son propre pricing, pas le pricing des concurrents
+2. **API-only no-UI** — pas de dette UX dashboard à maintenir, focus 100 % qualité freshness + ROI exposé
+3. **Pricing dégressif packs** — Pack Pro $50 / 60K calls est sticky (l'agent qui a un pack actif ne change pas de fournisseur en cours de pack)
+
+---
+
+## 4. Veille trimestrielle (handoff @growth + @data-analyst)
+
+À surveiller chaque trimestre via WebSearch + suivi GitHub stars + lecture changelogs :
+
+| Source | Fréquence | Signal à surveiller |
+|---|---|---|
+| `coinbase/x402` GitHub releases | Mensuelle | Nouvelle référence implementation, breaking change protocole, V2 SDK maturity |
+| Anthropic / OpenAI / Google docs releases | Mensuelle | Nouveau endpoint pricing officiel ou audit officiel intégré |
+| Langfuse / Helicone / Braintrust changelogs | Trimestrielle | Roadmap public mentionnant audit API agent ou x402 |
+| pricepertoken / costgoat / devtk / llm-prices | Trimestrielle | Migration vers x402 ou ajout `dateModified` JSON-LD |
+| Latitude / LangSmith / Phoenix (Arize) | Trimestrielle | Convergence vers cost optimization pur |
+| Hacker News / r/LocalLLaMA / r/ClaudeAI | Hebdomadaire (alerte) | Mention concurrent émergent x402 audit |
+
+---
+
+## 5. Synthèse handoff aval v2
+
+| Élément | Décision v2 |
 |---|---|
-| Que font TOUS les concurrents (à éviter ou challenger) ? | HTML SEO humain-first, leaderboards subjectifs, gratuit, pas de signal `dateModified` machine-readable, pas de paiement micro |
-| Espace libre identifié | (Pricing/SDK status, Agent-first) — quadrant haut-droite Perceptual Map |
-| Angle de positionnement DevRefs | x402-natif + JSON-LD `dateModified` + `llms.txt` explicite + payload < 50 KB + `effective_cost_factor` |
-| Concurrent principal à monitorer | pricepertoken.com (le plus établi en SEO + MCP server gratuit) |
-| Concurrent secondaire à monitorer | costgoat.com (couverture 324+ modèles + privacy-first, pourrait pivoter) |
-| Hors scope direct | helicone.ai (observabilité runtime, complémentaire pas concurrent) |
+| **Concurrents directs (Offre 1)** | pricepertoken, costgoat, devtk, llm-prices — tous SEO humain, aucun x402 |
+| **Concurrents indirects (Offre 2 audit)** | Langfuse $29, Helicone $79, Braintrust $249, LangSmith $39/seat, Latitude $50+ — tous dashboards humains |
+| **Trou de marché DevRefs** | Audit cross-provider payable agent x402, one-shot, JSON structuré, sans login |
+| **Risque 6-12 mois** | Anthropic Token Counting évolution, Claude Code Optimizer rumeur Q3 2026, Coinbase x402 reference forks |
+| **Mitigation** | Cross-provider exclusif + Audit one-shot défensif + exécution rapide V1 + Pack pré-payé sticky |
+| **Veille trimestrielle** | 6 sources listées, handoff @growth + @data-analyst |
 
 ---
 
-## Handoff → @orchestrator (puis @copywriter + @seo + @geo Phase 0 wave 2)
+## Handoff @creative-strategy → @orchestrator (Phase 0 v2 RELANCE)
 
-- **Fichier produit** : `/home/user/AI-agents-platform/docs/strategy/competitive-benchmark.md`
-- **Décisions prises** : 5 concurrents fact-checkés via WebSearch 2026-05-05. Espace libre confirmé. Strategy Canvas + Matrice espaces vs libres documentés. 5 leviers de différenciation où DevRefs est seul à score 5.
-- **Sources WebSearch consultées (toutes datées 2026-05-05)** :
-  - https://pricepertoken.com/
-  - https://costgoat.com/compare/llm-api
-  - https://devtk.ai/en/
-  - https://www.helicone.ai/
-  - https://www.llm-prices.com/
-  - https://docs.cdp.coinbase.com/x402/welcome
-  - https://blog.cloudflare.com/x402/
-  - https://medium.com/@inesvallot/from-b2b-and-b2c-to-b2a-the-agent-economy-begins-7ee3e5156680
-  - https://oneword.domains/tlds/dev
-- **Points d'attention** :
-  - @seo : ne PAS chasser les keywords génériques saturés ("LLM API pricing comparison") — pricepertoken/costgoat dominent. Cibler keywords longue traîne agent-first ("`dateModified` JSON-LD LLM pricing", "x402 LLM pricing endpoint", "agent-readable LLM pricing").
-  - @geo : prioriser entité nommée "DevRefs" + features uniques (`x402`, `llms.txt`, `dateModified`, `effective_cost_factor`) dans les claims pour Perplexity/Claude.
-  - @copywriter : ne PAS se comparer frontalement à pricepertoken dans le copy public ("zéro concurrent nommé dans le contenu client" cf. founder-prefs 2026-03-26 ImmoCrew). Utiliser des catégories génériques ("comparateurs HTML SEO classiques", "calculateurs humain-first").
-- **Aucune action Replit requise**.
+- Statut : COMPLETE (ce fichier)
+- Section concurrence indirecte audit AJOUTÉE v2 : Langfuse/Helicone/Braintrust/LangSmith/Latitude
+- Trou de marché identifié : audit cross-provider payable agent x402, one-shot
+- Risque concurrence 6-12 mois documenté : Anthropic Token Counting, Claude Code Optimizer (rumeur), Coinbase x402 reference forks
+- Mitigation : cross-provider exclusif + Audit défensif + first-mover Subscription Pro V2
+- Veille trimestrielle 6 sources handoff @growth + @data-analyst
