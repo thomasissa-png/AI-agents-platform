@@ -101,7 +101,7 @@ Après paiement réussi, un JWT signé HMAC valable 24 heures est généré et l
 | Éditeur au-dessus seuil + Acheteur B2C UE | TVA française collectée et reversée via OSS. |
 | Éditeur au-dessus seuil + Acheteur hors UE | Pas de TVA française. |
 
-Une facture est émise automatiquement par Stripe pour les paiements Stripe (téléchargeable sur le dashboard Stripe customer). Pour les paiements x402, un reçu numérique horodaté est disponible sur demande à `legal@devrefs.io` avec mention du tx hash blockchain.
+Une facture est émise automatiquement par Stripe pour les paiements Stripe (téléchargeable sur le dashboard Stripe customer). Pour les paiements x402, un reçu numérique horodaté est disponible sur demande à `legal@devrefs.dev` avec mention du tx hash blockchain.
 
 ### 4.5 Remboursement et droit de rétractation
 
@@ -111,7 +111,7 @@ Une facture est émise automatiquement par Stripe pour les paiements Stripe (té
 
 Aucun remboursement n'est dû pour les requêtes x402 (prestation exécutée instantanément, payload livré).
 
-Pour les abonnements journaliers Stripe, un remboursement intégral peut être demandé à `legal@devrefs.io` si et seulement si le Service a été indisponible pendant plus de 4 heures cumulées sur la durée des 24 heures du JWT (cf. SLA article 5).
+Pour les abonnements journaliers Stripe, un remboursement intégral peut être demandé à `legal@devrefs.dev` si et seulement si le Service a été indisponible pendant plus de 4 heures cumulées sur la durée des 24 heures du JWT (cf. SLA article 5).
 
 #### Acheteurs B2C (consommateur personne physique non professionnel)
 
@@ -135,7 +135,7 @@ L'Éditeur s'engage sur la **fraîcheur structurée** des payloads :
 - `/api/llm-prices` : `dateModified` < 6 heures (cron de scraping toutes les 6 heures).
 - `/api/sdk-status` : `dateModified` < 24 heures (cron quotidien).
 
-En cas de dépassement de fraîcheur (> 48 heures pour LLM pricing, > 7 jours pour SDK status), un crédit transactionnel automatique est porté au compte du wallet ou JWT concerné, à hauteur du montant payé.
+En cas de dépassement de fraîcheur (> 48 heures pour LLM pricing, > 7 jours pour SDK status), l'Acheteur peut signaler l'incident à `legal@devrefs.dev` ; le bénéfice du SLA d'indisponibilité (article 5.1) s'applique alors aux abonnements Stripe concernés. Aucun mécanisme de crédit automatique sur paiement x402 n'est implémenté en V1 (dispositif candidat V2 sous réserve de volume de signalements).
 
 ### 5.3 Latence
 
@@ -309,7 +309,7 @@ Le fait pour l'Éditeur de ne pas se prévaloir d'une clause ne vaut pas renonci
 
 ### 12.4 Contact
 
-Toute question ou réclamation : `legal@devrefs.io` (adresse à activer après acquisition du domaine définitif post-naming @creative-strategy).
+Toute question ou réclamation : `legal@devrefs.dev` (adresse à activer après acquisition du domaine définitif post-naming @creative-strategy).
 
 ---
 

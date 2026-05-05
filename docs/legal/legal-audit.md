@@ -13,7 +13,7 @@
 1. **Risque P0 — Fiscalité crypto BNC** : revenus x402 USDC = prestation de service en crypto, déclaration BNC obligatoire. Plafond micro-entreprise 2026 = 83 600 €/an, largement OK pour cible 600 €/mois. Cotisations sociales BNC autres prestations = 25,6 % au 1er janvier 2026. **Action obligatoire** : immatriculation auto-entreprise avant 1ère transaction commerciale, ou avant dépassement seuil 200 € si activité considérée occasionnelle (à trancher avec comptable).
 2. **Risque P0 — TVA internationale** : DevRefs vend international en B2B (agents IA = entités juridiques de leurs propriétaires) et B2C (devs humains via Stripe). Si auto-entreprise sous seuil franchise (37 500 € prestations services), mention "TVA non applicable, art. 293 B du CGI" obligatoire sur factures et CGV. Au-dessus du seuil : OSS B2C UE + reverse charge B2B UE + hors UE pas de TVA. **Stripe Tax automatise** la collecte si activé ; **Coinbase x402 facilitator ne gère PAS la TVA** — déclaration manuelle.
 3. **Risque P1 — Privacy x402 metadata** : le protocole x402 transporte 3 champs metadata en clair (`resource_url`, `description`, `reason`) vers le facilitator Coinbase avant settlement on-chain. **Action** : documenter dans Privacy Policy que ces champs ne contiennent JAMAIS de PII côté DevRefs (uniquement nom endpoint + ref technique anonyme).
-4. **Risque P1 — Scraping pricing pages LLM** : Anthropic/OpenAI/Google/Mistral pricing pages = pages publiques, mais TOS et robots.txt à respecter strictement. npm = OK (5M req/mois acceptable, 1 req/s pour crawlers expérimentaux). GitHub releases = OK via API authentifiée. **Action** : implémenter respect robots.txt + cache 6h+ + User-Agent identifié `DevRefs-Bot/1.0 (+https://devrefs.io/bot)`.
+4. **Risque P1 — Scraping pricing pages LLM** : Anthropic/OpenAI/Google/Mistral pricing pages = pages publiques, mais TOS et robots.txt à respecter strictement. npm = OK (5M req/mois acceptable, 1 req/s pour crawlers expérimentaux). GitHub releases = OK via API authentifiée. **Action** : implémenter respect robots.txt + cache 6h+ + User-Agent identifié `DevRefs-Bot/1.0 (+https://devrefs.dev/bot)`.
 5. **Risque P2 — EU AI Act** : DevRefs est HORS scope EU AI Act (pas de système IA en runtime, pas de génération, pas de classification). Mais consommé PAR systèmes IA → fournir documentation provenance/fraîcheur (best practice non obligatoire, valeur commerciale).
 
 **Verdict global : GO CONDITIONNEL** — sous réserve de (a) immatriculation auto-entreprise BNC avant 1ère transaction, (b) activation Stripe Tax pour TVA auto, (c) confirmation par comptable du traitement BNC sur prestation IA-to-IA payée en stablecoin (HYPOTHÈSE : assimilable à prestation de service crypto classique).
@@ -62,7 +62,7 @@ Vu la quasi-absence de PII côté DevRefs, la procédure droits utilisateurs est
 
 | Droit | Procédure DevRefs |
 |---|---|
-| Droit d'accès (art. 15) | Email à `dpo@devrefs.io` (ou `legal@devrefs.io`). Réponse < 1 mois. Données disponibles : aucune côté wallet x402 (pseudonyme). Côté Stripe customer : customer_id, dates de paiement. |
+| Droit d'accès (art. 15) | Email à `dpo@devrefs.dev` (ou `legal@devrefs.dev`). Réponse < 1 mois. Données disponibles : aucune côté wallet x402 (pseudonyme). Côté Stripe customer : customer_id, dates de paiement. |
 | Droit de rectification (art. 16) | Sans objet — pas de profil utilisateur stocké côté DevRefs |
 | Droit à l'effacement (art. 17) | Email pour suppression du customer_id Stripe + JWT actif. Conservation comptable 10 ans pour transactions facturées (obligation légale = exception art. 17(3)(b)) |
 | Droit à la portabilité (art. 20) | Sans objet — pas de profil utilisateur portable |
@@ -202,7 +202,7 @@ APE : 6201Z (Programmation informatique) ou 6311Z (Traitement de données, hébe
 TVA : non applicable, art. 293 B du CGI
 Directeur de la publication : [Nom du fondateur]
 Hébergeur : Cloudflare Inc., 101 Townsend St, San Francisco, CA 94107, USA
-Contact : legal@devrefs.io (ou domaine définitif après naming @creative-strategy)
+Contact : legal@devrefs.dev (ou domaine définitif après naming @creative-strategy)
 ```
 
 **HYPOTHÈSE** : ces champs (raison sociale, SIREN, adresse) seront fournis par Thomas après immatriculation INPI. Ils ne constituent pas des placeholders à éliminer mais des champs à fournir au moment de la mise en ligne.
@@ -273,7 +273,7 @@ Cible primaire = agent IA crawler. Cible secondaire = dev humain. WCAG 2.2 AA re
 |---|---|---|---|
 | **npm registry** (registry.npmjs.org) | ✓ AUTORISÉ. Crawler policy npm explicite : 1 req/s pour crawlers expérimentaux, 5M req/mois acceptable. CouchDB replication recommandée pour gros volumes. Source : https://docs.npmjs.com/policies/crawlers/ | API REST `https://registry.npmjs.org/{package}` ou replication CouchDB. User-Agent identifié obligatoire. | 1 req/s + cache KV 24h |
 | **GitHub releases publiques** (api.github.com) | ✓ AUTORISÉ via API. Rate-limit officiel : 5 000 req/h authentifié (PAT), 60 req/h anonyme. Source : GitHub REST API docs. | API REST `/repos/{owner}/{repo}/releases` avec PAT GitHub | 5 000 req/h max, cache KV 6h |
-| **Anthropic pricing** (anthropic.com/pricing) | ✓ PAGE PUBLIQUE. Robots.txt anthropic.com autorise crawl pages publiques. Pas d'API officielle pricing JSON. **Action** : vérifier robots.txt à chaque cron via WebFetch + respecter delay 5s entre requêtes. | Fetch HTML + parser regex stable. User-Agent : `DevRefs-Bot/1.0 (+https://devrefs.io/bot)` | 1 req/6h (cron) |
+| **Anthropic pricing** (anthropic.com/pricing) | ✓ PAGE PUBLIQUE. Robots.txt anthropic.com autorise crawl pages publiques. Pas d'API officielle pricing JSON. **Action** : vérifier robots.txt à chaque cron via WebFetch + respecter delay 5s entre requêtes. | Fetch HTML + parser regex stable. User-Agent : `DevRefs-Bot/1.0 (+https://devrefs.dev/bot)` | 1 req/6h (cron) |
 | **OpenAI pricing** (openai.com/api/pricing) | ✓ PAGE PUBLIQUE. Idem Anthropic — pas d'API JSON pricing officielle, fetch HTML + parser. ChatGPT-User bot OpenAI ne respecte pas toujours robots.txt selon presse 2024 — pas notre problème côté consommateur de leur page publique. | Fetch HTML + parser | 1 req/6h |
 | **Google AI / Vertex pricing** (cloud.google.com/vertex-ai/pricing) | ✓ PAGE PUBLIQUE Google Cloud. Documentation publique, pas de restriction TOS pour crawl raisonnable. | Fetch HTML | 1 req/6h |
 | **Mistral pricing** (mistral.ai/pricing) | ✓ PAGE PUBLIQUE. Vérifier robots.txt mistral.ai. | Fetch HTML | 1 req/6h |
@@ -283,11 +283,11 @@ Cible primaire = agent IA crawler. Cible secondaire = dev humain. WCAG 2.2 AA re
 ### 7.2 Mitigations à implémenter (handoff @fullstack/@infrastructure)
 
 - [ ] Respect strict robots.txt sur chaque source : fetch et parse robots.txt avant chaque cron, abort si `Disallow: /pricing` apparaît.
-- [ ] User-Agent identifié unique : `DevRefs-Bot/1.0 (+https://devrefs.io/bot)` avec page `/bot` documentant la finalité.
+- [ ] User-Agent identifié unique : `DevRefs-Bot/1.0 (+https://devrefs.dev/bot)` avec page `/bot` documentant la finalité.
 - [ ] Rate-limit applicatif côté Cloudflare Worker cron : pas plus de 1 req/source/6h.
 - [ ] Cache KV 6h (LLM pricing) ou 24h (SDK status) pour éviter sur-fetch.
 - [ ] Logging tx hash + URL fetched + status code pour audit en cas de réclamation source.
-- [ ] Email contact `bot@devrefs.io` ou `legal@devrefs.io` actif et surveillé pour gérer cease-and-desist éventuels.
+- [ ] Email contact `bot@devrefs.dev` ou `legal@devrefs.dev` actif et surveillé pour gérer cease-and-desist éventuels.
 
 **Verdict 7 : GO** sur npm + GitHub + Anthropic + OpenAI + Google + Mistral. **NO-GO** sur Crunchbase + SimilarWeb (déjà acté).
 

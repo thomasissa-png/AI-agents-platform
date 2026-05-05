@@ -27,9 +27,9 @@ DevRefs a été conçu selon une architecture **zéro PII** :
 **Statut** : auto-entrepreneur (micro-entreprise française)
 **SIREN** : [Numéro SIREN à compléter après immatriculation]
 **Domicile fiscal** : [Adresse à compléter après immatriculation]
-**Contact protection des données** : `dpo@devrefs.io` (adresse à activer après acquisition du domaine définitif)
+**Contact protection des données** : `dpo@devrefs.dev` (adresse à activer après acquisition du domaine définitif)
 
-L'Éditeur n'a pas désigné de Délégué à la Protection des Données (DPO) au sens de l'art. 37 RGPD, cette désignation n'étant pas obligatoire (pas d'autorité publique, pas de surveillance systématique à grande échelle, pas de catégories spéciales de données à grande échelle). L'adresse `dpo@devrefs.io` est néanmoins maintenue comme point de contact unique pour toute question relative à la protection des données.
+L'Éditeur n'a pas désigné de Délégué à la Protection des Données (DPO) au sens de l'art. 37 RGPD, cette désignation n'étant pas obligatoire (pas d'autorité publique, pas de surveillance systématique à grande échelle, pas de catégories spéciales de données à grande échelle). L'adresse `dpo@devrefs.dev` est néanmoins maintenue comme point de contact unique pour toute question relative à la protection des données.
 
 ---
 
@@ -117,10 +117,10 @@ Conformément aux art. 15 à 22 du RGPD, vous disposez des droits suivants conce
 
 | Droit | Procédure DevRefs |
 |---|---|
-| **Droit d'accès (art. 15)** | Email à `dpo@devrefs.io`. Réponse < 1 mois. Côté wallet x402 : aucune donnée stockée à fournir (pseudonyme, supprimé après 24h). Côté paiements Stripe : extraction du `customer_id`, dates de paiements, montants. |
+| **Droit d'accès (art. 15)** | Email à `dpo@devrefs.dev`. Réponse < 1 mois. Côté wallet x402 : aucune donnée stockée à fournir (pseudonyme, supprimé après 24h). Côté paiements Stripe : extraction du `customer_id`, dates de paiements, montants. |
 | **Droit de rectification (art. 16)** | Sans objet côté DevRefs (aucun profil utilisateur stocké). Pour les données Stripe, modification directe sur le dashboard Stripe customer. |
-| **Droit à l'effacement (art. 17)** | Email à `dpo@devrefs.io`. Suppression de votre `customer_id` Stripe et révocation du JWT actif sur demande. **Exception légale** : conservation des transactions facturées 10 ans (obligation comptable, art. 17(3)(b) RGPD). |
-| **Droit à la limitation (art. 18)** | Email à `dpo@devrefs.io`. Procédure documentée. |
+| **Droit à l'effacement (art. 17)** | Email à `dpo@devrefs.dev`. Suppression de votre `customer_id` Stripe et révocation du JWT actif sur demande. **Exception légale** : conservation des transactions facturées 10 ans (obligation comptable, art. 17(3)(b) RGPD). |
+| **Droit à la limitation (art. 18)** | Email à `dpo@devrefs.dev`. Procédure documentée. |
 | **Droit à la portabilité (art. 20)** | Sans objet (aucune donnée structurée portable). |
 | **Droit d'opposition (art. 21)** | Sans objet (aucun profilage, aucun marketing direct). |
 | **Droit de retirer son consentement** | Sans objet (aucun traitement basé sur le consentement). |
@@ -169,8 +169,8 @@ La version applicable à un traitement est celle en vigueur au moment du traitem
 
 ## 10. Contact
 
-**Email DPO / Protection des données** : `dpo@devrefs.io`
-**Email général juridique** : `legal@devrefs.io`
+**Email DPO / Protection des données** : `dpo@devrefs.dev`
+**Email général juridique** : `legal@devrefs.dev`
 (Adresses à activer après acquisition du domaine définitif post-naming @creative-strategy.)
 
 **Autorité de contrôle** : Commission Nationale de l'Informatique et des Libertés (CNIL), 3 Place de Fontenoy, TSA 80715, 75334 PARIS CEDEX 07 — https://www.cnil.fr.

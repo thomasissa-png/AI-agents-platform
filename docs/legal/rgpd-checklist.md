@@ -23,16 +23,16 @@
 |---|---|---|---|
 | 2.1 | Information préalable (art. 13) — politique de confidentialité accessible avant collecte | ⚠ à faire Phase 1 | Privacy policy draftée dans `privacy-policy.md`, à publier sur la landing avant 1ère transaction. Lien obligatoire en footer + sur Stripe Payment Link description. |
 | 2.2 | Recueil consentement éclairé si applicable (art. 7) | ✗ N/A justifié | Aucun traitement basé sur consentement (pas d'analytics tiers, pas de marketing, pas de profilage). Bases légales = intérêt légitime + exécution contrat + obligation légale. |
-| 2.3 | Mention du DPO si désigné (art. 37-39) | ✗ N/A justifié | DPO non obligatoire (pas d'autorité publique, pas de surveillance systématique à grande échelle, pas de catégories spéciales à grande échelle). Adresse de contact `dpo@devrefs.io` (ou domaine définitif) maintenue par best practice. |
+| 2.3 | Mention du DPO si désigné (art. 37-39) | ✗ N/A justifié | DPO non obligatoire (pas d'autorité publique, pas de surveillance systématique à grande échelle, pas de catégories spéciales à grande échelle). Adresse de contact `dpo@devrefs.dev` (ou domaine définitif) maintenue par best practice. |
 | 2.4 | Information sur transferts hors UE (art. 13(1)(f)) | ⚠ à faire Phase 1 | Mention dans Privacy Policy : Stripe (Irlande + transferts US sous SCC), Coinbase (US sous SCC), Cloudflare (US par défaut, EU si Data Localization activable). Action @infrastructure (vérif INF-1). |
 
 ## 3. Droits des personnes
 
 | # | Item | Statut | Justification / Action |
 |---|---|---|---|
-| 3.1 | Procédure droit d'accès (art. 15) | ⚠ à faire Phase 1 | Email `dpo@devrefs.io` actif + auto-réponse < 48h + traitement < 1 mois. Côté wallet x402 : aucune donnée à fournir (pseudonyme). Côté Stripe customer : extraction Stripe dashboard. |
+| 3.1 | Procédure droit d'accès (art. 15) | ⚠ à faire Phase 1 | Email `dpo@devrefs.dev` actif + auto-réponse < 48h + traitement < 1 mois. Côté wallet x402 : aucune donnée à fournir (pseudonyme). Côté Stripe customer : extraction Stripe dashboard. |
 | 3.2 | Procédure droit de rectification (art. 16) | ✗ N/A justifié | Aucun profil utilisateur stocké côté DevRefs. Données Stripe rectifiables directement par l'utilisateur sur dashboard Stripe. |
-| 3.3 | Procédure droit à l'effacement (art. 17) | ⚠ à faire Phase 1 | Email `dpo@devrefs.io`. Suppression du customer_id Stripe + JWT actif sur demande. Conservation comptable 10 ans = exception légale art. 17(3)(b). |
+| 3.3 | Procédure droit à l'effacement (art. 17) | ⚠ à faire Phase 1 | Email `dpo@devrefs.dev`. Suppression du customer_id Stripe + JWT actif sur demande. Conservation comptable 10 ans = exception légale art. 17(3)(b). |
 | 3.4 | Procédure droit à la portabilité (art. 20) | ✗ N/A justifié | Aucune donnée utilisateur structurée portable côté DevRefs. |
 | 3.5 | Procédure droit d'opposition (art. 21) | ✗ N/A justifié | Aucun profilage, aucun marketing direct. |
 | 3.6 | Mention des droits dans la Privacy Policy | ⚠ à faire Phase 1 | Section "Vos droits" déjà rédigée dans `privacy-policy.md`. |
