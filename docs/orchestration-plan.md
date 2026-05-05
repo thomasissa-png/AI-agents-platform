@@ -69,12 +69,20 @@
   - `docs/legal/cgu-draft.md`
   - `docs/legal/privacy-policy.md`
 
-### Phase 1 — Conception — `EN ATTENTE`
-- **Agents** : @ux, @design, @copywriter, @product-manager (specs fonctionnelles), @qa (tests dérivés)
-- **Sub-phase 1b — Test persona** : @testeur-agent-ia (à créer via @agent-factory) sur les wireframes
-- **Livrables principaux** : `docs/ux/user-flows.md`, `docs/design/design-system.md`, `docs/design/page-compositions.md`, `docs/copy/landing.md`, `docs/copy/brand-voice.md`, `docs/product/functional-specs.md`, `docs/qa/qa-strategy.md`
+### Phase 1 — Conception — `COMPLETE 2026-05-05 (session 2)`
+- **5 agents en parallèle** : @ux + @design + @copywriter + @product-manager + @qa
+- **Livrables produits** (3 718 lignes au total, 5/5/5/5/5 chacun) :
+  - @ux : `docs/ux/user-flows.md` (652 l, 6 parcours, 4 frictions, 12 contracts API identifiés)
+  - @design : `docs/design/design-system.md` (629 l, 12 composants V1, light+dark toggle, WCAG 2.2 AA) + `page-compositions.md` (729 l, 5 surfaces, H1 verrouillé, 1 CTA conviction-first §7)
+  - @copywriter : `docs/copy/brand-voice.md` (242 l) + `docs/copy/landing.md` (486 l, 7 sections + paywall + 5 emails Mailchannels + meta SEO H1/desc/OG)
+  - @product-manager : `docs/product/functional-specs.md` (337 l, 10 endpoints contractualisés, 6 KV namespaces, 5 crons, 29 features × 21 US × 47 events tracée, 10 gates fonctionnels GA-01→GA-10)
+  - @qa : `docs/qa/qa-strategy.md` (643 l, pyramide 60/25/10/3/2, 32 gates G1-G32 + GP1-GP10 + GC1-GC10, 6 tests pivot v2 Given/When/Then, matrice traçabilité bidirectionnelle)
+- **Cohérence cross-livrables Phase 1** : 7/7 fichiers cohérents pricing $10/$9.99 ; 5/7 H1 "Cost intelligence" (absents brand-voice et functional-specs = normal) ; 6/7 libellé checkbox L.221-28 13° verbatim (absent brand-voice = normal). 0 contradiction détectée.
+- **G15 zéro placeholder** : PASS (seul match qa-strategy.md = définition meta du test G15 lui-même).
+- **Note timeout** : @product-manager initial timeouté API stream idle, relancé avec brief compact (~351 l vs 600 prévues) — résultat 5/5/5/5/5 conservé.
+- **2 agents custom à créer Phase 2** : @testeur-agent-ia + @testeur-sponsor-humain (handoff @agent-factory)
 
-### Phase 2 — Développement — `EN ATTENTE`
+### Phase 2 — Développement — `EN ATTENTE prochaine session`
 - **Agents** : @infrastructure (CI/CD), @fullstack (V1 complète), @ia (n/a — pas d'IA runtime), @ux (revue post-implémentation), @qa (audit complet)
 - **Sub-phase 2c — Test agent IA** : @testeur-agent-ia (gates GP1-GP10) — création prérequise via @agent-factory si pas déjà fait
 - **Sub-phase 2d — Test client** : @testeur-developpeur-superviseur (gates GC1-GC10) — création prérequise via @agent-factory
