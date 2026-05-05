@@ -1,15 +1,16 @@
-<!-- Version: 2026-05-05T09:35 — @product-manager — Phase 0 wave 2 — Roadmap RICE 6 mois DevRefs -->
+<!-- Version: 2026-05-05T14:45 — @product-manager — Phase 0 v2 wave 2 — Roadmap RICE DevRefs PIVOT 100% B2A -->
 
-# Roadmap — DevRefs
+# Roadmap — DevRefs v2
 
 ## Résumé exécutif
 
-- **Horizon** : 6 mois (M0 → M+6, échelle 1 mois). Plan par dépendances strictes (pas timeline en semaines, cf. CLAUDE.md règle n°5).
-- **Méthode** : RICE (Reach × Impact × Confidence / Effort) sur chaque feature. Effort calibré IA (1 = trivial < 1 h, 5 = lourd > 1 jour).
-- **17 features V1 retenues** (issues du discovery-map § 3). 7 features V2 reportées explicitement.
-- **Chemin critique V1** : middleware x402 → endpoints atomiques → llms.txt → cron sources → landing publique → Stripe Link + JWT → dashboard interne → publication.
-- **Phase 4 flags** : @sales-enablement (playbook commercial post-launch + ROI calculator humain) + @growth (data stories earned media).
-- **Dépendances aval** : `backlog.md` (user stories pour chaque feature), `v1-scope.md` (scope final).
+- **Horizon** : 6 mois (M0 → M+6). Plan par dépendances strictes (pas timeline en semaines, cf. CLAUDE.md règle n°5).
+- **Méthode** : RICE (Reach × Impact × Confidence / Effort). Effort calibré IA (1 = trivial < 1 h, 5 = lourd > 1 jour).
+- **Pivot v2 acté 2026-05-05** : 3 endpoints V1 (pas 2), middleware x402 unifié, Stripe rétrogradé, pack KV quota lookup ajouté.
+- **20 features V1 retenues** (recompte : F1 + F1b + F1c + F2 à F26 hors doublons, soit 20 items RICE scorés).
+- **8 features V2 reportées** explicitement + 4 features Phase 4 post-launch.
+- **Chemin critique v2** : middleware x402 unifié 3 endpoints → pack KV quota lookup → audit endpoint → landing v2 → llms.txt 3 endpoints → dashboard.
+- **Phase 4 flags** : @sales-enablement (F27 playbook upsell audit + F28 ROI calculator) + @growth (F29 data story Opus tokenizer + F30 data story SDKs breaking changes).
 
 ---
 
@@ -23,259 +24,214 @@
 | **Effort** (E) | 1 = trivial < 1 h IA, 2 = < 4 h, 3 = < 1 jour, 4 = 1-3 jours, 5 = > 3 jours |
 | **Score** | (R × I × C) / E. Plus haut = plus prioritaire |
 
-**Note IA-pas-équipe-humaine** : effort en heures-IA, pas jours-homme. La parallélisation est la norme.
+**Note IA** : effort en heures-IA, parallélisation par défaut.
 
 ---
 
-## 2. Features candidates V1 — scoring RICE
+## 2. Features V1 — scoring RICE v2
 
 ### 2.1 Endpoints API et fraîcheur (chemin critique)
 
-| Feature | R | I | C | E | Score | Lien KPI North Star | Opportunité (discovery-map) |
+| Feature | R | I | C | E | Score | Lien KPI North Star | Opportunité |
 |---|---|---|---|---|---|---|---|
-| F1 — Endpoint `/api/llm-prices?model=X` (12 modèles : OpenAI/Anthropic/Google/Mistral, cron 6 h, JSON typé) | 5 | 5 | 1.0 | 3 | 8.33 | Drive direct paiements x402 (>= 100/mois cible) | O1 + O2 |
-| F2 — Endpoint `/api/sdk-status?pkg=X` (50 SDKs npm, parser CHANGELOG GitHub, cron 24 h) | 4 | 4 | 0.8 | 3 | 4.27 | Diversification revenue + différenciation vs concurrents | O1 + O2 |
-| F3 — JSON-LD `Dataset` avec `dateModified` ISO 8601 + `sameAs` source officielle | 5 | 5 | 1.0 | 1 | 25.00 | Différenciateur unique vs concurrents (G1 GEO) | O1 |
-| F4 — Header HTTP `Last-Modified` aligné JSON-LD | 4 | 3 | 1.0 | 1 | 12.00 | Standard machine-readable + cache HTTP | O1 |
-| F5 — Champ `effective_cost_factor` Opus 4.7 dans payload pricing | 5 | 5 | 1.0 | 1 | 25.00 | Différenciation immédiate vs pricepertoken (cf. project-context.md ligne 196) | O1 |
-| F6 — Cron sources officielles (Anthropic/OpenAI/Google/Mistral/DeepSeek pricing pages + npm + GitHub releases) | 5 | 5 | 0.8 | 4 | 5.00 | Garantit fraîcheur signalée | O1 |
-| F7 — IndexNow push Bing après chaque update cron | 3 | 3 | 0.8 | 1 | 7.20 | Accélère indexation crawler agent (Bing/Perplexity) | O3 indirect (visibilité agent) |
+| F1 — `/api/llm-prices?model=X` (12 modèles, cron 6 h, JSON typé + `effective_cost_factor`) | 5 | 5 | 1.0 | 3 | **8.33** | Drive paiements x402 pack (cible 33+ packs $10/mois) | O1 + O2 |
+| F1b — `/api/agent-audit` POST (5 heuristiques statiques, score 0-100, recommendations[] + patch JSON, garantie 50 % refund, cf. `agent-audit-spec.md`) | 4 | 5 | 0.8 | 4 | **4.00** | Ticket $9.99 = 2e driver revenue, ROI 10×+ 3 mois agent >= 5M tok | O5 (nouveau) |
+| F1c — Validation input audit avant 402 (share_pct=100, traces 3-50, <= 100 KB, warning < 5M) | 4 | 4 | 1.0 | 1 | **16.00** | Qualité output audit + prévention abus | O5 |
+| F2 — `/api/sdk-status?pkg=X` (50 SDKs npm, parser CHANGELOG, cron 24 h) | 4 | 4 | 0.8 | 3 | **4.27** | Diversification revenue + différenciation | O1 + O2 |
+| F3 — JSON-LD `Dataset` `dateModified` ISO 8601 + `sameAs` source officielle | 5 | 5 | 1.0 | 1 | **25.00** | Différenciateur unique vs concurrents (G1 GEO) | O1 |
+| F4 — Header HTTP `Last-Modified` aligné JSON-LD | 4 | 3 | 1.0 | 1 | **12.00** | Standard machine-readable + cache HTTP | O1 |
+| F5 — Champ `effective_cost_factor` Opus 4.7 (1.35) payload pricing | 5 | 5 | 1.0 | 1 | **25.00** | Différenciation immédiate vs pricepertoken | O1 |
+| F6 — Cron sources officielles (Anthropic/OpenAI/Google/Mistral/DeepSeek + npm + GitHub) | 5 | 5 | 0.8 | 4 | **5.00** | Garantit fraîcheur signalée — prérequis F1+F2 | O1 |
+| F7 — IndexNow push Bing après chaque update cron | 3 | 3 | 0.8 | 1 | **7.20** | Accélère indexation crawler agent (Bing/Perplexity) | O3 indirect |
 
-### 2.2 Paiement et auth (chemin critique)
+### 2.2 Paiement et auth — 100 % B2A pur (chemin critique)
+
+| Feature | R | I | C | E | Score v2 | Lien KPI North Star | Opportunité | Delta v1→v2 |
+|---|---|---|---|---|---|---|---|---|
+| F8 — Middleware x402 UNIFIÉ 3 endpoints (Coinbase facilitator, HTTP 402 body augmenté `alternative_cost_estimate` + `roi_summary` + `freshness_proof` + `payload_preview`, cf. `x402-response-spec.md`) | 5 | 5 | 0.8 | 4 | **5.00** | Drive 100 % revenue cible | O3 | Extension 2→3 endpoints + body augmenté |
+| F8b — Pack pré-payé KV quota lookup (1 signature x402 → quota KV → calls suivants < 50 ms p95) | 5 | 5 | 0.8 | 3 | **6.67** | Réduit friction x402 par-call → augmente ARPU | O3 | NOUVEAU v2 |
+| F9 — Stripe top-up wallet sponsor (marginale — pas offre commerciale, pas pilier revenue) | 2 | 2 | 1.0 | 1 | **4.00** | Rampe onboarding sponsor uniquement | O4 réduit | **Score abaissé v2** (v1 = 20.00) |
+| F10 — JWT HMAC 24 h (émis après top-up Stripe sponsor uniquement) | 2 | 2 | 1.0 | 2 | **2.00** | Auth fallback sponsor | O4 réduit | **Score abaissé v2** |
+| F11 — Cookie `Secure;HttpOnly;SameSite=Strict` JWT | 2 | 2 | 1.0 | 1 | **4.00** | Conformité OWASP/CNIL | O4 réduit | Score abaissé v2 |
+| F12 — Activation Stripe Tax | 2 | 3 | 1.0 | 1 | **6.00** | Conformité TVA (même si marginal) | O4 | Inchangé |
+| F13 — Watermark HMAC `_signature` sur payloads (pricing + audit) | 3 | 3 | 0.8 | 2 | **3.60** | Protection IP + traçabilité (3 endpoints) | O3 | Extension audit |
+| F14 — Rate-limit par wallet (1 000 req/jour pay-per-call, 100 000/jour pack actif) et JWT (10 000/jour) | 4 | 3 | 1.0 | 2 | **6.00** | Anti-fraude + cohérence CGV | O3 | Paliers pack ajoutés v2 |
+
+### 2.3 Découvrabilité agent + landing sponsor
 
 | Feature | R | I | C | E | Score | Lien KPI North Star | Opportunité |
 |---|---|---|---|---|---|---|---|
-| F8 — Middleware x402 (Coinbase facilitator, USDC Base, HTTP 402 spec) | 5 | 5 | 0.8 | 4 | 5.00 | Drive ALL paiements x402 (50 % minimum revenue cible) | O3 |
-| F9 — Stripe Payment Link 4,99 €/jour | 5 | 4 | 1.0 | 1 | 20.00 | Drive abonnements humains (cible 4 actifs M+6 = 50 % revenue) | O4 |
-| F10 — JWT signé HMAC 24 h, non reconductible | 5 | 4 | 1.0 | 2 | 10.00 | Auth post-Stripe + sécurité | O4 |
-| F11 — Cookie `Secure;HttpOnly;SameSite=Strict` JWT (cf. @legal INF-10) | 4 | 3 | 1.0 | 1 | 12.00 | Conformité OWASP/CNIL + UX humain | O4 |
-| F12 — Activation Stripe Tax (cf. @legal H4) | 3 | 4 | 1.0 | 1 | 12.00 | Conformité TVA OSS B2C UE + reverse charge B2B | O4 |
-| F13 — Watermark HMAC `_signature` sur payloads (anti-redistribution) | 3 | 3 | 0.8 | 2 | 3.60 | Protection IP + traçabilité | O3 |
-| F14 — Rate-limit applicatif par wallet (1 000 req/jour) et par JWT (10 000 req/jour) | 4 | 3 | 1.0 | 2 | 6.00 | Anti-fraude + cohérence CGV @legal § 8 | O3 |
-
-### 2.3 Découvrabilité agent + landing humain
-
-| Feature | R | I | C | E | Score | Lien KPI North Star | Opportunité |
-|---|---|---|---|---|---|---|---|
-| F15 — `llms.txt` racine référençant endpoints monétisés | 5 | 5 | 0.8 | 1 | 20.00 | Découvrabilité agent #1 — sans cela, pas de crawl agent | O2 + O3 |
-| F16 — Landing publique `/llm-prices` (HTML statique < 50 KB, JSON-LD inline, hero démo JSON V1) | 5 | 4 | 1.0 | 3 | 6.67 | Conviction humain superviseur + GEO entité nommée | O4 |
-| F17 — Sitemap.xml + robots.txt explicite | 4 | 3 | 1.0 | 1 | 12.00 | Indexation Google/Bing + GEO Perplexity | O4 indirect |
-| F18 — OpenAPI 3.1 spec avec extension `x-x402` | 4 | 4 | 0.8 | 2 | 6.40 | Découvrabilité MCP-compatible + doc agent | O2 + O3 |
-| F19 — Page `/about/data-sources` (transparence provenance — recommandation @legal § 3.2 EU AI Act) | 3 | 3 | 1.0 | 1 | 9.00 | Verifiable value + conformité aval clients IA | O1 (Verifiable) |
-| F20 — Page `/about/data-schema` (schéma payload pour acheteurs) | 3 | 3 | 1.0 | 1 | 9.00 | Doc agent + transparence | O2 |
+| F15 — `llms.txt` racine (3 endpoints monétisés : F1 + F2 + F1b audit, avec pricing pack x402) | 5 | 5 | 0.8 | 1 | **20.00** | Découvrabilité agent #1 | O2 + O3 |
+| F16 — Landing publique `/` (HTML < 50 KB, 2 heroes JSON : pricing payload + audit score JSON, hero "Cost intelligence for AI agents") | 5 | 4 | 1.0 | 3 | **6.67** | Conviction sponsor + GEO entité + conversion pack | O4 |
+| F17 — Sitemap.xml + robots.txt explicite | 4 | 3 | 1.0 | 1 | **12.00** | Indexation Google/Bing + GEO Perplexity | O4 indirect |
+| F18 — OpenAPI 3.1 spec + extension `x-x402` (3 endpoints) | 4 | 4 | 0.8 | 2 | **6.40** | Découvrabilité MCP-compatible + doc agent | O2 + O3 |
+| F19 — Page `/about/data-sources` | 3 | 3 | 1.0 | 1 | **9.00** | Verifiable value + conformité EU AI Act | O1 |
+| F20 — Page `/about/data-schema` (pricing + audit schema) | 3 | 3 | 1.0 | 1 | **9.00** | Doc agent + transparence | O2 |
 
 ### 2.4 Pages légales (obligatoires)
 
-| Feature | R | I | C | E | Score | Lien KPI North Star | Opportunité |
-|---|---|---|---|---|---|---|---|
-| F21 — Page `/legal/cgv` (intégration draft @legal cgu-draft.md) | 5 | 4 | 1.0 | 1 | 20.00 | Obligatoire avant 1ère transaction (legal-audit P0) | Conformité |
-| F22 — Page `/legal/privacy` (intégration draft @legal privacy-policy.md) | 5 | 4 | 1.0 | 1 | 20.00 | Obligatoire RGPD + conformité Stripe + Coinbase | Conformité |
-| F23 — Page `/legal/mentions-legales` (mentions LCEN + identification éditeur) | 4 | 3 | 1.0 | 1 | 12.00 | Obligatoire LCEN 2004 | Conformité |
-| F24 — Page `/bot` (User-Agent `DevRefs-Bot/1.0` documentation cf. @legal INF-9) | 2 | 2 | 1.0 | 1 | 4.00 | Best practice TOS scraping | Conformité |
+| Feature | R | I | C | E | Score | Justification |
+|---|---|---|---|---|---|---|
+| F21 — Page `/legal/cgv` v2 (clause x402 + garantie ROI 50 % refund audit + irrévocabilité on-chain) | 5 | 4 | 1.0 | 1 | **20.00** | Obligatoire avant 1ère transaction — MISE À JOUR v2 avec clause audit |
+| F22 — Page `/legal/privacy` | 5 | 4 | 1.0 | 1 | **20.00** | Obligatoire RGPD + Coinbase + Stripe |
+| F23 — Page `/legal/mentions-legales` | 4 | 3 | 1.0 | 1 | **12.00** | Obligatoire LCEN 2004 |
+| F24 — Page `/bot` | 2 | 2 | 1.0 | 1 | **4.00** | Best practice TOS scraping |
 
 ### 2.5 Mesure et dashboards
 
-| Feature | R | I | C | E | Score | Lien KPI North Star | Opportunité |
-|---|---|---|---|---|---|---|---|
-| F25 — Dashboard interne consolidé (CF Analytics + Coinbase + Stripe en 1 page) | 3 | 4 | 0.8 | 3 | 3.20 | Pilotage KPI + diagnostic Phase 4 (project-context.md ligne 169) | O4 (humain) |
-| F26 — Page `/dashboard?token=JWT` interne (nb queries 24 h, coût total) | 3 | 3 | 1.0 | 2 | 4.50 | UX humain superviseur post-Stripe | O4 |
+| Feature | R | I | C | E | Score | Lien KPI North Star |
+|---|---|---|---|---|---|---|
+| F25 — Dashboard interne consolidé (CF Analytics + Coinbase + Stripe, events `pack_*` + `audit_*`, retrait events Stripe humain pilier) | 3 | 4 | 0.8 | 3 | **3.20** | Pilotage KPI + diagnostic Phase 4 |
+| F26 — Page `/dashboard?token=JWT` sponsor (quota pack restant, wallet balance, nb queries) | 2 | 2 | 1.0 | 2 | **2.00** | UX sponsor post top-up |
 
-### 2.6 Phase 4 (post-launch — flags pour autres agents)
+### 2.6 Phase 4 — Post-launch (flags autres agents)
 
-| Feature | R | I | C | E | Score | Owner | Notes |
+| Feature | R | I | C | E | Score | Owner | Notes v2 |
 |---|---|---|---|---|---|---|---|
-| F27 — Playbook commercial post-launch (relance prospects ayant cliqué Stripe sans conclure) | 2 | 2 | 0.8 | 2 | 1.60 | @sales-enablement Phase 4 | Flag obligatoire — cf. prompt mission |
-| F28 — ROI calculator humain superviseur (calcul break-even x402 → Stripe Link) | 2 | 3 | 0.8 | 2 | 2.40 | @sales-enablement Phase 4 | Flag obligatoire — cf. prompt mission |
-| F29 — Data story earned media : "Opus 4.7 +35 % tokenizer" (analysis basée payload `effective_cost_factor`) | 3 | 3 | 0.8 | 2 | 3.60 | @growth Phase 4 | Flag earned media — cf. prompt mission |
-| F30 — Data story earned media : "Top 10 SDKs avec breaking changes Q1-Q2 2026" (basée /api/sdk-status) | 3 | 3 | 0.8 | 2 | 3.60 | @growth Phase 4 | Flag earned media — cf. prompt mission |
+| F27 — Playbook commercial post-launch (upsell audit post-pricing call + relance agents actifs sans audit) | 2 | 3 | 0.8 | 2 | **2.40** | @sales-enablement Phase 4 | Réorienté v2 : upsell audit (pas Stripe) |
+| F28 — ROI calculator agent (calcul break-even pack $10 vs tokens cramés) | 2 | 3 | 0.8 | 2 | **2.40** | @sales-enablement Phase 4 | Recalibré v2 : pack pas Stripe Link |
+| F29 — Data story earned media : "Opus 4.7 +35 % tokenizer" (basée `effective_cost_factor`) | 3 | 3 | 0.8 | 2 | **3.60** | @growth Phase 4 | Inchangé |
+| F30 — Data story earned media : "Top 10 SDKs breaking changes Q1-Q2 2026" (basée `/api/sdk-status`) | 3 | 3 | 0.8 | 2 | **3.60** | @growth Phase 4 | Inchangé |
 
 ---
 
-## 3. Features V2 reportées (avec raison explicite)
+## 3. Features V2 reportées (raison explicite)
 
-| Feature V2 | Raison report | Hypothèse à valider en V1 avant V2 |
+| Feature V2 | Raison report | Hypothèse à valider en V1 |
 |---|---|---|
-| Stripe abonnement mensuel récurrent | Hypothèse non testée : un humain qui paie 4,99 €/jour journalier acceptera-t-il un mensuel ? Test V1 : ratio renouvellement quotidien Stripe Link | H3 partiel + retour utilisateur V1 nécessaire |
-| Dashboard équipe / multi-utilisateur | Hypothèse non testée : DevRefs servira-t-il du B2B scale-up (CFO/VP Eng candidate) ou rester B2A solo ? V1 vise solo (Thomas + 5-15 devs similaires) | Persona V2 candidat (cf. personas.md § 3.2) — attendre signal demande explicite |
-| Export CSV mensuel agrégé pour CFO | Idem dashboard équipe — dépend de l'émergence persona CFO V2 | Idem |
-| Endpoint additionnel `/api/model-deprecations` | Bundle élargi cible 12 mois (project-context.md ligne 84). Attendre validation H1 J7 + ajustement priorité V2 selon volume ventes V1 | E1 J7 binaire + ajustement V2 selon Phase 4 plan d'action |
-| Endpoint additionnel `/api/embedding-prices` | Idem `/api/model-deprecations` | Idem |
-| MCP server officiel DevRefs (tool `get_llm_pricing`) | Hypothèse appétence non testée — sondage E3 Dev.to comments en V1 | E3 (cf. discovery-map § 4) |
-| Multi-facilitator x402 Solana (anti-vendor lock-in renforcé) | H7 (Coinbase stable 12+ mois) — pas critique V1, mitigation via code Worker portable suffit | Veille H7 |
+| Subscription Pro $29/mois (x402 V2 SIWx + deferred payment) | [HYPOTHÈSE H7] x402 V2 SDKs stables Q3 2026 — V1 packs only | Signal demande >= 5 agents expriment besoin subscription |
+| Dashboard équipe / multi-utilisateur | (b) Persona CFO/VP Eng V2 candidat — attendre signal demande V1 | Persona V2 confirmé ? |
+| Export CSV mensuel agrégé CFO | (b) Idem dashboard équipe | Idem |
+| Endpoint `/api/model-deprecations` | (a) Bundle cible M+12 — attendre validation H1 J7 | H1 J7 binaire OUI |
+| Endpoint `/api/embedding-prices` | (a) Idem | Idem |
+| MCP server officiel DevRefs | (a) [HYPOTHÈSE H9] appétence non testée — sondage E3 Dev.to | >= 3 demandes explicites |
+| Multi-facilitator x402 Solana | (a) [HYPOTHÈSE H7] Coinbase stable 12+ mois — code portable suffit | Si Coinbase down > 24 h/mois |
+| Cost Regression Alerts (3e offre future) | (a) Conditionnée signal demande post-V1 (creative-brief v2 § 5) | Trigger : revenu Audit > 70 % M+3-M+6 |
+
+**Aucune feature reportée pour "trop complexe" ou "trop cher"** — mindset IA appliqué.
 
 ---
 
-## 4. Plan par dépendances (chemin critique)
+## 4. Plan par dépendances (chemin critique v2)
 
-### 4.1 Bloc 0 — Fondations stratégiques (Phase 0 wave 1-2 — DÉJÀ FAIT/EN COURS)
+### 4.1 Bloc 0 — Fondations stratégiques (Phase 0 v1 + v2 — FAIT)
 
 ```
-@creative-strategy (brand-platform, personas, competitive-benchmark, creative-brief)  [DONE]
-@legal (legal-audit, rgpd-checklist, cgu-draft, privacy-policy)                       [DONE]
-@product-manager (discovery-map, assumption-map, product-vision, roadmap, backlog,    [EN COURS]
-                  v1-scope)
+@creative-strategy v2 (brand-platform + personas + competitive-benchmark + creative-brief)  [DONE]
+@legal (legal-audit + rgpd-checklist + cgu-draft + privacy-policy)                          [DONE]
+@ia v2 (agent-integration + agent-economics + x402-response-spec + agent-audit-spec)       [DONE]
+@product-manager v2 (ce fichier + v1-scope + backlog + discovery-map + assumption-map)     [EN COURS]
 ```
 
 ### 4.2 Bloc 1 — Pré-build (Phase 0 wave 3-4)
 
-Prérequis avant ouverture du chantier @fullstack :
+Prérequis avant ouverture chantier @fullstack :
 
 ```
-@data-analyst (kpi-framework + tracking-plan + dashboard specs)
-@ux (parcours agent + parcours humain + 5 états UI)
-@design (design tokens minimaliste agent-first + iconographie)
-@copywriter (hero + FAQ + body + OpenAPI descriptions + llms.txt content)
+@data-analyst v2 (kpi-framework + tracking-plan + dashboard specs — pack_* + audit_* events)
+@ux (parcours agent x402 : 402 pricing → pack → 402 audit → report ; parcours sponsor top-up)
+@design (design tokens agent-first + 2 heroes JSON : pricing + audit)
+@copywriter (hero acté + FAQ + 2 offres pricing + llms.txt content — sans Stripe humain pilier)
 @seo + @geo (entités nommées + claims vérifiables + JSON-LD spec)
-@ia (MCP server specs + llms.txt structure + OpenAPI 3.1 avec x-x402)
+@ia (OpenAPI 3.1 spec 3 endpoints + x-x402 + llms.txt structure)
 ```
 
-Tous parallélisables (aucune dépendance entre eux après strategic foundation).
+Tous parallélisables.
 
 ### 4.3 Bloc 2 — V1 build (Phase 1 — @fullstack pipeline serré)
 
-Ordre de dépendance technique :
+Ordre de dépendance technique (chemin critique v2) :
 
 ```
 1. Cloudflare Workers + KV setup + domaine devrefs.dev acheté
 2. Cron sources officielles (F6) → KV cache pricing + SDK
    ├── Anthropic/OpenAI/Google/Mistral/DeepSeek pricing scrape
    ├── npm registry + GitHub releases scrape (50 SDKs)
-   └── Parser robuste (JSON-LD `Dataset` génération + `dateModified` + `sameAs` + `effective_cost_factor`)
-3. Endpoint `/api/llm-prices?model=X` (F1) — read-only KV
-4. Endpoint `/api/sdk-status?pkg=X` (F2) — read-only KV
-5. Middleware x402 (F8) — applique sur F1 + F2
-   ├── HTTP 402 spec (header structuré + body JSON x402)
-   ├── Coinbase facilitator integration (USDC Base settle)
-   └── Watermark HMAC `_signature` (F13)
-6. Stripe Payment Link (F9) + activation Stripe Tax (F12)
-7. JWT HMAC 24 h (F10) + cookie Secure;HttpOnly;SameSite=Strict (F11)
-8. Rate-limit applicatif par wallet/JWT (F14)
-9. Landing publique `/llm-prices` (F16) — HTML statique < 50 KB
-   ├── Hero démo JSON (V1 anonymisé)
-   ├── FAQ 12 questions
-   ├── CTAs en bas (curl + Stripe Link)
-   └── JSON-LD inline `Dataset` + `WebAPI`
-10. Pages support : /about/data-sources (F19), /about/data-schema (F20), /bot (F24)
-11. Pages légales : /legal/cgv (F21), /legal/privacy (F22), /legal/mentions-legales (F23)
-12. llms.txt (F15) + sitemap.xml + robots.txt (F17) + OpenAPI 3.1 /openapi.json (F18)
-13. Page /dashboard?token=JWT (F26)
-14. Dashboard interne consolidé (F25) — accessible Thomas only
-15. IndexNow push Bing (F7) — automatique post-cron
+   └── Parser (JSON-LD Dataset + dateModified + sameAs + effective_cost_factor)
+3. Endpoint /api/llm-prices?model=X (F1) — read-only KV
+4. Endpoint /api/sdk-status?pkg=X (F2) — read-only KV
+5. Middleware x402 UNIFIÉ (F8) — applique sur F1 + F2 + F1b (3 endpoints)
+   ├── HTTP 402 spec + body augmenté (x402-response-spec.md)
+   ├── Coinbase facilitator USDC Base settle
+   ├── Pack pré-payé KV quota lookup (F8b) — 1 signature → quota → calls lookup < 50 ms
+   └── Watermark HMAC _signature (F13)
+6. Endpoint /api/agent-audit (F1b) + validation input (F1c)
+   ├── 5 heuristiques statiques (model downgrade, prompt caching, batch, tool trim, effort mismatch)
+   ├── Score 0-100 + recommendations[] + patch JSON Schema-validable
+   └── Garantie 50% refund dans response body si savings_pct < 15%
+7. Rate-limit F14 (wallet paliers pay-per-call vs pack actif)
+8. Stripe top-up wallet sponsor F9 (marginale) + JWT F10 + cookie F11
+9. Activation Stripe Tax F12
+10. Landing publique / (F16) — HTML < 50 KB
+    ├── Hero 1 : démo JSON payload pricing avec effective_cost_factor
+    ├── Hero 2 : démo JSON audit score (score 62/100 + savings_pct 40%)
+    ├── Hero text : "Cost intelligence for AI agents — know before you spend, optimize after you ship"
+    └── JSON-LD inline Dataset + WebAPI (3 endpoints)
+11. Pages support : /about/data-sources (F19), /about/data-schema (F20), /bot (F24)
+12. Pages légales v2 : /legal/cgv (F21 + clause audit garantie ROI), /legal/privacy (F22), /legal/mentions-legales (F23)
+13. llms.txt F15 (3 endpoints : F1 + F2 + F1b + pricing pack) + sitemap F17 + OpenAPI F18 (3 endpoints)
+14. Dashboard interne F25 (events pack_* + audit_*) + page /dashboard F26 (sponsor)
+15. IndexNow push F7 (auto post-cron)
+16. QA Phase 3 (32 gates G1-G32 + GP1-GP10 testeur-agent-ia + @testeur-sponsor-humain)
+17. Publication landing + 2 posts Dev.to (tutorials x402 pack + audit) + 1 post Reddit
 ```
 
-**Chemin critique strict** : F8 (middleware x402) doit exister avant que F1 puisse être commercialisé. F9 + F10 + F11 doivent exister avant que la landing F16 puisse pointer vers Stripe.
+**Delta clé v1→v2** :
+- Étape 5 : middleware x402 étendu à 3 endpoints (pas 2)
+- Étape 5 : F8b pack KV quota lookup ajouté dans le même bloc (signature par pack, pas par call)
+- Étape 6 : F1b audit endpoint ajouté (absent de v1)
+- Étape 8 : Stripe rétrogradé APRÈS audit — plus prioritaire que Stripe
+- Étape 10 : landing v2 avec 2 heroes JSON (pricing + audit)
 
-### 4.4 Bloc 3 — Acquisition + QA (Phase 2 + Phase 3)
-
-```
-@growth + @seo (parallèle)
-├── 2 posts Dev.to via API REST
-├── 1 post Reddit r/ClaudeAI ou r/LocalLLaMA
-├── 1 thread X/Twitter technique
-└── IndexNow push Bing automatisé (déjà F7)
-
-@agent-factory (préalable Phase 3)
-├── @testeur-agent-ia (specs cf. brand-platform.md § 8)
-└── @testeur-developpeur-superviseur (specs cf. brand-platform.md § 8)
-
-@qa + @reviewer (Phase 3)
-├── Test live 3 agents (Claude Code MCP, Cursor agent, AgentKit)
-├── Gates 32/32 G1-G32 PASS
-├── Gates GP1-GP10 (testeur-agent-ia)
-├── Gates GC1-GC10 (testeur-developpeur-superviseur)
-└── Convergence protocol si score < 9/10
-```
-
-### 4.5 Bloc 4 — Mesure + scaling (Phase 4 — 5 jours puis continu)
+### 4.4 Bloc 3 — QA + Review (Phase 3)
 
 ```
-J1-J7 : mesure E1 (test binaire H1)
-├── J7 plan d'action selon résultats (cf. project-context.md Phase 4)
-├── Si < 5 ventes : diagnostic SEO/GEO
-├── Si 5-15 : test E4 bump 0,49 € → 0,99 €
-└── Si > 15 : push agressif SDK Status + élargir 100 SDKs
-
-@sales-enablement (Phase 4)
-├── F27 — Playbook commercial post-launch
-└── F28 — ROI calculator humain superviseur
-
-@growth (Phase 4)
-├── F29 — Data story "Opus 4.7 +35 % tokenizer"
-└── F30 — Data story "Top 10 SDKs breaking changes Q1-Q2 2026"
-
-@data-analyst (continu)
-├── Mesure KPI North Star mensuel
-├── Diagnostic input metrics
-└── Rapport M+1, M+3, M+6
+@qa (tests E2E 3 endpoints + pack quota + audit report)
+@testeur-agent-ia (simule agent IA : llms.txt → 402 pricing → pack x402 → 402 audit → audit report)
+@testeur-sponsor-humain (simule dev humain top-up wallet → vérifie flux clair)
+@reviewer (32/32 G1-G32 PASS + GP1-GP10 + GC1-GC10)
 ```
 
-### 4.6 Bloc 5 — Conformité (Phase 5)
+### 4.5 Bloc 4 — Mesure (Phase 4)
 
 ```
-@legal (Phase 5)
-├── Déclaration BNC crypto auto-entrepreneur (P0 cf. legal-audit)
-├── Email dpo@coinbase.com (P0 H1 cf. legal-audit)
-├── Validation expert-comptable traitement BNC stablecoin (P0 H2)
-└── Vérification trimestrielle Stripe Tax + déclarations TVA si seuil approché
+@data-analyst (dashboard live CF Analytics + Coinbase consolidé, alertes seuils)
+@growth (plan d'action selon résultats J7 : si < 1 paiement x402 → diagnostic GEO/SEO)
+Plan d'action J7 :
+  - 0 paiement x402 : diagnostic GEO/SEO → push + 5 keywords secondaires
+  - 1-5 paiements x402 : continuer V1, pas de scaling agressif
+  - > 5 paiements x402 J7 : push agressif Dev.to + GEO + audit upsell
+  - Revenu Audit > 70% M+3 : trigger bascule pipeline audit-only (creative-brief v2 § 5)
 ```
 
 ---
 
-## 5. Synthèse RICE — Top 10 prioritaires V1
+## 5. Classement RICE — top 10 features à prioriser
 
-| Rang | Feature | Score RICE |
-|---|---|---|
-| 1 | F3 — JSON-LD `Dataset` avec `dateModified` | 25.00 |
-| 2 | F5 — `effective_cost_factor` Opus 4.7 | 25.00 |
-| 3 | F9 — Stripe Payment Link 4,99 €/jour | 20.00 |
-| 4 | F15 — llms.txt | 20.00 |
-| 5 | F21 — Page CGV | 20.00 |
-| 6 | F22 — Page Privacy | 20.00 |
-| 7 | F4 — Header `Last-Modified` | 12.00 |
-| 8 | F11 — Cookie Secure JWT | 12.00 |
-| 9 | F12 — Stripe Tax | 12.00 |
-| 10 | F17 — Sitemap.xml + robots.txt | 12.00 |
-| 10 | F23 — Mentions légales | 12.00 |
+| Rang | Feature | Score RICE | Priorité bloc |
+|---|---|---|---|
+| 1 | F3 — JSON-LD dateModified | 25.00 | Bloc 2 étape 2 |
+| 2 | F5 — effective_cost_factor | 25.00 | Bloc 2 étape 2 |
+| 3 | F1c — Validation input audit | 16.00 | Bloc 2 étape 6 |
+| 4 | F4 — Header Last-Modified | 12.00 | Bloc 2 étape 2 |
+| 5 | F17 — Sitemap.xml + robots.txt | 12.00 | Bloc 2 étape 13 |
+| 6 | F21 — CGV v2 | 20.00 | Bloc 2 étape 12 |
+| 7 | F22 — Privacy | 20.00 | Bloc 2 étape 12 |
+| 8 | F15 — llms.txt 3 endpoints | 20.00 | Bloc 2 étape 13 |
+| 9 | F8b — Pack KV quota lookup | 6.67 | Bloc 2 étape 5 |
+| 10 | F1 — Endpoint llm-prices | 8.33 | Bloc 2 étape 3 |
 
-Note : F1 (endpoint LLM prices) est score 8.33 mais c'est le **chemin critique** — sans lui, aucun autre score ne s'active. La priorisation RICE pure ne reflète pas les dépendances. Le plan par dépendances § 4.3 est la source de vérité d'exécution.
-
----
-
-## 6. Mapping features ↔ opportunités (validation discovery-map)
-
-| Opportunité | Features V1 retenues |
-|---|---|
-| O1 — Fraîcheur structurée | F3, F4, F5, F6, F19 |
-| O2 — Coût parsing HTML | F1, F2, F15, F18, F20 |
-| O3 — Paiement IA-to-IA | F8, F13, F14 + indirect F7, F15 |
-| O4 — Bascule humain | F9, F10, F11, F12, F16, F25, F26 |
-| Conformité | F21, F22, F23, F24 |
-
-100 % des features V1 sont mappées sur une opportunité ou conformité — aucune feature orpheline. Conforme exigence prompt mission.
+**Note** : RICE inférieur ≠ moindre importance. F8 (score 5.00) est critique chemin critique mais effort E=4. F8b (6.67) est ajout v2 stratégique (réduction friction x402).
 
 ---
 
-## 7. Checkpoints et validations
+## 6. Validation cohérence roadmap v2
 
-| Checkpoint | Critère go/no-go | Owner |
-|---|---|---|
-| Fin Phase 0 wave 1 | Brand platform + legal-audit livrés et validés | @orchestrator |
-| Fin Phase 0 wave 2 | discovery-map + assumption-map + product-vision + roadmap + backlog + v1-scope livrés (PASS gates BLOQUANT) | @orchestrator |
-| Fin Phase 1 build | Tous F1-F26 implémentés. Test e2e curl sur 12 modèles + 50 SDKs réussi. | @fullstack + @qa |
-| Fin Phase 3 QA | 32 gates G1-G32 PASS + GP1-GP10 + GC1-GC10. Score >= 9/10. | @reviewer |
-| Fin Phase 4 J7 | Test E1 binaire — décision pivot/continuer | @data-analyst + @moi |
-| Fin Phase 4 M+1 | KPI tracking : revenu net mensuel mesuré, plan ajustement | @data-analyst + @moi |
-| Fin Phase 4 M+6 | KPI North Star atteint (>= 600 €/mois) ou plan révisé | @moi |
-
----
-
-## Handoff → @product-manager (étape suivante : backlog.md puis v1-scope.md)
-
-- **Fichier produit** : `/home/user/AI-agents-platform/docs/product/roadmap.md`
-- **Décisions prises** : 17 features V1 retenues + 7 V2 reportées + 4 features Phase 4 (sales-enablement + growth) + chemin critique documenté.
-- **Points d'attention** :
-  - Plan par dépendances strictes, pas timeline en semaines/jours (CLAUDE.md règle n°5).
-  - F8 middleware x402 = chemin critique. Sans lui, aucune monétisation possible.
-  - Gates Phase 3 G1-G32 + GP1-GP10 + GC1-GC10 non-négociables (founder 9/10 minimum).
-  - Phase 4 flags @sales-enablement (F27 + F28) et @growth (F29 + F30) explicitement intégrés à la roadmap.
-- **Aucune action Replit requise**.
+- [x] 3 endpoints couverts par middleware x402 unifié (F1 + F2 + F1b)
+- [x] Pack KV quota lookup (F8b) intégré dans chemin critique — signature par pack pas par call
+- [x] Stripe rétrogradé (score RICE F9 = 4.00 vs 20.00 en v1) — pas dans chemin critique principal
+- [x] Audit endpoint (F1b) scoré RICE 4.00 mais business impact critique (ticket $9.99, 2e driver revenue)
+- [x] Phase 4 flags @sales-enablement + @growth recalibrés (upsell audit vs Stripe)
+- [x] Chemin critique v2 documenté avec delta vs v1 explicite
+- [x] 100 % cohérence avec `agent-economics.md` § C.1 (pricing source unique)
+- [x] Anti-placeholder : 0 occurrence (zéro "TBD" ou "À COMPLÉTER")

@@ -1,4 +1,4 @@
-<!-- Version: 2026-05-05T09:20 — @product-manager — Phase 0 wave 2 — Vision produit DevRefs -->
+<!-- Version: 2026-05-05T15:45 — @product-manager — Phase 0 v2 wave 2 — Vision produit DevRefs (pivot 100% B2A appliqué, mentions Stripe humain pilier retirées) -->
 
 # Product Vision — DevRefs
 
@@ -16,7 +16,7 @@
 
 > **Équiper chaque agent IA en production d'une dépendance par défaut pour vérifier la fraîcheur d'un fait technique avant d'agir.**
 
-Un agent IA en 2026 hallucine à 15 % sur les APIs/SDKs (arxiv 2407.09726). La cause racine n'est pas le modèle — c'est l'absence d'une couche de référence machine-readable qui signale sa propre fraîcheur. DevRefs comble ce manque en servant des payloads JSON atomiques, datés et vérifiables, payés nativement en x402 par l'agent qui en a besoin, ou par un humain superviseur via Stripe Link.
+Un agent IA en 2026 hallucine à 15 % sur les APIs/SDKs (arxiv 2407.09726). La cause racine n'est pas le modèle — c'est l'absence d'une couche de référence machine-readable qui signale sa propre fraîcheur. DevRefs comble ce manque en servant des payloads JSON atomiques, datés et vérifiables, payés nativement en x402 par l'agent qui en a besoin (Pack pré-payé $10 ou Audit one-shot $9.99), le wallet de l'agent étant optionnellement approvisionné par le dev sponsor humain.
 
 ---
 
@@ -163,7 +163,7 @@ Un agent IA en 2026 hallucine à 15 % sur les APIs/SDKs (arxiv 2407.09726). La c
 Aligné avec brand-platform.md § 7 — pas de duplication mais cross-référence :
 
 - Si Anthropic/OpenAI/Google lance équivalent gratuit < 6 mois → pivot super-niche specs RFC/OpenAPI (vision adaptée : "DevRefs est l'entité nommée pour les specs API techniques, pas pour les pricings LLM").
-- Si volume x402 < 10 % du revenu à M+3 → vision révisée vers Stripe-first (acceptable tactiquement mais perte de différenciation B2A — à arbitrer @creative-strategy + @moi).
+- Si volume x402 < 10 % du revenu à M+3 ET adoption marché x402 confirmée < 2 % → vision révisée vers stratégie acquisition alternative (Dev.to GEO push renforcé + audit-only pipeline si revenu Audit > 70 %) — à arbitrer @creative-strategy + @moi. Stripe humain n'est PAS la vision de repli par défaut (banni comme pilier).
 - Si saturation entité nommée non atteinte (< 1 citation Perplexity/mois après 6 mois) → vision agent-first maintenue mais naming/branding réévalué (cf. brand-platform.md § 7).
 
 ---
