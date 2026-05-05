@@ -118,10 +118,15 @@
 - Décisions techniques tranchées : `/api/pack/quota` endpoint dédié (KV direct, pas event AE car AE = event-stream pas state-store) ; 6 alertes ROUGE Mailchannels définies
 - Cohérence cross-wave 2/3 : 21 user stories backlog v2 → 100 % mappées sur events tracking-plan v2 ; cibles 66 tx/600 € reprises ; H9/H10 instrumentés
 
-### Phase 0 v2 session 3 — `EN ATTENTE prochaine session`
-- @legal review CGU/privacy/mentions v2 (retirer sections Stripe humain pilier, ajouter clause `/api/agent-audit` + garantie ROI 50% refund si savings_pct < 15% à 30j)
-- 5 questions PII data-analyst à trancher (wallet_hash SHA256, tx_hash on-chain, customer_id Stripe, droit rétractation L.221-18 vs garantie refund, contenu audit input mémoire Worker)
-- Checkpoint final V2 → GO/AJUSTER avant Phase 1 (build)
+### Phase 0 v2 session 3 — `COMPLETE 2026-05-05 (session 2 étendue)`
+- @legal : 4 livrables `docs/legal/` v2 (1098 lignes, 5/5/5/5/5) — legal-audit v2 (§§ Stripe humain pilier retirées, audit endpoint + pack + x402 V2 + INF-11 à INF-15) + cgu-draft v2 (Art. 3bis audit, 4bis packs, 4ter garantie ROI, 4quater renonciation L.221-28 13°, Stripe rétrogradé service auxiliaire) + privacy-policy v2 (5 questions PII tranchées, 12 events validés zéro-PII, art. 26 RGPD responsabilité partagée) + rgpd-checklist v2 (20 ✓ / 18 ⚠ / 8 N/A vs 18/17/8 v1, 3 nouveaux items)
+- Verdict global : GO CONDITIONNEL (4 actions P0 maintenues : immat auto-entreprise, email dpo@coinbase.com [HYPOTHÈSE H1 toujours active], expert-comptable BNC stablecoin, Stripe Tax)
+- 5 questions PII tranchées : Q1 wallet_hash = pseudonyme RGPD (intérêt légitime + TTL 24h), Q2 tx_hash = quasi-identifiant agrégation (compta 10 ans + dispute 30j), Q3 customer_id Stripe = pseudonyme côté DevRefs (hash email si webhook), Q4 renonciation L.221-28 13° = OUI 3 conditions cumulatives (action P1 avocat conso), Q5 input audit non persisté = OUI 4 garanties techniques (audit code @qa Phase 3)
+
+### Phase 0 v2 — CHECKPOINT FINAL — `EN COURS (utilisateur)`
+- 23 livrables consolidés (4 strategy + 4 ia + 7 product + 4 analytics + 1 dev-decisions + 4 legal v2 = 5800+ lignes)
+- Cohérence cross-fichier : 100 % vérifiée — pricing $10/$9.99/$29 reprise depuis agent-economics.md, garantie ROI 50 % refund cohérente cross 4 fichiers (pricing-strategy + agent-audit-spec + cgu-draft + legal-audit), 21 user stories backlog → 47 events tracking-plan mappés 100 %, zéro-PII validé sur 12 nouveaux events
+- Présentation GO/AJUSTER à Thomas en attente
 
 ## Métriques live
 
