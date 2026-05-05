@@ -26,11 +26,16 @@
 
 ## Plan par phase
 
-### Phase 0a — Cadrage IA-first (préalable) — `EN COURS`
+### Phase 0a — Cadrage IA-first (préalable) — `COMPLETE`
 - **Agent** : @ia
 - **Mission** : remplir 3 `[BLOCK_IA]` dans `project-context.md` (verbatims persona, 3 mots qui ne définissent PAS, différence clé vs pricepertoken)
-- **Livrable** : `project-context.md` mis à jour
-- **Statut** : EN COURS — dernier agent : @ia (lancé)
+- **Livrable** : `project-context.md` mis à jour (lignes 31-60 verbatims V1-V5, lignes 68-71 mots négatifs justifiés, ligne 73 diff vs pricepertoken)
+- **Statut** : COMPLETE (2026-05-05)
+- **Auto-évaluation @ia** : 5/5/5/5/5 (Complétude/Cohérence/Actionnabilité/Messages/Spécificité)
+- **Risques signalés à valider plus tard** :
+  - Fil HN #44682465 + source Finout tokenizer Opus 4.7 +35 % → re-vérification par @reviewer avant publication landing (G13)
+  - Mention "MCP gratuit sans monétisation" pricepertoken → reconfirmer Phase 3 (concurrence évolutive)
+  - Breaking change Vercel AI SDK `streamText` → re-vérifier par @fullstack au scaffold `/api/sdk-status`
 
 ### Phase 0 — Fondations stratégiques — `EN ATTENTE`
 - **Wave 1 (parallèle)** : @creative-strategy ("Positionnement & plateforme de marque") + @legal ("Audit juridique & conformité")
@@ -90,8 +95,8 @@
 
 | Phase | Agents | Parallèles | Relances | P0 | Coût estimé | Statut |
 |---|---|---|---|---|---|---|
-| 0a | 1 (@ia) | 0 | 0 | 0 | ~$3-5 | EN COURS |
-| 0 (wave 1) | 2 (@creative-strategy + @legal) | 2 | 0 | 0 | ~$8-12 | EN ATTENTE |
+| 0a | 1 (@ia) | 0 | 0 | 0 | ~$3-5 | COMPLETE |
+| 0 (wave 1) | 2 (@creative-strategy + @legal) | 2 | 0 | 0 | ~$8-12 | EN COURS |
 | 0 (wave 2) | 1 (@product-manager) | 0 | 0 | 0 | ~$4-6 | EN ATTENTE |
 | 0 (wave 3) | 1 (@data-analyst) | 0 | 0 | 0 | ~$3-5 | EN ATTENTE |
 | 0 (wave 4) | 6 multi (messaging + pricing) | partiel | 0 | 0 | ~$15-25 | EN ATTENTE |
@@ -103,8 +108,8 @@
 
 ## Compteur de session courante
 
-- Phases complétées : 0/6 (0a en cours)
-- Tasks producteurs lancés : 0 (cap recommandé : 8-12 par session pour préserver le contexte)
+- Phases complétées : 1/6 (Phase 0a COMPLETE)
+- Tasks producteurs lancés : 1 (cap recommandé : 8-12 par session pour préserver le contexte)
 - Tasks consultation : 0
 - Drift détecté : NON
 - Dernière session : 2026-05-05 (en cours)
