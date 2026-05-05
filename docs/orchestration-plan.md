@@ -44,9 +44,10 @@
   - Cohérence wave 1 : 0 placeholder, pricing/JWT/naming cohérents cross 8 fichiers
 - **Wave 2 (séquentiel après wave 1)** : @product-manager ("Vision produit & roadmap" + "Définir le scope V1" mergés) — `COMPLETE 2026-05-05`
   - 6 fichiers `docs/product/` (5/5/5/5/5), 26 features V1 (17 épics + 9 support), 7 V2 reportées, hypothèse business agrégée H1+H2 testée E1 J7 binaire, critères succès J7≥5 paiements OU JWT actif / J30 ≥50€ / J90 ≥200€ / M+6 ≥600€/mois (KPI North Star), citation Perplexity ≥1 à M+1 / ≥30 à M+6
-- **Wave 3 (séquentiel après wave 2)** : @data-analyst ("KPIs & tracking plan") — `EN COURS`
-- **Wave 4 (parallèle après wave 3)** : @creative-strategy + @copywriter ("Construire la messaging matrix") + @product-manager + @data-analyst + @growth + @legal ("Stratégie de pricing complète")
-- **Checkpoint utilisateur OBLIGATOIRE après Phase 0** (renforcement #9)
+- **Wave 3 (séquentiel après wave 2)** : @data-analyst ("KPIs & tracking plan") — `COMPLETE 2026-05-05`
+  - 4 fichiers `docs/analytics/` + `docs/dev-decisions.md` (5/5/5/5/5), 39 KPIs (5 AARRR + 3 DevRefs-spécifiques + 3 validation persona), 38 events sur 6 domains (api/payment/landing/crawl/cron/quality), zéro-PII confirmé OUI, dashboard 4 zones (Revenue/Activation funnel/Cohérence promesse↔réalité/Discovery)
+- **Wave 4 (parallèle après wave 3)** : @creative-strategy + @copywriter ("Construire la messaging matrix") + @product-manager + @data-analyst + @growth + @legal ("Stratégie de pricing complète") — `REPORTÉE — pricing déjà arbitré dans brief (0,49€/4,99€), formalisation possible Phase 1 couplée @copywriter`
+- **Checkpoint utilisateur OBLIGATOIRE après Phase 0** (renforcement #9) — `EN COURS`
 - **Livrables attendus** :
   - `docs/strategy/brand-platform.md`
   - `docs/strategy/personas.md`
@@ -102,8 +103,8 @@
 | 0a | 1 (@ia) | 0 | 0 | 0 | ~$3-5 | COMPLETE |
 | 0 (wave 1) | 2 (@creative-strategy + @legal) | 2 | 0 | 0 | ~$8-12 | COMPLETE |
 | 0 (wave 2) | 1 (@product-manager) | 0 | 0 | 0 | ~$4-6 | COMPLETE |
-| 0 (wave 3) | 1 (@data-analyst) | 0 | 0 | 0 | ~$3-5 | EN COURS |
-| 0 (wave 4) | 6 multi (messaging + pricing) | partiel | 0 | 0 | ~$15-25 | EN ATTENTE |
+| 0 (wave 3) | 1 (@data-analyst) | 0 | 0 | 0 | ~$3-5 | COMPLETE |
+| 0 (wave 4) | 6 multi (messaging + pricing) | partiel | 0 | 0 | ~$15-25 | REPORTÉE Phase 1 |
 | 1 | 5 | 3 | — | — | ~$20-30 | EN ATTENTE |
 | 2 | 5 + 2 testeurs | partiel | — | — | ~$25-40 | EN ATTENTE |
 | 3 | 3 | 3 | — | — | ~$8-12 | EN ATTENTE |
