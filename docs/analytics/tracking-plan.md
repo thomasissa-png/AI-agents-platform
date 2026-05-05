@@ -1,236 +1,295 @@
-<!-- Version: 2026-05-05T11:15 — @data-analyst — Phase 0 wave 3 — Tracking Plan DevRefs -->
+<!-- Version: 2026-05-05T17:15 — @data-analyst — Phase 0 v2 wave 3 — Tracking Plan DevRefs v2 (pivot B2A pure — audit + pack) -->
 
-# Tracking Plan — DevRefs
+# Tracking Plan — DevRefs v2
 
 ## Résumé exécutif
 
-- **Objectif** : tracking plan complet pour instrumenter tous les KPIs du `kpi-framework.md`.
-- **Décisions clés** : (1) Naming `{domain}_{verb}_{object}` snake_case, verbe au passé. (2) 6 domains : `api`, `payment`, `landing`, `crawl`, `cron`, `quality`. (3) Outil principal Cloudflare Workers Analytics Engine (gratuit, server-side, zéro-PII). (4) Aucun outil tiers (pas de GA / PostHog / Mixpanel). (5) Volume estimé V1 : ~3 000 events/jour conservateur, largement sous quota CF AE (25 K events/min, 100 K/jour retention).
-- **38 events** totaux couvrant 26 features V1 + 9 KPIs validation persona + 4 KPIs cohérence promesse↔réalité.
-- **Dépendances aval** : `dashboard-specs.md` (visualisation), `dev-decisions.md` (handoff @fullstack pour implémentation).
+- **Pivot v2 2026-05-05** : refonte des 38 events v1 → 50 events v2. Ajout domain `audit` (6 events nouveaux) + events `pack_*` (4 nouveaux) + events `sponsor_*` (2 nouveaux). Retrait/archivage 3 events Stripe humain pilier. Events conservés v1 adaptés aux 3 endpoints (au lieu de 2).
+- **Décisions clés** : (1) Naming `{domain}_{verb}_{object}` snake_case verbe au passé — conservé v1. (2) 7 domains v2 : `api`, `payment`, `audit`, `pack`, `sponsor`, `landing`, `crawl`, `cron`, `quality`. (3) Outil unique CF Workers Analytics Engine server-side — zéro outil tiers. (4) Volume estimé v2 : ~3 200-3 500 events/jour avec audit + pack — sous quota CF AE 100 K/jour. (5) Privacy by design strict : aucun contenu audit input/output dans CF AE, aucun email, aucune IP brute, aucun UA complet.
+- **50 events totaux v2** : 33 conservés/adaptés v1 + 12 nouveaux (audit 6 + pack 4 + sponsor 2) — 3 retirés (Stripe humain pilier archivés).
+- **Dépendances aval** : `dashboard-specs.md` v2 (visualisation), `dev-decisions.md` v2 (handoff @fullstack).
 
 ---
 
-## 1. Convention de nommage
+## 1. Convention de nommage (inchangée v1)
 
 ```
 Format : {domain}_{verb}_{object}
 - snake_case strict (pas de camelCase, pas de kebab-case)
-- Verbe au PASSÉ (received, completed, sent — pas receive, complete, send)
-- Domains autorisés : api / payment / landing / crawl / cron / quality
-- Object descriptif (ex : 402_sent, x402_completed, payload_size_measured)
+- Verbe au PASSÉ (received, completed, sent, purchased, triggered — pas receive, complete, send)
+- Domains autorisés v2 : api / payment / audit / pack / sponsor / landing / crawl / cron / quality
+- Object descriptif et spécifique à l'action
 ```
 
-**Exemples conformes** : `api_request_received`, `payment_x402_completed`, `landing_cta_stripe_clicked`.
+**Exemples conformes v2** : `audit_request_received`, `pack_purchased`, `sponsor_topup_stripe_completed`, `pack_quota_exhausted`.
 
-**Exemples non conformes** (à rejeter) : `apiRequestReceived` (camelCase), `api-request-received` (kebab), `request_api` (verbe au présent + ordre inversé).
-
----
-
-## 2. Domains et events
-
-### 2.1 Domain `api` — events serveur sur les 2 endpoints monétisés
-
-| Event | Déclencheur | Type user/system | Propriétés (typées) | Outil capture | Propagation dashboard | Justification PII-free |
-|---|---|---|---|---|---|---|
-| `api_request_received` | toute requête sur `/api/llm-prices` ou `/api/sdk-status` | system | `path` (string : `/api/llm-prices` ou `/api/sdk-status`), `method` (string : GET), `ua_bucket` (string : cf. kpi-framework § 5.1), `referrer_bucket` (string), `has_payment_header` (bool), `has_jwt` (bool) | CF Workers AE | Zone 2 funnel | UA brut jeté, IP non capturée |
-| `api_response_402_sent` | middleware x402 renvoie 402 | system | `path`, `ua_bucket`, `price_eur` (number : 0.49), `facilitator` (string : coinbase) | CF AE | Zone 2 funnel agent | aucune PII |
-| `api_response_200_sent` | endpoint sert payload payé | system | `path`, `ua_bucket`, `payload_size_bytes` (number), `latency_ms` (number), `freshness_hours` (number), `auth_type` (string : x402 ou jwt) | CF AE | Zone 2 + Zone 3 cohérence | aucune PII |
-| `api_response_401_sent` | JWT invalide ou expiré | system | `path`, `ua_bucket`, `jwt_expired` (bool), `jwt_invalid_signature` (bool) | CF AE | Zone 2 (drop-off) | aucune PII |
-| `api_response_4xx_sent` | erreur client (400 model_param_required, 404 model_not_found) | system | `path`, `ua_bucket`, `status_code` (number), `error_code` (string) | CF AE | Zone 2 diagnostic | aucune PII |
-| `api_response_5xx_sent` | erreur serveur (503 facilitator down, 504 timeout) | system | `path`, `ua_bucket`, `status_code` (number), `error_code` (string) | CF AE | Zone 3 alerte | aucune PII |
-
-### 2.2 Domain `payment` — events x402 + Stripe
-
-| Event | Déclencheur | Type | Propriétés | Outil | Propagation | PII-free |
-|---|---|---|---|---|---|---|
-| `payment_x402_required` | middleware x402 envoie HTTP 402 (alias de `api_response_402_sent` côté payment) | system | `path`, `price_eur`, `network` (string : base) | CF AE | Zone 2 funnel agent | aucune PII |
-| `payment_x402_attempt` | requête entrante avec header `X-PAYMENT` non vide | system | `path`, `wallet_hash` (string : SHA256 wallet), `signature_valid` (bool) | CF AE | Zone 2 funnel agent | wallet hashé |
-| `payment_x402_completed` | Coinbase facilitator confirme settle (event-driven via webhook ou polling) | system | `path`, `wallet_hash`, `amount_usdc` (number), `fx_usd_eur_at_settle` (number), `tx_hash` (string : on-chain pseudonyme) | CF AE + Coinbase | Zone 1 revenue + Zone 2 | wallet hashé, tx_hash on-chain public |
-| `payment_x402_failed` | Coinbase renvoie erreur (insufficient_funds, signature_invalid, settle_timeout) | system | `path`, `wallet_hash`, `failure_reason` (string : enum) | CF AE | Zone 2 diagnostic | wallet hashé |
-| `payment_stripe_link_clicked` | clic CTA Stripe sur landing (alias de `landing_cta_stripe_clicked` côté payment) | user humain | `referrer_bucket`, `has_session_cookie` (bool) | CF AE | Zone 2 funnel humain | aucune PII |
-| `payment_stripe_checkout_completed` | webhook Stripe `checkout.session.completed` | system | `customer_id` (string : Stripe pseudo), `amount_eur` (number : 4.99), `country` (string : 2 lettres ISO pour Stripe Tax) | Stripe webhook | Zone 1 revenue | customer_id pseudonyme, country pour TVA OSS |
-| `payment_jwt_issued` | post-Stripe checkout, génération JWT 24h | system | `jwt_id` (string : UUID v4), `customer_id`, `expires_at` (timestamp) | CF AE | Zone 2 funnel humain | UUID non corrélable email |
-| `payment_jwt_validated` | requête API avec JWT valide accepté | system | `path`, `jwt_id`, `validation_count` (number : compteur d'usage du JWT) | CF AE | Zone 2 + § 2.3 rétention | JWT pseudonyme |
-| `payment_jwt_expired` | requête avec JWT expiré (alias de `api_response_401_sent` avec `jwt_expired=true`) | system | `jwt_id`, `age_hours` (number) | CF AE | Zone 2 diagnostic | JWT pseudonyme |
-
-### 2.3 Domain `landing` — events page publique humaine
-
-| Event | Déclencheur | Type | Propriétés | Outil | Propagation | PII-free |
-|---|---|---|---|---|---|---|
-| `landing_page_view` | requête HTTP GET sur `/llm-prices` ou autre page publique avec UA-bucket `human/*` | user humain | `path`, `referrer_bucket`, `ua_bucket` (`human/desktop` ou `human/mobile`), `has_session_cookie` (bool) | CF AE (server-side via Worker) | Zone 2 funnel humain + Zone 4 sources | aucune PII |
-| `landing_scroll_depth` | scroll seuils 25 / 50 / 75 / 100 % (snippet JS minimal sur landing seulement) | user humain | `path`, `depth_percent` (number : 25 / 50 / 75 / 100) | CF AE (Worker REST endpoint) | Zone 2 funnel humain | aucune PII |
-| `landing_cta_stripe_clicked` | clic sur lien Stripe Payment Link (capture via Worker proxy ou snippet JS) | user humain | `referrer_bucket`, `has_session_cookie`, `scroll_depth_at_click` (number) | CF AE | Zone 2 funnel humain | aucune PII |
-| `landing_cta_curl_copied` | clic bouton "copier curl" (snippet JS minimal) | user humain | `path`, `endpoint_demo` (string : llm-prices ou sdk-status) | CF AE | Zone 2 diagnostic | aucune PII |
-| `landing_faq_expanded` | clic question FAQ (snippet JS minimal) | user humain | `question_id` (string : enum 12 questions) | CF AE | Zone 2 + diagnostic copy | aucune PII |
-
-### 2.4 Domain `crawl` — events bot/agent (détection via UA + headers)
-
-| Event | Déclencheur | Type | Propriétés | Outil | Propagation | PII-free |
-|---|---|---|---|---|---|---|
-| `crawl_llms_txt_fetched` | requête GET sur `/llms.txt` | system | `ua_bucket`, `if_modified_since` (bool : présence header) | CF AE | Zone 1 + Zone 2 acquisition agent | aucune PII |
-| `crawl_sitemap_fetched` | requête GET sur `/sitemap.xml` | system | `ua_bucket` | CF AE | Zone 4 acquisition | aucune PII |
-| `crawl_robots_fetched` | requête GET sur `/robots.txt` | system | `ua_bucket` | CF AE | Zone 4 acquisition | aucune PII |
-| `crawl_openapi_fetched` | requête GET sur `/openapi.json` | system | `ua_bucket`, `accept_header_bucket` (string : json / yaml / other) | CF AE | Zone 2 acquisition agent avancé | aucune PII |
-| `crawl_dataset_jsonld_parsed` | détection JSON-LD parser via header `Accept: application/ld+json` ou User-Agent IA + GET sur landing | system | `path`, `ua_bucket` | CF AE | Zone 4 GEO | aucune PII |
-| `crawl_about_data_sources_viewed` | requête GET sur `/about/data-sources` | system | `ua_bucket`, `referrer_bucket` | CF AE | Zone 4 (signal d'intérêt acheteur) | aucune PII |
-
-### 2.5 Domain `cron` — events scrape sources officielles
-
-| Event | Déclencheur | Type | Propriétés | Outil | Propagation | PII-free |
-|---|---|---|---|---|---|---|
-| `cron_scrape_started` | début exécution cron (6h pricing / 24h SDK) | system | `cron_name` (string : llm-prices ou sdk-status), `started_at` (timestamp) | CF AE | Zone 3 cron health | aucune PII (interne) |
-| `cron_scrape_completed` | fin succès cron | system | `cron_name`, `duration_ms` (number), `sources_count` (number), `items_updated` (number) | CF AE | Zone 3 cron health | aucune PII |
-| `cron_scrape_failed` | échec cron (source down, parser cassé) | system | `cron_name`, `failure_reason` (string), `failed_source` (string : domain officiel) | CF AE | Zone 3 alerte ROUGE | aucune PII |
-| `cron_kv_cache_updated` | écriture KV après scrape réussi | system | `cron_name`, `key_pattern` (string : `pricing:*` ou `sdk:*`), `entries_count` (number) | CF AE | Zone 3 cron health | aucune PII |
-| `cron_dateModified_bumped` | mise à jour `dateModified` JSON-LD dans le payload | system | `cron_name`, `new_dateModified` (timestamp ISO 8601) | CF AE | Zone 3 fraîcheur | aucune PII |
-| `cron_indexnow_pushed` | push IndexNow Bing après update | system | `urls_count` (number), `success` (bool) | CF AE | Zone 4 acquisition | aucune PII |
-
-### 2.6 Domain `quality` — cohérence promesse↔réalité
-
-| Event | Déclencheur | Type | Propriétés | Outil | Propagation | PII-free |
-|---|---|---|---|---|---|---|
-| `quality_payload_size_measured` | chaque réponse 200 sur `/api/*` (instrumentation Worker) | system | `path`, `payload_size_bytes` (number), `under_50kb` (bool) | CF AE | Zone 3 cohérence | aucune PII |
-| `quality_latency_measured` | chaque réponse 200 sur `/api/*` (instrumentation Worker `Date.now()` start/end) | system | `path`, `latency_ms` (number), `under_200ms` (bool) | CF AE | Zone 3 cohérence | aucune PII |
-| `quality_freshness_measured` | chaque réponse 200 (calcul `now - dateModified`) | system | `path`, `freshness_hours` (number), `freshness_ok` (bool : < 6h pricing, < 24h SDK) | CF AE | Zone 3 cohérence | aucune PII |
-| `quality_watermark_verified` | vérification HMAC `_signature` payload (interne) | system | `path`, `valid` (bool) | CF AE | Zone 3 anti-fraude | aucune PII |
+**Exemples non conformes** (à rejeter) : `auditRequest` (camelCase), `pack-purchased` (kebab), `purchase_pack` (ordre inversé).
 
 ---
 
-## 3. Anti-pattern (events à NE PAS tracker)
+## 2. Events par domain
+
+### 2.1 Domain `api` — requêtes sur les 3 endpoints monétisés
+
+**Changement v2** : propriété `path` accepte maintenant `/api/agent-audit` en plus des 2 endpoints v1.
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `api_request_received` | Toute requête sur `/api/llm-prices`, `/api/sdk-status`, `/api/agent-audit` | `path` (string : enum 3 values), `method` (string : GET ou POST), `ua_bucket` (string : 11 buckets), `referrer_bucket` (string), `has_payment_header` (bool), `has_pack_token` (bool) | CF AE | UA brut jeté, IP non capturée |
+| `api_response_402_sent` | Middleware x402 renvoie 402 sur les 3 endpoints | `path`, `ua_bucket`, `price_usdc` (number : 0.001 ou 9.99 selon endpoint), `facilitator` (string : coinbase), `offer_type` (string : one-shot ou pack ou audit) | CF AE | Aucune PII |
+| `api_response_200_sent` | Endpoint sert payload payé (pricing / SDK / audit) | `path`, `ua_bucket`, `payload_size_bytes` (number), `latency_ms` (number), `freshness_hours` (number), `auth_type` (string : x402_oneshot ou x402_pack ou x402_audit) | CF AE | Aucune PII |
+| `api_response_401_sent` | JWT invalide ou pack token expiré/épuisé | `path`, `ua_bucket`, `reason` (string : jwt_expired / jwt_invalid / pack_exhausted / pack_expired) | CF AE | Aucune PII |
+| `api_response_4xx_sent` | Erreur client (400, 404, 422) | `path`, `ua_bucket`, `status_code` (number), `error_code` (string) | CF AE | Aucune PII |
+| `api_response_5xx_sent` | Erreur serveur (503 facilitator down, 504 timeout) | `path`, `ua_bucket`, `status_code` (number), `error_code` (string) | CF AE + Mailchannels alerte | Aucune PII |
+
+### 2.2 Domain `payment` — events x402 one-shot (pricing + SDK)
+
+**Changement v2** : events Stripe humain pilier (`payment_stripe_link_clicked`, `payment_stripe_checkout_completed`, `payment_jwt_issued`, `payment_jwt_validated`, `payment_jwt_expired`) archivés ou reclassés en `sponsor_*`. Events x402 conservés.
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `payment_x402_required` | Middleware x402 envoie HTTP 402 (alias `api_response_402_sent` côté paiement) | `path`, `price_usdc` (number), `network` (string : base) | CF AE | Aucune PII |
+| `payment_x402_attempt` | Requête entrante avec header `X-PAYMENT` non vide, AVANT validation Coinbase | `path`, `wallet_hash` (string : SHA256 wallet), `signature_valid` (bool), `offer_type` (string : one-shot) | CF AE | Wallet hashé |
+| `payment_x402_completed` | Coinbase facilitator confirme settle (webhook ou polling) | `path`, `wallet_hash`, `amount_usdc` (number), `fx_usd_eur_at_settle` (number), `tx_hash` (string : on-chain pseudonyme), `offer_type` (string : one-shot) | CF AE + Coinbase | Wallet hashé, tx_hash pseudonyme on-chain |
+| `payment_x402_failed` | Coinbase renvoie erreur | `path`, `wallet_hash`, `failure_reason` (string : enum : insufficient_funds / signature_invalid / settle_timeout) | CF AE | Wallet hashé |
+
+**Events archivés v1 → v2** (retirés, non utilisés en B2A pure) :
+- `payment_stripe_link_clicked` → archivé (Stripe humain pilier banni). Remplacement : `landing_cta_clicked` générique.
+- `payment_stripe_checkout_completed` → archivé. Le Stripe sponsor est dans domain `sponsor_*`.
+- `payment_jwt_issued` / `payment_jwt_validated` / `payment_jwt_expired` → archivés (JWT Stripe humain 24h banni). Si JWT sponsor top-up introduit V2, rebaptiser `sponsor_jwt_*`.
+
+### 2.3 Domain `audit` — endpoint `/api/agent-audit` (NOUVEAU v2)
+
+**6 events nouveaux couvrant le parcours complet agent IA → audit livré.**
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `audit_request_received` | POST `/api/agent-audit` reçu (avant auth) | `ua_bucket`, `input_size_bytes` (number), `has_payment_header` (bool) | CF AE | Zéro contenu input loggé — uniquement méta-données |
+| `audit_402_served` | Middleware x402 renvoie 402 sur `/api/agent-audit` | `ua_bucket`, `price_usdc` (number : 9.99 one-shot ou 8.17 Pack Pro), `offer_type` (string : one-shot ou pack_pro) | CF AE | Aucune PII |
+| `audit_paid_x402` | Coinbase confirme settle pour `/api/agent-audit` | `wallet_hash`, `amount_usdc` (number), `tx_hash`, `offer_type` (string : one-shot ou pack_pro), `pack_audits_remaining` (number : null si one-shot) | CF AE + Coinbase | Wallet hashé, zéro contenu audit |
+| `audit_delivered` | Output JSON audit renvoyé 200 au client | `wallet_hash`, `latency_ms` (number), `score_0_100` (number), `savings_pct` (number), `auto_applicable_count` (number), `watermark_hmac_valid` (bool) | CF AE | Agrégats numériques uniquement — zéro contenu recommandations |
+| `audit_savings_realized` | Déclaratif : agent re-appelle après audit avec header `X-Audit-ID` (signal d'usage suivi) | `audit_id` (string : pseudonyme UUID v4, non corrélable wallet), `savings_pct_claimed` (number), `days_since_audit` (number) | CF AE | UUID pseudonyme — aucun lien wallet |
+| `audit_refund_triggered` | Sponsor soumet demande refund via `/api/audit/refund` (savings_pct < 15 % prouvé à 30j) | `audit_id` (string : UUID v4), `savings_pct_actual` (number), `refund_amount_usdc` (number : 50 % du prix audit) | CF AE | UUID pseudonyme, montant agrégé |
+
+**Règle privacy audit** : le contenu de `agent_config` et `sample_traces` (input JSON) n'est JAMAIS stocké dans CF AE. Seuls les méta-données agrégées de l'output (score, savings_pct, latency_ms) sont loggées. Validation @legal session 3.
+
+### 2.4 Domain `pack` — gestion quota pré-payé KV (NOUVEAU v2)
+
+**4 events couvrant le cycle de vie d'un pack : achat → usage → épuisement/expiration.**
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `pack_purchased` | Coinbase confirme settle pour pack (1 signature x402 unique) | `wallet_hash`, `pack_type` (string : discovery_5 / standard_10 / pro_50 / audit_pro_49), `quota_total` (number : 5000 / 10000 / 60000 / 6), `amount_usdc` (number), `tx_hash`, `expires_at` (timestamp : null si pas de TTL temporel) | CF AE + Coinbase | Wallet hashé |
+| `pack_quota_consumed` | Chaque appel API autorisé via lookup KV pack (décrémente `remaining`) | `wallet_hash`, `pack_type`, `quota_remaining` (number), `path` (string : endpoint consommé), `quota_pct_used` (number) | CF AE | Wallet hashé — event fréquent, peut être échantillonné 1/10 |
+| `pack_quota_exhausted` | `remaining` atteint 0 (dernière requête autorisée) | `wallet_hash`, `pack_type`, `quota_total` (number), `calls_made_total` (number), `days_active` (number : jours depuis achat) | CF AE | Wallet hashé |
+| `pack_expired` | TTL temporel atteint (si implémenté V2) OU trigger manuel Thomas | `wallet_hash`, `pack_type`, `remaining_quota` (number), `remaining_quota_pct` (number), `reason` (string : ttl_expired / admin_revoked) | CF AE | Wallet hashé |
+
+**Note architecture** : `pack_quota_consumed` peut générer un volume élevé (jusqu'à 10 000 events/pack acheté si l'agent consomme chaque call). Stratégie d'échantillonnage recommandée : logguer 1 event tous les 100 calls (1 % sampling rate) + logguer systématiquement aux seuils 25 %, 50 %, 75 %, 100 %. Cf. dev-decisions.md v2 § Implémentation pricing pack.
+
+### 2.5 Domain `sponsor` — top-up wallet Stripe (NOUVEAU v2, marginal)
+
+**2 events couvrant le top-up Stripe sponsor (rampe onboarding crypto, pas revenu direct).**
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `sponsor_topup_stripe_initiated` | Clic CTA Stripe top-up sur landing (snippet JS → Worker) ou agent déclenche top-up UI | `referrer_bucket`, `topup_amount_eur` (number : 5 / 10 / 50), `ua_bucket` | CF AE | Aucune PII — pas de customer_id capturé avant completion |
+| `sponsor_topup_stripe_completed` | Webhook Stripe `checkout.session.completed` pour top-up sponsor | `customer_id` (string : Stripe pseudonyme), `amount_eur` (number), `country` (string : ISO 2 lettres pour TVA OSS), `topup_amount_usdc_estimate` (number : montant USDC équivalent après conversion) | Stripe webhook → CF AE | Customer_id pseudonyme Stripe — email dans Stripe scope uniquement |
+
+**Rappel v2** : le top-up Stripe sponsor ne génère aucun revenu direct pour DevRefs (l'agent paie DevRefs ensuite en x402). Ces events mesurent le funnel onboarding, pas le revenu.
+
+### 2.6 Domain `landing` — page publique (adapté v2)
+
+**Changement v2** : CTA Stripe Link humain retiré → CTA générique `landing_cta_clicked` avec `cta_type` enum.
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `landing_page_view` | GET sur `/`, `/llm-prices`, ou autre page publique avec ua_bucket `human/*` | `path`, `referrer_bucket`, `ua_bucket` (`human/desktop` ou `human/mobile`), `has_session_cookie` (bool) | CF AE server-side | Aucune PII |
+| `landing_scroll_depth` | Scroll seuils 25 / 50 / 75 / 100 % (snippet JS minimal) | `path`, `depth_percent` (number : 25 / 50 / 75 / 100) | CF AE (Worker REST) | Aucune PII |
+| `landing_cta_clicked` | Clic sur tout CTA de la landing (remplace `landing_cta_stripe_clicked` v1) | `cta_type` (string : curl_demo / audit_try / pack_buy / sponsor_topup / docs), `referrer_bucket`, `scroll_depth_at_click` (number) | CF AE | Aucune PII |
+| `landing_cta_curl_copied` | Clic bouton « copier curl » (snippet JS) | `path`, `endpoint_demo` (string : llm-prices / sdk-status / agent-audit) | CF AE | Aucune PII |
+| `landing_faq_expanded` | Clic question FAQ (snippet JS) | `question_id` (string : enum ≤ 15 questions) | CF AE | Aucune PII |
+
+### 2.7 Domain `crawl` — bots et agents IA (inchangé v1, adapté 3 endpoints)
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `crawl_llms_txt_fetched` | GET `/llms.txt` (3 endpoints listés v2) | `ua_bucket`, `if_modified_since` (bool) | CF AE | Aucune PII |
+| `crawl_sitemap_fetched` | GET `/sitemap.xml` | `ua_bucket` | CF AE | Aucune PII |
+| `crawl_robots_fetched` | GET `/robots.txt` | `ua_bucket` | CF AE | Aucune PII |
+| `crawl_openapi_fetched` | GET `/openapi.json` | `ua_bucket`, `accept_header_bucket` (string : json / yaml / other) | CF AE | Aucune PII |
+| `crawl_dataset_jsonld_parsed` | Header `Accept: application/ld+json` OU UA bot IA + GET landing | `path`, `ua_bucket` | CF AE | Aucune PII |
+| `crawl_about_data_sources_viewed` | GET `/about/data-sources` | `ua_bucket`, `referrer_bucket` | CF AE | Aucune PII |
+
+### 2.8 Domain `cron` — scrape sources officielles (adapté v2 : 3 crons)
+
+**Changement v2** : 3e cron pour heuristiques audit (< 1h refresh) en plus des 2 crons v1.
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `cron_scrape_started` | Début exécution cron | `cron_name` (string : llm-prices / sdk-status / audit-heuristics), `started_at` (timestamp) | CF AE | Interne |
+| `cron_scrape_completed` | Fin succès cron | `cron_name`, `duration_ms` (number), `sources_count` (number), `items_updated` (number) | CF AE | Interne |
+| `cron_scrape_failed` | Échec cron (source down, parser cassé) | `cron_name`, `failure_reason` (string), `failed_source` (string : domain officiel) | CF AE + Mailchannels alerte | Interne |
+| `cron_kv_cache_updated` | Écriture KV après scrape réussi | `cron_name`, `key_pattern` (string), `entries_count` (number) | CF AE | Interne |
+| `cron_dateModified_bumped` | Mise à jour `dateModified` JSON-LD | `cron_name`, `new_dateModified` (timestamp ISO 8601) | CF AE | Interne |
+| `cron_indexnow_pushed` | Push IndexNow Bing après update | `urls_count` (number), `success` (bool) | CF AE | Interne |
+
+### 2.9 Domain `quality` — cohérence promesse↔réalité (adapté v2 : 3 endpoints)
+
+| Event | Déclencheur | Propriétés (typées) | Outil | PII-free |
+|---|---|---|---|---|
+| `quality_payload_size_measured` | Chaque réponse 200 sur `/api/*` | `path`, `payload_size_bytes` (number), `under_50kb` (bool) | CF AE | Aucune PII |
+| `quality_latency_measured` | Chaque réponse 200 sur `/api/*` | `path`, `latency_ms` (number), `under_200ms` (bool) | CF AE | Aucune PII |
+| `quality_freshness_measured` | Chaque réponse 200 — calcul `now - dateModified` | `path`, `freshness_hours` (number), `freshness_ok` (bool : < 6h pricing / < 24h SDK / < 1h audit heuristiques) | CF AE | Aucune PII |
+| `quality_watermark_verified` | Vérification HMAC `_signature` payload | `path`, `valid` (bool) | CF AE | Aucune PII |
+
+---
+
+## 3. Delta v1 → v2 (récapitulatif)
+
+### Events ajoutés (12 nouveaux)
+
+| Event ajouté | Domain | Justification |
+|---|---|---|
+| `audit_request_received` | audit | F1c — endpoint `/api/agent-audit` |
+| `audit_402_served` | audit | F1c — funnel 402 audit |
+| `audit_paid_x402` | audit | F1c — paiement x402 audit |
+| `audit_delivered` | audit | F1c — livraison audit |
+| `audit_savings_realized` | audit | H9 — validation ROI 30-50 % |
+| `audit_refund_triggered` | audit | CGV — garantie refund < 15 % savings |
+| `pack_purchased` | pack | F8b — pack pré-payé KV |
+| `pack_quota_consumed` | pack | F8b — quota décrémenté |
+| `pack_quota_exhausted` | pack | F8b — quota épuisé |
+| `pack_expired` | pack | F8b — expiration pack |
+| `sponsor_topup_stripe_initiated` | sponsor | US-10b — top-up wallet |
+| `sponsor_topup_stripe_completed` | sponsor | US-10b — top-up wallet confirmé |
+
+### Events retirés / archivés (3 supprimés)
+
+| Event retiré | Raison | Remplacement |
+|---|---|---|
+| `payment_stripe_link_clicked` | Stripe humain pilier banni v2 | `landing_cta_clicked` avec `cta_type=sponsor_topup` |
+| `payment_stripe_checkout_completed` | Stripe humain pilier banni v2 | `sponsor_topup_stripe_completed` |
+| `payment_jwt_issued` / `payment_jwt_validated` / `payment_jwt_expired` | JWT Stripe humain 24h banni | Archivés — à réintroduire si JWT sponsor V2 |
+
+**Compte net** : 38 events v1 + 12 nouveaux - 3 retirés + 2 events JWT archivés = **47 events actifs v2** (+ 3 archivés).
+
+### Events adaptés (sans renommage)
+
+- `api_request_received` : `path` accepte `/api/agent-audit` + `has_pack_token` bool ajouté
+- `api_response_402_sent` : `price_usdc` remplace `price_eur` + `offer_type` ajouté
+- `api_response_200_sent` : `auth_type` enrichi (x402_pack / x402_audit)
+- `api_response_401_sent` : `reason` enrichi (pack_exhausted / pack_expired)
+- `landing_cta_stripe_clicked` → renommé `landing_cta_clicked` + `cta_type` enum
+- `cron_scrape_*` : `cron_name` accepte `audit-heuristics` en plus des 2 crons v1
+- `quality_freshness_measured` : `freshness_ok` seuil audit < 1h en plus de pricing/SDK
+
+---
+
+## 4. Anti-pattern (events à NE PAS tracker)
 
 | Event interdit | Raison | Alternative anonymisée |
 |---|---|---|
-| `user_email_captured` | RGPD — Stripe gère emails dans son scope, jamais côté DevRefs analytics | `customer_id` Stripe pseudonyme |
-| `user_ip_logged` (IP brute) | RGPD — IP est PII identifiable | `ip_hash` SHA256(IP + daily_salt), TTL 24h |
-| `ua_string_full_captured` | UA complet peut être PII (fingerprint) + bruit analytique | `ua_bucket` catégoriel (10 buckets max) |
-| `wallet_to_email_mapping` | Briserait l'anonymat persona principal (agent IA) | wallet_hash et customer_id traités séparément, jamais joints |
-| `referrer_url_full_captured` | URL référente complète peut contenir tokens / params sensibles | `referrer_bucket` catégoriel (devto / reddit / hn / x / direct / other) |
-| `session_replay_recorded` | Privacy invasif + lourd + budget | aucune alternative — interdit V1 |
-| `cookie_consent_*` | Aucun cookie nécessitant consentement V1 (cf. § 5 kpi-framework) | aucun cookie tiers V1 |
+| `audit_input_logged` (contenu JSON input audit) | Privacy — config agent + sample traces peuvent contenir des secrets (API keys, prompts propriétaires) | Zéro contenu input dans CF AE — uniquement `input_size_bytes` |
+| `audit_output_logged` (recommandations complètes) | Privacy + valeur — le contenu audit est le produit payé, pas une donnée analytique | `score_0_100`, `savings_pct`, `auto_applicable_count` agrégés |
+| `user_email_captured` | RGPD — Stripe gère emails dans son scope | `customer_id` Stripe pseudonyme |
+| `user_ip_logged` (IP brute) | RGPD — IP est PII | `ip_hash` SHA256(IP + daily_salt) TTL 24h |
+| `ua_string_full_captured` | UA complet peut être PII (fingerprint) | `ua_bucket` catégoriel (11 buckets max) |
+| `wallet_to_email_mapping` | Briserait anonymat persona principal | wallet_hash et customer_id traités séparément |
+| `pack_wallet_to_sponsor_mapping` | Nouveau v2 — ne pas relier wallet agent à compte sponsor humain | Traités séparément dans CF AE |
+| `session_replay_recorded` | Privacy invasif | Interdit V1 |
 
 ---
 
-## 4. Outil de capture (stack 0 €)
+## 5. Outil de capture (stack 0 €, inchangé v1)
 
-### 4.1 Cloudflare Workers Analytics Engine (principal)
+### 5.1 Cloudflare Workers Analytics Engine (principal)
 
-- **Free tier 2026** : 25 000 events/min écriture, 100 000 events/jour rétention 30 jours, query SQL via dashboard CF.
-- **Volume V1 estimé** : ~3 000 events/jour conservateur (~125 events/heure, ~2 events/min) — largement sous quota.
-- **Avantages** : server-side (zéro JS sur landing humaine pour la mesure de base), bindings natifs Workers, SQL queryable, pas de vendor externe.
-- **Limites** : pas de UI dashboard riche (queries SQL manuelles ou via dashboard custom F25), pas de funnels visuels intégrés (à construire dans F25).
+- **Free tier 2026** : 25 000 events/min écriture, 100 000 events/jour rétention 30 jours, SQL queryable.
+- **Volume v2 estimé** :
 
-### 4.2 Coinbase facilitator dashboard (revenue x402)
+| Source | Events/jour estimés |
+|---|---|
+| `crawl_*` (bots IA + SEO) | 200 |
+| `api_request_received` + `api_response_*` (3 endpoints) | 1 200 (+50 % v1 pour 3e endpoint) |
+| `payment_x402_*` (~10 events/paiement, ~3 paiements/jour) | 30 |
+| `audit_*` (~6 events/audit, ~2 audits/jour) | 12 |
+| `pack_*` (~4 events + échantillonnage quota_consumed) | 50 |
+| `sponsor_*` (marginal) | 5 |
+| `landing_*` (humain) | 100 |
+| `cron_*` (3 crons × 6-8 events, audit 1h = 24/jour) | 300 (+260 v1 pour cron audit hourly) |
+| `quality_*` (4 events × ~400 réponses 200/jour) | 1 600 (+50 % v1) |
+| **Total estimé v2** | **~3 500 events/jour** |
 
-- **Natif** : settled tx, fees, wallet pseudonymes.
-- **Données récupérées via API** pour agrégation dashboard interne F25 : `amount_usdc`, `tx_hash`, `wallet_hash`, `settled_at`, `fees_usdc`.
-- **Anti-PII** : Coinbase x402 metadata (`resource_url`, `description`, `reason`) doivent rester en clair sans PII (cf. legal-audit P0).
+**Marge quota CF AE** : 3 500 / 100 000 = 3,5 % utilisé. Marge ×28. Aucun risque V1.
 
-### 4.3 Stripe dashboard (revenue Stripe + JWT post-checkout)
+### 5.2 Coinbase facilitator API (revenue x402 + pack + audit)
 
-- **Natif** : Payment Link analytics, webhooks `checkout.session.completed`, `customer.created`.
-- **Données récupérées via API** : `customer_id`, `amount_eur`, `country`, `payment_method`, `created_at`.
-- **Anti-PII côté DevRefs** : email Stripe stocké dans Stripe uniquement, jamais répliqué en CF AE.
+- Données récupérées : `amount_usdc`, `tx_hash`, `wallet_hash`, `settled_at`, `fees_usdc`.
+- Anti-PII : metadata x402 (`resource_url`, `description`) sans PII.
 
-### 4.4 Outils REJETÉS (et raisons)
+### 5.3 CF KV (quota pack — state store, pas event stream)
+
+- **Pack quota** : `pack:{wallet_hash}:remaining` (number), `pack:{wallet_hash}:expires_at` (timestamp ISO 8601 ou null), `pack:{wallet_hash}:pack_type` (string).
+- **Lecture** : endpoint dédié `/api/pack/quota` (voir dev-decisions.md v2 § réponse question ouverte).
+- **CF AE n'est PAS un state store** : le quota restant en temps réel est dans KV, pas dans CF AE. CF AE reçoit uniquement les events discrets (pack_purchased, pack_quota_exhausted, pack_expired).
+
+### 5.4 Outils REJETÉS (inchangés v1)
 
 | Outil | Raison rejet |
 |---|---|
-| Google Analytics 4 | Vendor lock-in + RGPD friction (consentement bannière) + pixel JS sur landing (poids + fingerprint) + budget |
-| PostHog Cloud | Freemium 1M events/mois OK budget V1 mais vendor lock-in + pixel JS + complexité à intégrer pour zéro valeur ajoutée vs CF AE |
-| Mixpanel | Payant > 20K MTU + vendor lock-in + RGPD friction |
+| Google Analytics 4 | RGPD friction + pixel JS + vendor lock-in |
+| PostHog Cloud | Pixel JS + vendor lock-in |
+| Mixpanel | Payant + RGPD friction |
 | Amplitude | Idem Mixpanel |
-| Plausible | 9 €/mois mini (anti budget 0 €) — bonne option V2 si CF AE limité |
-| Hotjar / FullStory | Session replay anti-privacy by design |
-
-**Ces outils peuvent être ajoutés en V2 si signal d'intérêt** (ex : volume humain > 1 000 visites/mois justifie analytics riche). Pas avant validation H1 J7.
+| Plausible | 9 €/mois anti-budget 0 € |
+| Hotjar / FullStory | Session replay anti-privacy |
 
 ---
 
-## 5. Volume estimé V1 (sanity check quota CF AE)
+## 6. Mapping events ↔ user stories backlog v2 (gate G7)
 
-| Source | Events/jour estimés (conservateur) |
+| User Story | Events associés |
 |---|---|
-| `crawl_*` (bots IA + bots SEO) | 200 |
-| `api_request_received` (API endpoints) | 800 (cible 100 paiements/mois = ~3-4 paiements/jour, mais 4xx + 402 + autres incluent ~25 req/paiement complété) |
-| `api_response_*` (4 sous-events par requête) | 800 |
-| `payment_*` (x402 + Stripe + JWT, ~10 events par paiement complété) | 50 |
-| `landing_*` (humain : page_view + scroll + CTA + FAQ) | 100 |
-| `cron_*` (8 events × cron 6h pricing × 4/jour + cron 24h SDK × 1/jour) | 40 |
-| `quality_*` (4 events × ~200 réponses 200/jour) | 800 |
-| **Total estimé** | **~2 800 events/jour** |
+| US-01 (découvrir via llms.txt) | `crawl_llms_txt_fetched` |
+| US-02 (payer llm-prices one-shot) | `api_response_402_sent`, `payment_x402_attempt`, `payment_x402_completed`, `api_response_200_sent` |
+| US-03 (payload fraîcheur pricing) | `quality_freshness_measured`, `cron_dateModified_bumped` |
+| US-04 (dateModified machine-readable) | `quality_freshness_measured`, `crawl_dataset_jsonld_parsed` |
+| US-05 (effective_cost_factor) | `api_response_200_sent` (payload field) |
+| US-06 (sdk-status) | `api_response_402_sent`, `payment_x402_completed`, `api_response_200_sent` |
+| US-07 (breaking_since detection) | `api_response_200_sent` (payload field `breaking_since`) |
+| US-08 (quota pack KV lookup) | `api_response_200_sent` (auth_type=x402_pack), `pack_quota_consumed` |
+| US-08b (pack pré-payé F8b) | `pack_purchased`, `pack_quota_consumed`, `pack_quota_exhausted`, `pack_expired` |
+| US-09 (sponsor top-up) | `sponsor_topup_stripe_initiated`, `sponsor_topup_stripe_completed` |
+| US-10b (top-up USDC wallet) | `sponsor_topup_stripe_completed`, `payment_x402_attempt` (post-top-up) |
+| US-11 (llms.txt découvrable) | `crawl_llms_txt_fetched` |
+| US-12 (openapi.json structuré) | `crawl_openapi_fetched` |
+| US-13 (IndexNow push) | `cron_indexnow_pushed` |
+| US-14 (JSON-LD dataset) | `crawl_dataset_jsonld_parsed` |
+| US-15 (monitoring admin F25) | Tous events `quality_*` + `payment_*` + `pack_*` + `audit_*` (dashboard agrégé) |
+| US-16 (agent envoie config audit) | `audit_request_received`, `audit_402_served` |
+| US-17 (agent paie audit x402) | `audit_paid_x402` |
+| US-18 (audit livré JSON structuré) | `audit_delivered` |
+| US-19 (savings_pct mesurés) | `audit_savings_realized`, `audit_refund_triggered` |
+| US-20 (garantie refund) | `audit_refund_triggered` |
 
-Quota CF AE : 100 000 events/jour rétention. Marge ×35. Aucun risque de dépassement V1. Réévaluer M+3 si trafic > 10× attendu.
+**Vérification G7** : 21 user stories backlog v2 mappées — chacune a >= 1 event tracking associé. Couverture 100 %.
 
 ---
 
-## 6. Mapping events ↔ KPIs (vérification couverture)
+## 7. Mapping events ↔ KPIs kpi-framework.md v2
 
-| KPI kpi-framework | Events tracking-plan |
+| KPI kpi-framework v2 | Events tracking-plan v2 |
 |---|---|
-| § 1 NSM | `payment_x402_completed` + `payment_stripe_checkout_completed` (agrégés via Coinbase + Stripe API) |
-| § 2.1 Acquisition crawls bots | `crawl_*` (6 events) + `api_request_received` (filter UA-bucket) |
-| § 2.1 Visites landing humaine | `landing_page_view` |
-| § 2.1 Sources de trafic | `landing_page_view.referrer_bucket` |
-| § 2.2 Activation 402→attempt | `api_response_402_sent` + `payment_x402_attempt` |
-| § 2.2 Activation Stripe clic→checkout | `payment_stripe_link_clicked` + `payment_stripe_checkout_completed` |
+| § 1 NSM revenu net x402 | `payment_x402_completed`, `pack_purchased`, `audit_paid_x402` (agrégés via Coinbase API) |
+| § 2.1 Acquisition crawls bots | `crawl_*` (6 events) |
+| § 2.1 Sponsor top-up | `sponsor_topup_stripe_completed` |
+| § 2.2 Funnel agent IA pricing/SDK | `api_response_402_sent`, `payment_x402_attempt`, `payment_x402_completed` |
+| § 2.2 Funnel agent IA audit | `audit_402_served`, `audit_paid_x402`, `audit_delivered` |
+| § 2.2 Funnel sponsor | `sponsor_topup_stripe_initiated`, `sponsor_topup_stripe_completed` |
 | § 2.3 Rétention wallet x402 | `payment_x402_completed.wallet_hash` (window 7j) |
-| § 2.3 Rétention JWT | `payment_jwt_validated.jwt_id` (window 24h) |
-| § 2.4 Revenue brut | `payment_x402_completed` + `payment_stripe_checkout_completed` |
-| § 2.5 Referral citations LLM | manuel V1 (pas d'event automatique possible) |
-| § 2.6 Validation persona ratio agents | `api_request_received.ua_bucket` filter |
-| § 2.6 Latence avant 1er paiement | `api_response_402_sent.timestamp` vs `payment_x402_attempt.timestamp` JOIN session |
-| § 3.1 Cohérence size / latency / freshness | `quality_payload_size_measured` + `quality_latency_measured` + `quality_freshness_measured` |
-| § 3.2 Validation H1 / H2 | `crawl_*` → `payment_x402_completed` ratio |
-
-100 % des KPIs du framework sont mesurés par >= 1 event. Aucun KPI orphelin.
-
----
-
-## 7. Mapping events ↔ user stories backlog (cross-fichier wave 2)
-
-| User story (backlog.md) | Events trackés |
-|---|---|
-| US-01 découverte llms.txt | `crawl_llms_txt_fetched` |
-| US-02 réception 402 | `api_response_402_sent` + `payment_x402_required` |
-| US-03 paiement x402 + payload | `payment_x402_attempt` + `payment_x402_completed` + `api_response_200_sent` + `quality_*` |
-| US-04 vérif fraîcheur dateModified | `quality_freshness_measured` |
-| US-05 effective_cost_factor | `api_response_200_sent` (payload contient le champ, pas d'event dédié) |
-| US-06 sdk-status | `api_request_received` (path filter) + `payment_x402_completed` |
-| US-07 sameAs vérif source | aucun event direct (consultation externe) |
-| US-08 OpenAPI discovery | `crawl_openapi_fetched` |
-| US-09 landing publique | `landing_page_view` + `landing_scroll_depth` |
-| US-10 Stripe Payment Link | `payment_stripe_link_clicked` + `payment_stripe_checkout_completed` |
-| US-11 JWT 24h | `payment_jwt_issued` + `payment_jwt_validated` |
-| US-12 dashboard /dashboard?token=JWT | `payment_jwt_validated` (path filter) |
-| US-13 pages légales | `landing_page_view` (path filter `/legal/*`) |
-| US-14 /about/data-sources | `crawl_about_data_sources_viewed` + `landing_page_view` |
-| US-15 dashboard admin Thomas | `landing_page_view` (path filter `/admin/dashboard`, ua_bucket `human/*`) |
-
-100 % des user stories V1 ont >= 1 event de mesure (sauf US-05 et US-07 où la donnée est dans le payload, pas un event dédié — comportement attendu).
-
----
-
-## 8. Synthèse
-
-| Élément | Décision |
-|---|---|
-| **Total events** | 38 events sur 6 domains |
-| **Outil principal** | Cloudflare Workers Analytics Engine (server-side, gratuit) |
-| **Outils complémentaires** | Coinbase facilitator API + Stripe API |
-| **Outils tiers REJETÉS** | GA4, PostHog, Mixpanel, Amplitude, Plausible (V2 possible Plausible si justifié) |
-| **Volume estimé V1** | ~2 800 events/jour (marge ×35 vs quota CF AE) |
-| **PII collectée** | ZÉRO (cf. § 5 kpi-framework + anti-pattern § 3 ci-dessus) |
-| **Couverture KPIs** | 100 % (cf. § 6) |
-| **Couverture user stories** | 100 % (cf. § 7) |
-
----
-
-## Handoff @data-analyst → dashboard-specs.md (étape suivante du même agent)
-
-- **Fichier produit** : `/home/user/AI-agents-platform/docs/analytics/tracking-plan.md`
-- **Décisions prises** : 38 events, 6 domains, naming `{domain}_{verb}_{object}` snake_case verbe passé, stack 0 € CF AE + Coinbase + Stripe, zéro-PII strict.
-- **Points d'attention pour dashboard-specs.md** :
-  - Chaque event a une colonne "Propagation dashboard" qui pointe vers Zone 1 (revenue), Zone 2 (funnel), Zone 3 (cohérence promesse↔réalité), Zone 4 (acquisition).
-  - F25 dashboard interne consolidé = 1 page unique, 4 zones.
-  - Implémentation page `/admin/dashboard` protégée Basic auth ou Cloudflare Access.
+| § 2.3 Pack rechargé | `pack_purchased` (wallet_hash récurrent) |
+| § 3.1 Cohérence promesse | `quality_payload_size_measured`, `quality_latency_measured`, `quality_freshness_measured` |
+| § 3.2 Pack consumption rate | `pack_quota_consumed`, `pack_quota_exhausted`, `pack_expired` |
+| § 3.3 Audit savings_pct | `audit_delivered.savings_pct`, `audit_savings_realized`, `audit_refund_triggered` |
+| § 3.4 Validation H9, H10 | `audit_delivered.savings_pct`, COUNT(`payment_x402_completed` + `pack_purchased` + `audit_paid_x402`) |
+| § 3.5 Ratio UA bots | `api_request_received.ua_bucket` |

@@ -109,13 +109,19 @@
 - @creative-strategy : 4 livrables `docs/strategy/` refondus + project-context (5/5/5/5/5) — promesse v2 = hero v2 = "Cost intelligence for AI agents — know before you spend, optimize after you ship"
 - Cohérence cross-v2 : 0 placeholder, pricing/hero cohérents 7 fichiers, mentions Stripe résiduelles = bannissements explicites
 
-### Phase 0 v2 wave 2 — `EN ATTENTE prochaine session`
-- @product-manager refonte v1-scope/roadmap/backlog/discovery-map/assumption-map/pricing-strategy (intégration 3e endpoint /api/agent-audit + pricing pack pré-payé)
-- @data-analyst refonte kpi-framework/tracking-plan/dashboard-specs (KPIs adaptés pricing pack + B2A pure)
+### Phase 0 v2 wave 2 — `COMPLETE 2026-05-05 (session 2)`
+- @product-manager : 7 livrables `docs/product/` (1872 lignes, 5/5/5/5/5) — v1-scope v2 (29 features V1 vs 26, 3e endpoint /api/agent-audit, F8b pack KV nouveau, pricing $10/$9.99) + roadmap v2 (RICE recalibré, chemin critique 3 endpoints) + backlog v2 (21 user stories, +6 nouvelles US-08b/US-16-20, V4 archivé, US-10b sponsor wallet) + discovery-map v2 (O5 audit post-flight, S4.1 Stripe Link retirée) + assumption-map v2 (H3 archivée, H9+H10+HT6) + product-vision (patch minimal) + pricing-strategy.md (NOUVEAU)
+- Cohérence wave 1 v2 : 0 placeholder, pricing repris depuis agent-economics.md, V4 verbatim banni, Stripe rétrogradé top-up sponsor uniquement
 
-### Phase 0 v2 wave 3 — `EN ATTENTE session 3`
-- @legal review CGU/privacy/mentions (retirer sections Stripe humain, ajouter clause `/api/agent-audit` + garantie ROI 50% refund si savings_pct < 15% à 30j)
-- Checkpoint final V2 → lancement Phase 1 (build)
+### Phase 0 v2 wave 3 — `COMPLETE 2026-05-05 (session 2)`
+- @data-analyst : 4 livrables `docs/analytics/` + `docs/dev-decisions.md` v2 (1360 lignes, 5/5/5/5/5) — kpi-framework v2 (NSM x402-only, J7 ≥ 1 paiement, 3 blocs KPI nouveaux pack/audit/refund, AARRR 2 funnels) + tracking-plan v2 (47 events actifs vs 38, +12 nouveaux, -3 Stripe humain, domains audit/pack/sponsor, 21 user stories mappées 100 %) + dashboard-specs v2 (4 zones recadrées, F26 sponsor wallet) + dev-decisions v2 (3 sections nouvelles : pack KV, audit endpoint, tracking events)
+- Décisions techniques tranchées : `/api/pack/quota` endpoint dédié (KV direct, pas event AE car AE = event-stream pas state-store) ; 6 alertes ROUGE Mailchannels définies
+- Cohérence cross-wave 2/3 : 21 user stories backlog v2 → 100 % mappées sur events tracking-plan v2 ; cibles 66 tx/600 € reprises ; H9/H10 instrumentés
+
+### Phase 0 v2 session 3 — `EN ATTENTE prochaine session`
+- @legal review CGU/privacy/mentions v2 (retirer sections Stripe humain pilier, ajouter clause `/api/agent-audit` + garantie ROI 50% refund si savings_pct < 15% à 30j)
+- 5 questions PII data-analyst à trancher (wallet_hash SHA256, tx_hash on-chain, customer_id Stripe, droit rétractation L.221-18 vs garantie refund, contenu audit input mémoire Worker)
+- Checkpoint final V2 → GO/AJUSTER avant Phase 1 (build)
 
 ## Métriques live
 
@@ -170,48 +176,49 @@ Lis project-context.md et docs/orchestration-plan.md, continue où on s'est arr�
 
 ---
 
-## 📋 MEMO DE REPRISE — Prochaine session (Phase 0 v2 wave 2)
+## 📋 MEMO DE REPRISE — Prochaine session (Session 3 — @legal review v2 + checkpoint final)
 
-**Statut au 2026-05-05 (fin session 1)** :
-- Phase 0 v1 : waves 1-3 produites (4730 lignes) — **OBSOLÈTES sur les zones impactées par le pivot v2** (cf. ci-dessous)
-- Audits triangulés @ia/@elon/@moi : 5,78/10 moyen → AJUSTER
-- **Décision fondateur 2026-05-05** : pivot 100% B2A pure agents IA, 2 offres x402, Stripe humain banni
-- Phase 0 v2 wave brand+specs : **COMPLETE** (4 specs @ia + 4 livrables strategy refondus, 5/5/5/5/5 chacun, cohérence cross-fichiers PASS)
-- Compteur producteur Tasks session 1 : 8 (cap atteint)
-- 4 P1 learnings capitalisés et propagés (Coinbase x402 DPA, TVA hybride, B2A 2 testeurs, pivot business model en cours Phase 0)
+**Numéro de session prochaine** : Session 3 du projet DevRefs.
+
+**Statut au 2026-05-05 (fin session 2)** :
+- Phase 0 v2 wave brand+specs : **COMPLETE session 1** (4 specs @ia + 4 livrables strategy v2)
+- Phase 0 v2 wave 2 : **COMPLETE session 2** (@product-manager — 7 livrables produit, 5/5/5/5/5, pivot pricing intégré)
+- Phase 0 v2 wave 3 : **COMPLETE session 2** (@data-analyst — 4 livrables analytics, 5/5/5/5/5, 47 events actifs)
+- Compteur producteur Tasks session 2 : 2 (PM + DA), cohérence cross-wave validée
+- 0 P0/P1 learning non-propagé en attente
+- Branch active : `claude/devrefs-s2-phase0-v2-wave2-vm2Em` (pousser vers `claude/devrefs-s3-legal-review-v2-XXXX` en session 3)
 
 **À faire en SESSION 2 (commande de reprise ci-dessus)** :
 
-### Étape 1 — Lecture de reprise (5 min)
-1. `project-context.md` (sections Promesse + Modèle économique + Cible mises à jour v2)
-2. `docs/orchestration-plan.md` (ce fichier)
-3. `docs/strategy/brand-platform.md` v2 (promesse Cost intelligence + 2 offres + sponsor wallet)
-4. `docs/ia/agent-economics.md` (pricing officiel : Pack Standard $10 + Audit $9.99)
-5. `docs/ia/agent-audit-spec.md` (3e endpoint `/api/agent-audit` à intégrer en v1-scope)
+### Étape 1 — Lecture de reprise session 3 (5-7 min)
+1. `project-context.md` (sections Modèle économique + Cible v2)
+2. `docs/orchestration-plan.md` (ce fichier — section Phase 0 v2 session 3)
+3. `docs/product/pricing-strategy.md` v2 (garantie ROI 50% refund + scénarios revenu)
+4. `docs/analytics/tracking-plan.md` v2 (47 events, dont 12 nouveaux audit/pack/sponsor)
+5. `docs/dev-decisions.md` v2 (handoff @legal — 5 questions PII spécifiques)
+6. `docs/legal/legal-audit.md` v1 (à reviewer pour v2)
+7. `docs/legal/cgu-draft.md` v1 (clauses Stripe humain pilier à retirer + clause /api/agent-audit à ajouter)
+8. `docs/legal/privacy-policy.md` v1 (zéro-PII confirmé v1, à valider sur 12 nouveaux events)
 
-### Étape 2 — Wave 2 v2 : @product-manager refonte (1 Task producteur)
-**Mission** : refondre 6 livrables produit pour intégrer le pivot.
-- `docs/product/v1-scope.md` v2 — AJOUTER 3e endpoint `/api/agent-audit` + pricing pack pré-payé en remplacement de la grille 0,49 €/query + 4,99 €/jour Stripe ; SUPPRIMER Stripe Payment Link humain comme feature pilier ; conserver Stripe en option marginale top-up wallet sponsor.
-- `docs/product/roadmap.md` v2 — RICE re-scorée avec 3e endpoint, chemin critique re-tracé (middleware x402 unifié pour 3 endpoints, pas 2).
-- `docs/product/backlog.md` v2 — user stories audit endpoint (US-16 à US-20 par exemple), V4 verbatim humain réécrit en sponsor.
-- `docs/product/discovery-map.md` v2 — opportunité O5 (auto-optimisation agent post-flight) ajoutée.
-- `docs/product/assumption-map.md` v2 — H9 ajouté (audit ROI 30-50% économies réelles validable).
-- `docs/product/pricing-strategy.md` v2 — NOUVEAU fichier : pack pré-payé x402, garantie 50% refund si savings < 15% à 30j.
-- Référence inputs : 4 specs @ia + 4 livrables @creative-strategy v2 + lessons-learned.
+### Étape 2 — @legal review v2 (1 Task producteur)
+**Mission** : reviewer et patcher 4 livrables legal pour intégrer pivot v2 + 12 nouveaux events.
+- `docs/legal/legal-audit.md` v2 — retirer §§ Stripe humain pilier, ajouter §§ audit endpoint (clause garantie ROI 50% refund) + §§ pack pré-payé x402 (irrévocabilité on-chain, expiration quota, droit rétractation L.221-18 vs L.221-28 13°).
+- `docs/legal/cgu-draft.md` v2 — clause `/api/agent-audit` (input non persisté, output watermark HMAC, garantie savings_pct ≥ 15% sur 30j sinon refund 50%) + clause `pack_purchased` (validity period, non-refundable, transferable wallet only) + retrait clauses Stripe humain pilier (conserver clauses Stripe top-up sponsor marginales).
+- `docs/legal/privacy-policy.md` v2 — confirmer zéro-PII sur 12 nouveaux events. Trancher 5 questions PII data-analyst : (a) `wallet_hash` SHA256 (pseudonyme RGPD ou non ?), (b) `tx_hash` on-chain stocké 30j CF AE (PII si combinable avec on-chain explorer ?), (c) `customer_id` Stripe (pseudonyme interne sans email — PII résiduelle si stocké côté DevRefs ?), (d) garantie refund vs droit rétractation L.221-18 14j (renonciation L.221-28 13° suffisante pour service numérique consommé immédiatement ?), (e) contenu `agent_config` + `sample_traces` audit input (mémoire Worker uniquement, jamais persisté — suffisant pour conformité ?).
+- `docs/legal/rgpd-checklist.md` v2 — réévaluer 43 items dont les nouveaux events impactent (probablement ~5 items à ajuster).
+- Référence inputs : tracking-plan v2 (47 events), pricing-strategy v2 (garantie + packs), agent-audit-spec.md (heuristiques + watermark HMAC).
 
-### Étape 3 — Wave 3 v2 : @data-analyst refonte (1 Task producteur)
-**Mission** : refondre 4 livrables analytics pour pricing pack + B2A pure.
-- `docs/analytics/kpi-framework.md` v2 — KPI North Star = revenu net x402 (Stripe humain retiré formule), AARRR adapté pricing pack (events `pack_purchased`, `pack_quota_consumed`), validation persona sponsor wallet (top-up events).
-- `docs/analytics/tracking-plan.md` v2 — ajouter events `pack_*` + `audit_*`, retirer events `stripe_*` humain (sauf top-up sponsor optionnel marginal).
-- `docs/analytics/dashboard-specs.md` v2 — 4 zones recadrées (Revenue x402 / Activation funnel agent / Cohérence promesse↔réalité / Discovery Dev.to+Reddit), retirer zone humain.
-- `docs/dev-decisions.md` v2 — append section "Implémentation pricing pack" (KV quota lookup, signature x402 par pack pas par call) + "Implémentation audit endpoint" (heuristiques statiques sans IA runtime).
+### Étape 3 — Checkpoint final V2 Phase 0 → GO/AJUSTER avant Phase 1
+**Mission** : @orchestrator consolide les 11 livrables Phase 0 v2 (4 strategy + 4 ia + 7 product + 4 analytics + 1 dev-decisions + 4 legal v2) et présente synthèse à Thomas pour arbitrage GO/AJUSTER avant lancement Phase 1 (build).
+- Critères GO Phase 1 : 0 contradiction cross-fichier, 0 placeholder, 100% gates G7+G15+G17+G32 PASS, 4 actions P0 @legal exécutables hors-code (Coinbase DPA, BNC stablecoin, Stripe Tax, immatriculation auto-entreprise).
+- Si GO : lancer Phase 1 conception — @ux + @design + @copywriter + @product-manager (specs fonctionnelles) + @qa (tests dérivés). Estimation 5 agents en parallèle.
 
-**Compteur cible session 2** : 2 Tasks producteur (PM + DA), checkpoint utilisateur intermédiaire si nécessaire.
+**Compteur cible session 3** : 1 Task producteur (@legal) + 1 consolidation @orchestrator + checkpoint utilisateur OBLIGATOIRE.
 
-**À faire en SESSION 3** :
-- @legal review CGU/privacy/mentions v2 (retirer sections Stripe humain pilier, ajouter clause `/api/agent-audit` + garantie ROI)
-- Checkpoint final V2 Phase 0 (présenter consolidation + GO/AJUSTER avant Phase 1)
-- Lancement Phase 1 (build) si GO : @ux + @design + @copywriter + @product-manager (specs fonctionnelles) + @qa (tests dérivés)
+**Hypothèses à monitorer post-V1 (calibrées session 2)** :
+- [HYPOTHÈSE] pack consumption rate cible 60% M+6 — lever : données réelles M+1 (data-analyst).
+- [HYPOTHÈSE] packs expirant avec quota > 50% < 20% — lever : M+3.
+- [HYPOTHÈSE] revenu BRUT split packs 330 €/audits 330 € cible M+6 — lever : mix réel observé M+1-M+3.
 
 **Risques connus à monitorer** :
 - R1 P1 — adoption x402 < 2% en 2026 = pari fondateur assumé. Mitigation : test E1 J7 binaire, packs réduisent volume nécessaire.
@@ -219,7 +226,7 @@ Lis project-context.md et docs/orchestration-plan.md, continue où on s'est arr�
 - R3 P2 — Coinbase x402 facilitator stabilité. Mitigation : code Worker portable + plan B Solana V2.
 - R4 P2 — Audit ROI sur-estimé sur agent déjà optimisé. Mitigation : garantie CGV "savings_pct < 15% à 30j → refund 50%".
 
-**Décisions verrouillées (ne pas re-débattre en session 2)** :
+**Décisions verrouillées (ne pas re-débattre en session 3)** :
 - Naming DevRefs + domaine devrefs.dev
 - Pivot 100% B2A pure agents IA
 - 2 offres : Calcul coût + Audit (3 endpoints)

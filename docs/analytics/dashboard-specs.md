@@ -1,99 +1,118 @@
-<!-- Version: 2026-05-05T11:30 — @data-analyst — Phase 0 wave 3 — Dashboard Specs DevRefs -->
+<!-- Version: 2026-05-05T17:30 — @data-analyst — Phase 0 v2 wave 3 — Dashboard Specs DevRefs v2 (pivot B2A pure, 4 zones recadrées, F26 sponsor) -->
 
-# Dashboard Specs — DevRefs (F25 + F26)
+# Dashboard Specs — DevRefs v2 (F25 + F26)
 
 ## Résumé exécutif
 
-- **Objectif** : maquette textuelle du dashboard interne consolidé F25 (admin Thomas) + dashboard utilisateur F26 (post-Stripe `/dashboard?token=JWT`).
-- **Décisions clés** : (1) F25 = 1 page unique `/admin/dashboard` 4 zones (Revenue, Activation funnel B2A, Cohérence promesse↔réalité, Discovery). (2) F26 = page minimaliste 1 zone (queries 24h + coût + JWT countdown). (3) Refresh live (CF AE real-time) + agrégation quotidienne + alertes seuils. (4) Implémentation HTML statique + endpoint `/api/admin/metrics` qui agrège CF AE + Coinbase API + Stripe API. (5) Library minimal Chart.js (< 30 KB) ou SVG natif.
-- **Dépendances** : `tracking-plan.md` (events sources), `kpi-framework.md` (KPIs affichés), `dev-decisions.md` (handoff @fullstack pour implémentation backend agg).
+- **Pivot v2 2026-05-05** : F25 admin recadré sur 4 zones B2A pure — Zone 1 Revenue x402 (split pack/audit/subscription V2) + Zone 2 Activation funnel agent IA (pricing + audit) + Zone 3 Cohérence promesse↔réalité (3 endpoints, savings_pct audit, refund triggers) + Zone 4 Discovery. Zone humain Stripe Link retirée. F26 recadré pour sponsor wallet (ETH/USDC balance, pack quota restant, audit history) — plus dashboard abonné Stripe humain.
+- **Décisions clés** : (1) F25 = `/admin/dashboard` 4 zones, refresh live 60s + cron quotidien + alertes ROUGE Mailchannels. (2) F26 = `/dashboard?token=JWT` minimaliste sponsor (ETH balance + pack quota + audit history). (3) Stack 100 % gratuite : CF AE + Coinbase facilitator + Stripe dashboard + CF KV pour snapshots. (4) Backend : endpoint Worker `/api/admin/metrics` agrège CF AE SQL + Coinbase API + Stripe API. (5) Zéro Chart.js externe si SVG natif suffisant — sinon Chart.js < 30 KB.
+- **Dépendances** : `tracking-plan.md` v2 (events sources), `kpi-framework.md` v2 (KPIs affichés), `dev-decisions.md` v2 (handoff @fullstack backend agg).
 
 ---
 
-## 1. F25 — Dashboard interne consolidé (admin Thomas)
+## 1. F25 — Dashboard admin consolidé (`/admin/dashboard`)
 
 ### 1.1 Vue globale
 
 - **URL** : `/admin/dashboard`
-- **Auth** : Basic auth `admin:$ADMIN_PASSWORD` OU Cloudflare Access (single-user MVP) — choix tranché par @infrastructure Phase 1, fallback Basic auth si CF Access indisponible free tier.
-- **Format** : 1 page HTML statique (< 100 KB total avec Chart.js), 4 zones empilées verticalement, responsive mobile.
-- **Refresh** : auto-refresh JS toutes les 60 secondes (live), agrégation cron quotidienne 00:00 UTC pour snapshots.
-- **Backend** : endpoint Worker `/api/admin/metrics` qui agrège (a) CF AE via Workers SQL API, (b) Coinbase facilitator API, (c) Stripe API. Cache KV 60s pour éviter rate-limit.
+- **Auth** : Basic auth `admin:$ADMIN_PASSWORD` (CF Access single-user si disponible free tier — décision @infrastructure Phase 1).
+- **Format** : 1 page HTML (< 100 KB total), 4 zones empilées verticalement, responsive mobile.
+- **Refresh** : auto-refresh JS toutes les 60 secondes via `/api/admin/metrics` (cache KV 60s Worker).
+- **Backend** : endpoint Worker `/api/admin/metrics` qui agrège (a) CF AE via Workers SQL API, (b) Coinbase facilitator API, (c) Stripe API (top-up marginal). Cache KV 60s.
+- **Alertes** : Mailchannels email Thomas immédiat sur seuil ROUGE franchi (hook Worker `if (metric > threshold) { sendMailchannels() }`).
 
-### 1.2 Zone 1 — Revenue (top, prioritaire)
+---
 
-**Objectif** : KPI North Star visible en premier coup d'œil. Décision GO/NO-GO J7.
+### 1.2 Zone 1 — Revenue x402 (North Star visible en 1er coup d'œil)
+
+**Objectif** : décision GO/NO-GO J7 à 5 secondes de chargement. KPI North Star en héros.
 
 ```
 +--------------------------------------------------------------+
-| ZONE 1 — REVENUE                                             |
+| ZONE 1 — REVENUE x402                                        |
 +--------------------------------------------------------------+
 |                                                              |
-|   NORTH STAR : Revenu net mensuel cumulé                     |
+|   NORTH STAR : Revenu net mensuel cumulé (EUR)               |
 |   ┌──────────────────────────────────────────┐               |
 |   │   €  423 / 600 €  (M+4, 70 % cible)      │  [bar chart]  |
 |   └──────────────────────────────────────────┘               |
 |                                                              |
-|   Décomposition :                                            |
-|   • x402 (USDC → EUR cours du jour) : 198 € (47 %)          |
-|   • Stripe (EUR direct)             : 225 € (53 %)          |
+|   Décomposition par offre (NOUVEAU v2) :                     |
+|   • Packs pré-payés (Pack Std $10 + Pro $50) : 241 € (57 %) |
+|   • Audits one-shot ($9.99 + Pack Pro $49)   : 172 € (41 %) |
+|   • Sponsor top-up Stripe (marginal)         :  10 €  (2 %) |
 |                                                              |
 |   Compteurs aujourd'hui :                                    |
-|   • Paiements x402 today  : 7                                |
-|   • Stripe Link clicks    : 12                               |
-|   • JWT actifs (24h roll) : 4                                |
+|   • Paiements x402 today (packs + audits) : 7               |
+|   • Pack Standard vendus MTD              : 22               |
+|   • Audits vendus MTD                     : 18               |
+|   • Sponsor top-ups MTD                   : 3 (marginal)     |
 |                                                              |
-|   Barres temporelles : [ J ] [ S ] [ M ]                     |
+|   Barres temporelles : [ Jour ] [ Semaine ] [ Mois ]         |
 |                                                              |
 |   ALERTE J7 (binaire) : ✓ ATTEINT                            |
-|     5 paiements x402 cumulés à J6 / 5 cible                 |
-|     (si NON ATTEINT à J7 → ROUGE, trigger pivot recommandé) |
+|     1 paiement x402 agent IA autonome confirmé J5            |
+|     (si NON ATTEINT à J7 → ROUGE + email Thomas immédiat)   |
+|                                                              |
+|   Trigger pivot audit-only (source pricing-strategy § 4.3):  |
+|     Audit = 41 % revenu — sous seuil 70 % (surveiller M+3)  |
 |                                                              |
 +--------------------------------------------------------------+
 ```
 
 **Sources data** :
-- `payment_x402_completed` (CF AE) + Coinbase API pour fees
-- `payment_stripe_checkout_completed` (CF AE) + Stripe API pour fees
-- Calcul NSM : cf. kpi-framework § 1.2
+- `pack_purchased` (CF AE) + Coinbase API pour fees pack
+- `audit_paid_x402` (CF AE) + Coinbase API pour fees audit
+- `sponsor_topup_stripe_completed` (CF AE) + Stripe API pour fees top-up
+- Calcul NSM : cf. kpi-framework.md v2 § 1.2
 
-**Alertes** :
-- ROUGE J7 : 0-4 paiements x402 cumulés ET 0 JWT — déclencher pivot mot-clé recommandé (cf. v1-scope.md § 4.2)
-- ORANGE M+1 : NSM < 50 € — investiguer activation
-- ROUGE M+6 : NSM < 600 € — décision révision V2 ou pivot
+**Alertes Zone 1** :
+- ROUGE J7 : 0 paiement x402 agent IA à J7 → email Thomas « Test E1 J7 négatif — diagnostiquer H1 ».
+- ROUGE M+1 : NSM < 50 € → investiguer activation (funnel Zone 2).
+- ROUGE M+6 : NSM < 600 € → révision V2 ou pivot.
+- ORANGE : % revenu audit > 70 % à M+3-M+6 → déclencher trigger pivot audit-only (pricing-strategy § 4.3).
 
 **Charts** :
-- Bar chart NSM cumulé (axe x : jours du mois courant, axe y : €)
-- Donut chart décomposition x402 vs Stripe
-- 3 KPI tiles compteurs jour
+- Bar chart NSM cumulé mois courant (axe x = jours, axe y = €, ligne cible 600 €/mois).
+- Donut chart 3 segments : packs / audits / sponsor top-up.
+- 4 KPI tiles compteurs : paiements today / packs MTD / audits MTD / top-ups MTD.
 
-### 1.3 Zone 2 — Activation funnel B2A double
+---
 
-**Objectif** : visualiser le parcours complet agent IA + parcours humain. Identifier drop-off.
+### 1.3 Zone 2 — Activation funnel B2A (agent IA — pricing + audit)
+
+**Objectif** : visualiser les 2 parcours agent IA (pricing/SDK et audit). Identifier drop-offs. Funnel humain sponsor secondaire.
 
 ```
 +--------------------------------------------------------------+
 | ZONE 2 — ACTIVATION FUNNEL B2A                               |
 +--------------------------------------------------------------+
 |                                                              |
-|   FUNNEL AGENT IA (7 étapes)                                 |
+|   FUNNEL AGENT IA — PRICING + SDK (étapes)                   |
 |   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   1. crawl_bot_detected           : 487  ████████████ 100%   |
-|   2. llms_txt_fetched             : 312  ████████      64%   |
-|   3. endpoint_requested           : 198  █████         41%   |
-|   4. response_402_received        : 198  █████         41%   |
-|   5. payment_x402_attempted       :  31  █              6%   |
-|   6. payment_x402_completed       :  28  █              6%   |
-|   7. payload_consumed (200 OK)    :  28  █              6%   |
+|   1. crawl_bot_detected              : 487  ████████ 100%    |
+|   2. llms_txt_fetched                : 312  ██████    64%    |
+|   3. endpoint_pricing_requested      : 198  ████      41%    |
+|   4. api_response_402_sent           : 198  ████      41%    |
+|   5. payment_x402_attempt            :  31  █          6%    |
+|   6. payment_x402_completed (1-shot) :  22  █          5%    |
+|      OU pack_purchased               :   9  █          2%    |
+|   7. payload_consumed (200 OK)       :  31  █          6%    |
 |                                                              |
-|   FUNNEL HUMAIN (6 étapes)                                   |
+|   FUNNEL AGENT IA — AUDIT (étapes)                           |
 |   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   1. landing_page_view            : 142  ████████████ 100%   |
-|   2. landing_scroll_50%           :  89  ███████       63%   |
-|   3. landing_cta_stripe_clicked   :  18  ██            13%   |
-|   4. stripe_checkout_completed    :   9  █              6%   |
-|   5. jwt_issued                   :   9  █              6%   |
-|   6. jwt_validated_first_time     :   8  █              5%   |
+|   1. audit_request_received          :  42  ████████ 100%    |
+|   2. audit_402_served                :  42  ████████ 100%    |
+|   3. audit_paid_x402                 :   8  ██        19%    |
+|   4. audit_delivered                 :   8  ██        19%    |
+|      dont savings_pct >= 15 %        :   7  ██        88%    |
+|                                                              |
+|   FUNNEL SPONSOR WALLET (top-up, secondaire)                 |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   1. landing_page_view               : 142  ████████ 100%    |
+|   2. landing_scroll_50%              :  89  ██████    63%    |
+|   3. landing_cta_clicked (topup)     :  14  ██        10%    |
+|   4. sponsor_topup_stripe_completed  :   5  █          4%    |
 |                                                              |
 |   TOP 5 User-Agent IA (UA-bucket, sans PII)                  |
 |   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
@@ -103,295 +122,258 @@
 |   4. ai_bot/cursor    :  52 (11 %)                           |
 |   5. ai_bot/agentkit  :  37  (8 %)                           |
 |                                                              |
-|   TOP 5 modèles consultés sur /api/llm-prices                |
+|   Pack vs one-shot vs audit (répartition paiements)          |
 |   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   1. opus-4.7         : 89 (45 %)                            |
-|   2. gpt-5            : 41 (21 %)                            |
-|   3. sonnet-4.6       : 28 (14 %)                            |
-|   4. gemini-2.5-pro   : 22 (11 %)                            |
-|   5. mistral-large-3  : 18  (9 %)                            |
+|   • Packs pré-payés : 22 (59 %)                              |
+|   • Audits one-shot : 13 (35 %)                              |
+|   • x402 one-call   :  2  (6 %)                              |
 |                                                              |
 +--------------------------------------------------------------+
 ```
 
 **Sources data** :
-- Funnel agent IA : `crawl_*` + `api_request_received` + `api_response_402_sent` + `payment_x402_*` (CF AE)
-- Funnel humain : `landing_page_view` + `landing_scroll_depth` + `landing_cta_stripe_clicked` + `payment_stripe_checkout_completed` + `payment_jwt_*` (CF AE)
+- Funnel pricing : `crawl_*` + `api_request_received` + `api_response_402_sent` + `payment_x402_*` + `pack_purchased`
+- Funnel audit : `audit_request_received` + `audit_402_served` + `audit_paid_x402` + `audit_delivered`
+- Funnel sponsor : `landing_page_view` + `landing_scroll_depth` + `landing_cta_clicked` + `sponsor_topup_stripe_completed`
 - Top 5 UA : `api_request_received GROUP BY ua_bucket ORDER BY count DESC LIMIT 5`
-- Top 5 modèles : `api_request_received WHERE path = '/api/llm-prices' GROUP BY model_param`
+- Mix offres : COUNT par type payment event
 
-**Alertes** :
-- ORANGE : ratio crawl→paiement < 5 % à M+1 (validation H1 en danger)
-- ORANGE : ratio Stripe clic→checkout < 30 % (friction UX humaine)
+**Alertes Zone 2** :
+- ORANGE : ratio crawl→paiement pricing < 3 % à M+1 (H1 activation en danger).
+- ORANGE : ratio audit_paid/audit_402 < 5 % à M+1 (audit non converti).
+- ROUGE : audit_delivered / audit_paid < 95 % (bug livraison audit).
+- ORANGE : sponsor top-up complété / initié < 30 % (friction onboarding wallet).
 
 **Charts** :
-- Funnel chart vertical avec largeur de barres proportionnelles
-- 2 horizontal bar charts (Top 5 UA + Top 5 modèles)
+- 2 funnel charts verticaux côte à côte (pricing vs audit).
+- 1 funnel chart sponsor (compact, secondaire).
+- Horizontal bar chart Top 5 UA-bucket.
+- Donut chart mix offres (packs / audits / one-shot).
 
-### 1.4 Zone 3 — Cohérence promesse↔réalité (renforcement #12 zéro fausse promesse)
+---
 
-**Objectif** : prouver en temps réel que la promesse landing (< 50 KB, < 200 ms, fraîcheur < 6h pricing) est tenue. ROUGE si dérive.
+### 1.4 Zone 3 — Cohérence promesse↔réalité (3 endpoints + audit savings)
+
+**Objectif** : prouver en temps réel que la promesse landing est tenue sur les 3 endpoints. Surveiller la garantie refund audit.
 
 ```
 +--------------------------------------------------------------+
 | ZONE 3 — COHÉRENCE PROMESSE↔RÉALITÉ                          |
 +--------------------------------------------------------------+
 |                                                              |
-|   PAYLOAD SIZE par endpoint (cible : 100 % < 50 KB)          |
+|   PAYLOAD SIZE par endpoint (cible : p99 < 50 KB)            |
 |   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
 |   /api/llm-prices  p50:  2.1 KB  p95:  3.4 KB  p99:  4.2 KB |
 |   /api/sdk-status  p50:  1.8 KB  p95:  2.7 KB  p99:  3.5 KB |
-|   ┌──────────────────────────────────────────┐               |
-|   │   GAUGE  4.2 KB / 50 KB seuil   ✓ VERT    │              |
-|   └──────────────────────────────────────────┘               |
+|   /api/agent-audit p50:  3.2 KB  p95:  4.8 KB  p99:  6.1 KB |
+|                            GLOBAL p99:  6.1 KB ✓ VERT        |
 |                                                              |
 |   LATENCE par endpoint (cible : p95 < 200 ms)                |
 |   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   /api/llm-prices  p50:  47 ms  p95: 134 ms  p99: 198 ms    |
-|   /api/sdk-status  p50:  52 ms  p95: 142 ms  p99: 211 ms    |
-|   ┌──────────────────────────────────────────┐               |
-|   │   GAUGE 211 ms / 200 ms seuil  ⚠ ORANGE   │              |
-|   └──────────────────────────────────────────┘               |
+|   /api/llm-prices   p50:  47 ms  p95: 134 ms ✓               |
+|   /api/sdk-status   p50:  52 ms  p95: 142 ms ✓               |
+|   /api/agent-audit  p50: 380 ms  p95: 890 ms ✓ (< 2 000 ms) |
 |                                                              |
-|   FRAÎCHEUR moyenne (= now - dateModified)                   |
+|   FRAÎCHEUR par cron (alertes si dépassement seuil)          |
 |   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   /api/llm-prices  : 3.2 h (cible < 6h)   ✓ VERT             |
-|   /api/sdk-status  : 8.4 h (cible < 24h)  ✓ VERT             |
+|   LLM Prices  (cron 6h)  : dernière màj il y a  2h 14m ✓    |
+|   SDK Status  (cron 24h) : dernière màj il y a  8h 52m ✓    |
+|   Audit heuristiques (< 1h) : dernière màj il y a  0h 22m ✓ |
 |                                                              |
-|   CRON HEALTH                                                |
+|   AUDIT — DISTRIBUTION SAVINGS_PCT (NOUVEAU v2)              |
 |   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   Dernier scrape réussi llm-prices : 2026-05-05 09:00 UTC    |
-|   Prochain scrape llm-prices       : 2026-05-05 15:00 UTC    |
-|   Dernier scrape réussi sdk-status : 2026-05-05 00:00 UTC    |
-|   Prochain scrape sdk-status       : 2026-05-06 00:00 UTC    |
-|   Dernière kv_cache_updated /llm   : 2026-05-05 09:00 UTC    |
-|   Dernière kv_cache_updated /sdk   : 2026-05-05 00:00 UTC    |
+|   • savings_pct >= 30 %  : 12 audits (67 %) ✓               |
+|   • savings_pct 15-30 %  :  3 audits (17 %) ✓               |
+|   • savings_pct 0-15 %   :  3 audits (17 %) ⚠ ORANGE        |
+|     dont refund triggered :  1 audit  (6 %) ✓ (< 20 %)      |
+|   Médian savings_pct      :  28 %  ✓ (cible >= 25 %)        |
+|                                                              |
+|   CRON SANTÉ                                                 |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   Dernier cron_scrape_completed pricing : ✓ succès 2h 14m    |
+|   Dernier cron_scrape_completed SDK     : ✓ succès 8h 52m    |
+|   Dernier cron heuristiques             : ✓ succès 0h 22m    |
+|   cron_scrape_failed today              :  0 ✓               |
 |                                                              |
 +--------------------------------------------------------------+
 ```
 
 **Sources data** :
-- `quality_payload_size_measured` (CF AE PERCENTILE)
-- `quality_latency_measured` (CF AE PERCENTILE)
-- `quality_freshness_measured` (CF AE MEDIAN)
-- `cron_*` events (CF AE last value GROUP BY cron_name)
+- `quality_payload_size_measured` + `quality_latency_measured` (CF AE, percentiles SQL)
+- `quality_freshness_measured` + `cron_dateModified_bumped` (CF AE)
+- `audit_delivered.savings_pct` + `audit_refund_triggered` (CF AE)
+- `cron_scrape_completed` / `cron_scrape_failed` (CF AE)
 
-**Alertes** :
-- ROUGE : payload p99 > 50 KB sur 1h roll → promesse landing brisée, trigger investigation parser
-- ORANGE : latence p95 > 200 ms sur 1h roll → diagnostic edge / KV cache miss
-- ROUGE : freshness > seuil (6h pricing OU 24h SDK) → cron probable down, alerte email Thomas
+**Alertes Zone 3** :
+- ROUGE : p99 payload > 50 KB → email Thomas « Promesse size brisée — investiguer endpoint ».
+- ORANGE : p95 latence pricing/SDK > 200 ms → investiguer CF Worker performance.
+- ROUGE : fraîcheur pricing > 12 h → « cron_scrape_failed détecté ou source officielle down ».
+- ROUGE : fraîcheur SDK > 36 h → même alerte.
+- ROUGE : % audits savings < 15 % > 20 % → « H9 invalidée — révision heuristiques urgente ».
+- ROUGE : médian savings_pct < 15 % → « Exposition refund garantie élevée ».
 
 **Charts** :
-- 4 gauges (size + latency + 2 freshness) avec seuils colorés
-- 2 timelines cron (last + next per cron)
-
-### 1.5 Zone 4 — Discovery (acquisition organique)
-
-**Objectif** : valider que les agents IA et humains TROUVENT DevRefs. Mesurer effort earned media.
-
-```
-+--------------------------------------------------------------+
-| ZONE 4 — DISCOVERY                                           |
-+--------------------------------------------------------------+
-|                                                              |
-|   SOURCES DE TRAFIC LANDING (humains)                        |
-|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   1. devto    : 47 (33 %)                                    |
-|   2. reddit   : 32 (23 %)                                    |
-|   3. direct   : 28 (20 %)                                    |
-|   4. hn       : 18 (13 %)                                    |
-|   5. x        : 12  (8 %)                                    |
-|   6. other    :  5  (3 %)                                    |
-|                                                              |
-|   CITATIONS LLM (Phase 4 par @geo — V1 manuel hebdo)         |
-|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   Perplexity      : 3 mentions / 30j  (target M+1 >= 5)      |
-|   Claude          : 1 mention  / 30j                         |
-|   ChatGPT         : 0 mention  / 30j                         |
-|   Gemini          : 0 mention  / 30j                         |
-|   (mesure manuelle V1, instrumentation Phase 4 @geo)         |
-|                                                              |
-|   CRAWLS BOTS DISTINCTS (UA-bucket, 7 jours)                 |
-|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   ai_bot/claude     : 312                                    |
-|   ai_bot/gpt        : 187                                    |
-|   ai_bot/perplexity : 124                                    |
-|   ai_bot/bingbot    :  87 (Bing crawler)                     |
-|   ai_bot/googlebot  :  62 (Google crawler — pas IA pure)     |
-|   ai_bot/cursor     :  52                                    |
-|   ai_bot/agentkit   :  37                                    |
-|   ai_bot/mcp        :  18                                    |
-|   ai_bot/other      :  12                                    |
-|                                                              |
-|   ENDPOINTS DÉCOUVRABILITÉ                                   |
-|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
-|   llms.txt fetches      :  198 / 7j                          |
-|   sitemap.xml fetches   :   87 / 7j                          |
-|   openapi.json fetches  :   42 / 7j                          |
-|   /about/data-sources   :   28 / 7j (signal d'intérêt)       |
-|                                                              |
-+--------------------------------------------------------------+
-```
-
-**Sources data** :
-- Sources trafic : `landing_page_view GROUP BY referrer_bucket`
-- Citations LLM : input manuel Thomas via formulaire `/admin/citations` (V1) ou outil dédié V2
-- Crawls bots : `crawl_* + api_request_received GROUP BY ua_bucket WHERE ua_bucket LIKE 'ai_bot/*'`
-- Endpoints : `crawl_* GROUP BY event_type`
-
-**Alertes** :
-- ORANGE : 0 crawl bot IA reconnaissable sur 7j → diagnostic llms.txt / sitemap / GEO
-- ORANGE : 0 nouvelle citation LLM à M+1 → push agressif Phase 4 @geo
-
-**Charts** :
-- Pie chart sources de trafic
-- Stacked bar chart crawls bots par jour (7 derniers jours)
-- 4 KPI tiles endpoints découvrabilité
+- 3 tableaux percentiles par endpoint (p50/p95/p99 size + latence).
+- Gauge dial fraîcheur par cron (vert / orange / rouge).
+- Histogram distribution savings_pct (buckets : 0-15 / 15-30 / 30-50 / 50+ %).
+- Compteur refund triggered MTD avec seuil ROUGE.
 
 ---
 
-## 2. F26 — Dashboard utilisateur `/dashboard?token=JWT` (post-Stripe humain)
+### 1.5 Zone 4 — Discovery (sources trafic agent + humain)
 
-### 2.1 Vue minimaliste
-
-- **URL** : `/dashboard?token=JWT`
-- **Auth** : JWT 24h en query param + cookie `Secure;HttpOnly;SameSite=Strict`
-- **Format** : 1 page HTML statique < 30 KB, 1 zone, responsive mobile (US-12 + US-11 backlog).
-- **Refresh** : pas d'auto-refresh, utilisateur recharge manuellement.
-- **Backend** : endpoint Worker `/api/user/metrics?token=JWT` qui retourne queries cumulées + cost cumulé + JWT expiry.
+**Objectif** : suivre les canaux d'acquisition B2A et humain. Citations LLM manuelles.
 
 ```
 +--------------------------------------------------------------+
-| /dashboard                                                   |
+| ZONE 4 — DISCOVERY (ACQUISITION)                             |
 +--------------------------------------------------------------+
 |                                                              |
-|   Bonjour, ton accès illimité est actif.                     |
+|   SOURCES TRAFIC LANDING HUMAIN                              |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   devto    : 87 vues (61 %)  [post « Claude agent pays $10»] |
+|   reddit   : 32 vues (22 %)                                  |
+|   hn       : 12 vues  (8 %)                                  |
+|   direct   :  8 vues  (6 %)                                  |
+|   other    :  4 vues  (3 %)                                  |
 |                                                              |
-|   Queries effectuées (24h)  : 47                             |
-|   Coût équivalent x402      : 23.03 € (économie : 18.04 €)  |
-|   JWT expire dans           : 14 h 32 m                      |
+|   CITATIONS LLM (manuel hebdo — horodatées)                  |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   Perplexity   : 3 citations (dernière: 2026-05-03)          |
+|   Claude.ai    : 1 citation  (dernière: 2026-04-29)          |
+|   ChatGPT      : 0 citation                                  |
+|   [+ Ajouter citation] [Export CSV]                          |
 |                                                              |
-|   [ Bouton COPIER JWT ]                                      |
+|   AGENTS IA WALLETS UNIQUES PAYANTS                          |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   Wallets uniques lifetime : 28                              |
+|   Nouveaux wallets ce mois : 12                              |
+|   Wallets récurrents (>= 2 paiements en 7j) : 4             |
 |                                                              |
-|   Configurer ton agent :                                     |
-|   ┌──────────────────────────────────────────────────────┐  |
-|   │ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI... │  |
-|   └──────────────────────────────────────────────────────┘  |
+|   GEO — SIGNAUX CRAWL IA                                     |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   crawl_dataset_jsonld_parsed (signal LLM) : 14 today        |
+|   crawl_llms_txt_fetched                   : 47 today        |
+|   crawl_openapi_fetched (agent avancé)     : 8 today         |
 |                                                              |
-|   Quand le JWT expire :                                      |
-|   • Soit tu repaies 4,99 € via Stripe Link                  |
-|   • Soit ton agent paie automatiquement chaque query 0,49 € |
-|     en x402                                                  |
-|                                                              |
-|   [ Lien Stripe Link 4,99 €/jour ]                          |
+|   POSTS DEV.TO / REDDIT PUBLIÉS                              |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   [Table manuelle : date / titre / url / vues / conversions]  |
+|   [+ Ajouter post] [Export CSV]                              |
 |                                                              |
 +--------------------------------------------------------------+
 ```
 
 **Sources data** :
-- Queries cumulées : `payment_jwt_validated WHERE jwt_id = X`
-- Coût équivalent x402 : `COUNT(payment_jwt_validated WHERE jwt_id = X) * 0.49`
-- JWT expiry : décodage JWT `exp` claim
+- `landing_page_view.referrer_bucket` GROUP BY (CF AE)
+- `crawl_llms_txt_fetched` + `crawl_dataset_jsonld_parsed` + `crawl_openapi_fetched` (CF AE)
+- `payment_x402_completed.wallet_hash` DISTINCT (CF AE)
+- Citations LLM : saisie manuelle Thomas (table KV `discovery:citations:*`)
+- Posts Dev.to / Reddit : saisie manuelle Thomas (table KV `discovery:posts:*`)
+
+**Alertes Zone 4** :
+- ORANGE : 0 nouveau wallet unique sur 7 jours glissants → acquisition agent stagnante.
+- ORANGE : 0 crawl `llms_txt_fetched` depuis 48h → investiguer disponibilité `/llms.txt`.
 
 ---
 
-## 3. Refresh cadence et alertes
+## 2. F26 — Dashboard sponsor wallet (`/dashboard?token=JWT`)
 
-### 3.1 Cadence
+### 2.1 Vue globale
 
-| Cadence | Quoi | Comment |
+- **URL** : `/dashboard?token=JWT` (JWT signé HMAC à la confirmation top-up Stripe sponsor)
+- **Auth** : JWT signature HMAC validation Worker — zéro session cookie additionnel.
+- **Format** : 1 page HTML minimaliste (< 30 KB), responsive mobile. Pas de Charts complexes.
+- **Refresh** : polling 30s pour balance + quota restant (donnée live KV).
+- **Backend** : endpoint Worker `/api/pack/quota?wallet_hash={hash}` (lecture directe KV — voir dev-decisions.md v2 § réponse question ouverte quota).
+
+**Changement v2** : F26 v1 ciblait le dev humain abonné Stripe (JWT 24h, queries restantes, coût cumulé). F26 v2 cible le **sponsor wallet** (top-up USDC Base, pack quota restant, audit history de son agent).
+
+### 2.2 Maquette F26
+
+```
++--------------------------------------------------------------+
+| DevRefs — Tableau de bord sponsor                            |
++--------------------------------------------------------------+
+|                                                              |
+|   WALLET AGENT ASSOCIÉ (pseudonyme, hash partiel)            |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   Wallet : 0x7f3...8a2 (10 derniers chars affichés)          |
+|   Balance USDC Base estimée : $8.24 (source : top-up - dépensé)|
+|   [Recharger wallet → Stripe top-up $5 / $10 / $50]         |
+|                                                              |
+|   PACK EN COURS                                              |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   Type : Pack Standard $10 (10 000 calls)                    |
+|   Quota restant : 7 843 / 10 000 calls  (78 %)               |
+|   [Barre progression]                                        |
+|   Expiration : pas de TTL (jusqu'à épuisement)               |
+|   [Acheter Pack Pro $50 — 60 000 calls]                      |
+|                                                              |
+|   APPELS RÉCENTS (via pack, dernières 24h)                   |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   2026-05-05 14:22 — /api/llm-prices?model=opus-4.7 — 200   |
+|   2026-05-05 14:19 — /api/llm-prices?model=sonnet-4.6 — 200 |
+|   2026-05-05 13:45 — /api/sdk-status?pkg=ai — 200            |
+|   [Voir tout — 2 157 appels ce mois]                         |
+|                                                              |
+|   AUDITS (historique)                                        |
+|   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ |
+|   2026-04-28 — Audit #a7f3e2 — Score: 72/100 — Savings: 34%  |
+|   [Demander remboursement si savings < 15 % à 30j]           |
+|   [Lancer nouvel audit — $9.99 USDC]                         |
+|                                                              |
++--------------------------------------------------------------+
+```
+
+### 2.3 Sources data F26
+
+- Quota pack restant : `GET /api/pack/quota?wallet_hash={hash}` → lecture directe KV `pack:{wallet_hash}:remaining` + `pack:{wallet_hash}:pack_type` (pas CF AE — KV est le state store).
+- Appels récents : `pack_quota_consumed` CF AE (dernières 24h, filtre wallet_hash).
+- Audit history : `audit_delivered` CF AE (filtre wallet_hash, sort by timestamp DESC).
+- Refund éligibilité : `audit_delivered.savings_pct` + `days_since_audit` (calculé côté Worker).
+
+---
+
+## 3. Récapitulatif technique backend F25 + F26
+
+### 3.1 Endpoints Worker requis pour les dashboards
+
+| Endpoint | F25 ou F26 | Données agrégées | Refresh |
+|---|---|---|---|
+| `GET /api/admin/metrics` | F25 | CF AE SQL + Coinbase API + Stripe API (NSM, funnels, quality, discovery) | Cache KV 60s |
+| `GET /api/pack/quota?wallet_hash={h}` | F26 | CF KV direct (`pack:{h}:remaining`, `pack:{h}:pack_type`, `pack:{h}:expires_at`) | Pas de cache (live KV) |
+| `GET /api/admin/metrics/quality` | F25 Zone 3 | CF AE percentiles SQL (payload_size, latency, freshness) | Cache KV 60s |
+| `GET /api/admin/metrics/audit` | F25 Zone 3 | CF AE savings_pct distribution + refund_triggered count | Cache KV 60s |
+| `GET /api/admin/metrics/discovery` | F25 Zone 4 | CF AE referrer_bucket + crawl events + wallet uniques | Cache KV 60s |
+
+**Note architecture** : tous les endpoints admin sont servis par le même CF Worker, avec rate-limiting Basic auth + IP-rate-limit pour prévenir enumeration.
+
+### 3.2 Alertes Mailchannels (récapitulatif seuils ROUGE)
+
+| Seuil ROUGE | Condition | Message email Thomas |
 |---|---|---|
-| **Live (60s)** | F25 auto-refresh JS fetch `/api/admin/metrics` | setInterval JS minimal |
-| **Quotidienne 00:00 UTC** | Snapshot KV `metrics:nsm:YYYY-MM-DD` + email Thomas si seuils | Cloudflare Cron Trigger |
-| **Mensuelle 1er du mois 06:00 UTC** | Email récap NSM mois précédent | Cloudflare Cron Trigger |
-
-### 3.2 Alertes (email Thomas via Mailchannels gratuit ou Resend free tier)
-
-| Sévérité | Condition | Canal |
-|---|---|---|
-| ROUGE | NSM J7 = 0 paiement x402 ET 0 JWT | Email immédiat + flag dashboard |
-| ROUGE | Cron scrape failed > 2 fois consécutives | Email immédiat |
-| ROUGE | payload_size p99 > 50 KB sur 1h | Email + flag dashboard |
-| ROUGE | freshness > seuil (6h pricing / 24h SDK) | Email + flag dashboard |
-| ORANGE | NSM M+1 < 50 € | Flag dashboard, pas d'email (digest hebdo) |
-| ORANGE | latence p95 > 200 ms sur 1h roll | Flag dashboard |
-| ORANGE | ratio crawl→paiement < 5 % à M+1 | Flag dashboard + recommandation diagnostic |
-
-### 3.3 Anti-pattern (alertes interdites)
-
-- Pas d'alerte sur metrics qui ne déclenchent pas d'action (cf. data-analyst.md "un dashboard sans actions est un poster").
-- Pas de notification Slack en V1 (dépendance externe + budget).
-- Pas de SMS (vendor + budget).
+| Test E1 J7 échoué | 0 paiement x402 à J7 | « Test E1 J7 : 0 paiement agent IA. Diagnostiquer H1 — voir assumption-map.md » |
+| NSM jour < 50 % objectif jour | NSM_jour < target_jour * 0.5 | « NSM jour en retard : {NSM} € vs {target} € objectif » |
+| p99 payload > 50 KB | Sur un endpoint | « Promesse size brisée sur {path} : p99={size} KB » |
+| Cron failed 2 runs consécutifs | cron_scrape_failed × 2 | « Cron {cron_name} en échec 2× consécutif — vérifier source {failed_source} » |
+| Refund triggers > 20 % audits | COUNT(refund) / COUNT(audits) > 20 % | « Garantie refund dépassée : {pct} % audits remboursés — réviser heuristiques » |
+| savings_pct médian < 15 % | Sur derniers 20 audits | « H9 potentiellement invalidée — médian savings {pct} % sous seuil 15 % » |
 
 ---
 
-## 4. Implémentation technique (specs pour @fullstack — handoff dev-decisions.md)
+## Handoff → @fullstack (Phase 1)
 
-### 4.1 Stack
+**Fichiers produits** :
+- `docs/analytics/dashboard-specs.md` v2 (ce fichier)
 
-- **Backend** : Cloudflare Worker `/api/admin/metrics` + `/api/user/metrics` (zéro framework, fetch natif).
-- **Frontend** : HTML statique servie par Cloudflare Pages, JS vanilla < 5 KB pour fetch + auto-refresh, Chart.js < 30 KB CDN si besoin (sinon SVG natif).
-- **Aggregation** : query SQL CF Workers Analytics Engine + appels Coinbase API + Stripe API. Cache KV 60s pour éviter rate-limit.
-- **Auth** : Basic auth `admin:$ADMIN_PASSWORD` (env var) en Phase 1, migration Cloudflare Access si besoin Phase 4.
+**Décisions prises** :
+- F25 = 4 zones (Revenue x402 / Funnel B2A / Cohérence promesse / Discovery) — zone humain Stripe supprimée
+- F26 = sponsor wallet (quota pack + audit history) — plus abonné Stripe humain
+- `/api/pack/quota` = endpoint dédié KV (pas CF AE) — voir dev-decisions.md v2 pour justification
+- Mailchannels alertes sur 6 seuils ROUGE définis
 
-### 4.2 Composants UI (réutilisables)
-
-- **Bar chart** : Chart.js bar OR SVG `<rect>` natif (préférence SVG pour < 50 KB total).
-- **Donut chart** : Chart.js doughnut OR SVG `<path>` natif.
-- **Gauge** : SVG `<circle>` avec stroke-dasharray (pas Chart.js, trop lourd pour gauge).
-- **KPI tile** : div HTML simple `<div class="kpi-tile"><span class="value">X</span><span class="label">Y</span></div>`.
-- **Funnel chart** : div empilées avec largeur proportionnelle (CSS `width: %`).
-
-### 4.3 Performances
-
-- Page `/admin/dashboard` : LCP < 1s, total < 100 KB.
-- Page `/dashboard?token=JWT` : LCP < 500 ms, total < 30 KB.
-- Endpoint `/api/admin/metrics` : latence < 500 ms p95 (caché 60s).
-- Endpoint `/api/user/metrics` : latence < 200 ms p95.
-
-### 4.4 Sécurité
-
-- F25 admin : Basic auth ou CF Access. Pas d'exposition publique.
-- F26 user : JWT validation HMAC stricte. 401 immédiat si JWT invalide ou expiré (US-12 backlog).
-- Pas de PII dans aucun endpoint (cf. § 5 kpi-framework).
-- Headers : `X-Robots-Tag: noindex` sur `/admin/dashboard` et `/dashboard?token=*`.
-
----
-
-## 5. Mapping zones ↔ KPIs (vérification couverture)
-
-| Zone F25 | KPIs kpi-framework couverts |
-|---|---|
-| Zone 1 Revenue | § 1 NSM + § 2.4 Revenue (brut + net + ARPU + % x402/Stripe) |
-| Zone 2 Activation | § 2.2 Activation funnel + § 2.6 validation persona (Top 5 UA) |
-| Zone 3 Cohérence | § 3.1 cohérence promesse↔réalité (size + latence + fraîcheur + cron health) |
-| Zone 4 Discovery | § 2.1 Acquisition + § 2.5 Referral citations LLM |
-
-100 % des KPIs du framework sont visualisés dans >= 1 zone du F25. Aucun KPI orphelin.
-
----
-
-## 6. Synthèse
-
-| Élément | Décision |
-|---|---|
-| **F25 admin** | 1 page `/admin/dashboard`, 4 zones, < 100 KB, auto-refresh 60s |
-| **F26 user** | 1 page `/dashboard?token=JWT`, 1 zone, < 30 KB, refresh manuel |
-| **Auth F25** | Basic auth ou Cloudflare Access |
-| **Auth F26** | JWT HMAC 24h |
-| **Refresh** | Live 60s + cron quotidien snapshot + cron mensuel récap |
-| **Alertes** | ROUGE email immédiat, ORANGE flag dashboard digest hebdo |
-| **Charts** | SVG natif privilégié, Chart.js < 30 KB en backup |
-| **Outils REJETÉS** | Slack notifications V1, SMS, dashboards SaaS payants |
-
----
-
-## Handoff @data-analyst → @fullstack (via dev-decisions.md)
-
-- **Fichier produit** : `/home/user/AI-agents-platform/docs/analytics/dashboard-specs.md`
-- **Décisions prises** : F25 4 zones, F26 minimaliste, stack 0 € HTML statique + CF Worker + Chart.js, refresh live + alertes seuils.
-- **Points d'attention pour @fullstack (cf. dev-decisions.md)** :
-  - Endpoint `/api/admin/metrics` doit agréger CF AE SQL + Coinbase API + Stripe API avec cache KV 60s.
-  - Endpoint `/api/user/metrics?token=JWT` doit valider JWT HMAC strict.
-  - Charts SVG natif privilégié (zéro dépendance lourde, cohérent < 50 KB landing).
-  - Alertes email via Mailchannels (gratuit Cloudflare) ou Resend free tier — flag dans dev-decisions.md.
+**Points d'attention** :
+- `GET /api/admin/metrics` agrège 3 sources (CF AE SQL + Coinbase API + Stripe API) — implémenter le cache KV 60s pour éviter rate-limit Coinbase
+- F26 quota restant = lecture KV directe, pas CF AE — CF AE est event-stream, pas state-store
+- Les citations LLM (Zone 4) sont saisies manuellement par Thomas — prévoir un mini-form HTMX ou formulaire HTML simple dans le dashboard admin

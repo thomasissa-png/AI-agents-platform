@@ -1,243 +1,278 @@
-<!-- Version: 2026-05-05T11:00 — @data-analyst — Phase 0 wave 3 — KPI Framework DevRefs -->
+<!-- Version: 2026-05-05T17:00 — @data-analyst — Phase 0 v2 wave 3 — KPI Framework DevRefs v2 (refonte pivot B2A pure) -->
 
-# KPI Framework — DevRefs
+# KPI Framework — DevRefs v2
 
 ## Résumé exécutif
 
-- **Objectif** : framework analytique complet pour mesurer dès J1 les critères de succès V1 quantifiés (J7 / J30 / J90 / M+6) + KPI North Star (600 €/mois revenu net x402 + Stripe).
-- **Décisions clés** : (1) North Star = revenu NET (brut moins frais), pas brut. (2) AARRR adapté B2A double persona (agent IA + dev humain). (3) KPIs spécifiques DevRefs : cohérence promesse↔réalité (size, latence, fraîcheur). (4) Privacy by design zéro-PII confirmé : aucun email, aucune IP brute, aucun User-Agent string complet. (5) Stack analytics 0 € : Cloudflare Workers Analytics Engine + Coinbase facilitator dashboard + Stripe dashboard, consolidés en 1 page interne (F25).
-- **Dépendances** : `tracking-plan.md` (events détaillés), `dashboard-specs.md` (maquette F25), `dev-decisions.md` (handoff @fullstack pour implémentation).
+- **Pivot v2 2026-05-05** : KPI North Star recalibré sur revenu NET x402 seul (Stripe humain retiré comme pilier de revenu — top-up sponsor marginal). AARRR refactoré double persona v2 : agent IA payeur principal (80 %) + sponsor wallet humain (15 % top-up uniquement). KPIs spécifiques audit + pack ajoutés.
+- **Décisions clés** : (1) North Star = revenu NET mensuel x402 + Stripe top-up marginal (formule brut moins frais Coinbase 0,1 % moins frais Stripe 2,9 % + 0,25 € moins CF Workers Paid). (2) Cible 600 €/mois = 66 transactions/mois mix packs + audits (source : `docs/product/pricing-strategy.md` scénarios § 4.1). (3) 3 nouveaux blocs KPI v2 : pack consumption rate, audit savings_pct distribution, garantie refund triggers. (4) Privacy by design strict conservé. (5) Stack analytics 0 € : CF Workers Analytics Engine uniquement, zéro outil tiers.
+- **Dépendances** : `tracking-plan.md` v2 (events détaillés), `dashboard-specs.md` v2 (maquette F25 + F26), `dev-decisions.md` v2 (handoff @fullstack).
 
 ---
 
 ## 1. North Star Metric (NSM)
 
-### 1.1 Définition
+### 1.1 Définition v2
 
-**Revenu net mensuel x402 + Stripe** = revenus bruts (USDC + EUR) convertis en EUR au cours du jour de settle, moins frais facilitator (Coinbase ~0,1 % USDC), moins frais Stripe (~3 % + 0,25 € par tx), moins frais Cloudflare (0 € sur free tier).
+**Revenu net mensuel x402 + Stripe top-up marginal** = revenus bruts x402 (USDC→EUR) + revenus bruts Stripe top-up sponsor, convertis en EUR au cours du jour de settle, moins frais facilitator (Coinbase 0,1 % USDC), moins frais Stripe (2,9 % + 0,25 € par tx de top-up), moins frais Cloudflare Workers Paid si dépassement quota free tier.
+
+**Important v2** : le top-up Stripe sponsor est une RAMPE d'onboarding wallet, pas une offre commerciale. DevRefs ne reçoit aucun revenu Stripe direct en V1 — le top-up alimente le wallet USDC de l'agent, qui paie ensuite en x402. La mention Stripe dans la formule NSM est donc marginale et ne concerne que les éventuels frais de rampe non-transférés. Source : `docs/product/pricing-strategy.md` § 1 tableau « Stripe top-up wallet sponsor ».
 
 ### 1.2 Formule de calcul
 
 ```
 NSM_mois_M = SOMME_jours(j ∈ M) [
-  SOMME_tx_x402(j) [ amount_usdc * fx_usd_eur(j) - 0.001 * amount_usdc * fx_usd_eur(j) ]
+  SOMME_tx_x402(j) [
+    amount_usdc * fx_usd_eur(j)
+    - 0.001 * amount_usdc * fx_usd_eur(j)   // frais Coinbase facilitator 0,1 %
+  ]
   +
-  SOMME_tx_stripe(j) [ amount_eur - (amount_eur * 0.029 + 0.25) ]
+  SOMME_tx_stripe_topup(j) [
+    amount_eur_topup
+    - (amount_eur_topup * 0.029 + 0.25)     // frais Stripe 2,9 % + 0,25 €/tx
+    // REMARQUE : cette somme est nulle si DevRefs ne reçoit aucun flux Stripe direct v2
+  ]
   -
-  cf_workers_paid_usage_eur(M)  // 0 € si sous quota free tier
+  cf_workers_paid_usage_eur(M)              // 0 € si sous quota free tier (100 K req/jour)
 ]
 ```
 
 **Sources** :
-- `amount_usdc`, `amount_stripe` : Coinbase facilitator API + Stripe API (settled tx only — exclure pending).
-- `fx_usd_eur(j)` : taux de change quotidien (cours BCE 16h CET, fixé pour cohérence comptable BNC cf. @legal H2).
-- Frais Coinbase : valeur conservatrice 0,1 % (à ajuster si Coinbase publie barème différent — flagué dans dev-decisions.md).
-- Frais Stripe : 2,9 % + 0,25 € (Standard Card EU). Si Apple Pay / Link, mêmes frais.
-- Cloudflare Workers Paid (5 $/mois) : déclenché uniquement si > 100 000 req/jour (pas attendu V1).
+- `amount_usdc` : Coinbase facilitator API (settled tx only — exclure pending).
+- `fx_usd_eur(j)` : taux de change quotidien BCE 16h CET (cohérence comptable BNC).
+- Frais Coinbase : 0,1 % conservateur (à ajuster si Coinbase change barème).
+- Frais Stripe : 2,9 % + 0,25 € par tx Standard EU.
+- CF Workers Paid : 5 $/mois déclenchés uniquement si > 100 000 req/jour (non attendu V1).
 
 ### 1.3 Fréquence de mesure
 
 | Cadence | Source | Affichage |
 |---|---|---|
-| **Live** (event-driven) | CF Analytics Engine + webhooks Coinbase + Stripe | Dashboard interne F25, compteur jour |
+| **Live** (event-driven) | CF Analytics Engine + webhooks Coinbase | Dashboard admin F25, compteur jour |
 | **Quotidienne 00:00 UTC** | Cron agrégation | Snapshot KV `metrics:nsm:YYYY-MM-DD` |
-| **Mensuelle 1er du mois 06:00 UTC** | Cron consolidation | Email automatique Thomas + snapshot KV `metrics:nsm:YYYY-MM` |
+| **Mensuelle 1er du mois 06:00 UTC** | Cron consolidation | Email Mailchannels Thomas + snapshot KV `metrics:nsm:YYYY-MM` |
 
-### 1.4 Valeurs cibles (cohérent v1-scope.md § 3.1)
+### 1.4 Valeurs cibles (source : `pricing-strategy.md` § 4.1 + `assumption-map.md` H10)
 
-| Échelle | Cible NSM (revenu net mensuel équivalent) | Cible cumulée depuis J0 |
+| Échelle | Cible NSM (revenu net mensuel) | Test binaire associé |
 |---|---|---|
-| **J7** | N/A (échelle journalière) | >= 5 paiements x402 OU >= 1 JWT actif (test E1 binaire) |
-| **J30** | 50 € | 50 € |
-| **J90** | 100 € (montée en charge) | 200 € cumulés |
-| **M+3** | 300 € | ~400 € cumulés |
-| **M+6** | **600 €** (KPI North Star atteint) | ~1 800 € cumulés |
-| **M+12** | >= 1 200 € (objectif extension bundle) | ~10 800 € cumulés |
+| **J7** | N/A (échelle journalière) | >= 1 paiement x402 réel d'un agent IA autonome (test E1 — H1 validation) |
+| **J30** | >= 50 € | Binaire : atteint / non-atteint |
+| **J90** | >= 200 € | Montée en charge confirmée |
+| **M+3** | >= 300 € | Palette mix packs + audits établie |
+| **M+6** | **>= 600 €** (KPI North Star atteint) | 66 transactions/mois mix packs + audits |
+| **M+12** | >= 1 200 € | Extension bundle ou Subscription Pro V2 |
 
-### 1.5 Anti-pattern
+### 1.5 Décomposition cible 600 €/mois (source : `pricing-strategy.md` § 4.1)
 
-- **NE PAS mesurer le revenu BRUT en NSM** : un coût caché (ex : Coinbase change ses frais à 0,5 %) dégraderait silencieusement le NSM net. Mesurer le brut en KPI input (cf. § 2.4) mais pas en NSM.
-- **NE PAS mesurer le MRR équivalent** comme NSM principal : Stripe Link 4,99 €/jour n'est pas un abonnement récurrent V1 (cf. roadmap V2). Le MRR équivalent est un KPI input secondaire (§ 2.4).
-- **NE PAS lisser sur trailing 30j en J7** : la cible J7 est binaire (5 paiements x402 OU 1 JWT actif) — un lissage masquerait le signal go/no-go.
+| Scénario mix | Transactions/mois | €/transaction moyen | Réalisme |
+|---|---|---|---|
+| 100 % Pack Standard $10 | 66 packs | ~9,1 € net (après frais Coinbase 0,1 %) | Réaliste — 1 lecteur Dev.to/1 000 convertit |
+| 100 % Audit one-shot $9.99 | 66 audits | ~9,08 € net | Réaliste — ticket élevé, persona 5M+ tok/mois |
+| Mix 50/50 Pack + Audit | 33 packs + 33 audits | ~9,1 € net moyen | Scénario cible — démontre les 2 offres |
+| Pack Pro $50 seulement | 14 packs | ~45,5 € net | Plus difficile — persona Pro plus rare V1 |
+
+### 1.6 Anti-patterns NSM
+
+- **NE PAS mesurer le revenu BRUT en NSM** : un changement de frais Coinbase (0,1 % → 0,5 %) dégraderait silencieusement le net. Mesurer le brut en KPI input (§ 2.4) uniquement.
+- **NE PAS lisser sur trailing 30j en J7** : la cible J7 est binaire (>= 1 paiement x402) — un lissage masquerait le signal go/no-go H1.
+- **NE PAS comptabiliser les top-up Stripe sponsor comme revenu DevRefs** : le top-up alimente le wallet de l'agent, pas le compte DevRefs directement.
 
 ---
 
-## 2. KPIs AARRR adaptés B2A (double persona)
+## 2. KPIs AARRR adaptés double persona v2
 
 ### 2.1 Acquisition
 
+**Persona agent IA (cible primaire 80 % du revenu)**
+
 | KPI | Formule | Outil | Cible J7 | Cible M+1 | Cible M+6 |
 |---|---|---|---|---|---|
-| Crawls bots IA identifiés (UA-bucket : claude / gpt / perplexity / bing / google) | COUNT(crawl_*) WHERE ua_bucket LIKE 'ai_bot/*' GROUP BY day | CF Analytics Engine | >= 10 | >= 50 | >= 300 |
-| Requêtes `llms.txt` | COUNT(crawl_llms_txt_fetched) | CF AE | >= 5 | >= 30 | >= 200 |
-| Requêtes `sitemap.xml` | COUNT(crawl_sitemap_fetched) | CF AE | >= 3 | >= 20 | >= 100 |
-| Requêtes `openapi.json` | COUNT(crawl_openapi_fetched) | CF AE | >= 1 | >= 10 | >= 50 |
-| Visites uniques landing humaine (IP-hash 24h) | COUNT(DISTINCT ip_hash) WHERE event = landing_page_view | CF AE | >= 20 | >= 100 | >= 500 |
-| Sources de trafic landing (referrers : Dev.to / Reddit / HN / X / direct) | COUNT(landing_page_view) GROUP BY referrer_bucket | CF AE | N/A J7 | top 5 documenté | top 5 documenté |
+| Crawls bots IA identifiés | COUNT(crawl_*) WHERE ua_bucket LIKE 'ai_bot/*' GROUP BY day | CF AE | >= 10 | >= 50 | >= 300 |
+| Requêtes `llms.txt` (3 endpoints) | COUNT(crawl_llms_txt_fetched) | CF AE | >= 5 | >= 30 | >= 200 |
+| Requêtes `openapi.json` (agent avancé) | COUNT(crawl_openapi_fetched) | CF AE | >= 1 | >= 10 | >= 50 |
+| Ratio paiements x402 vs crawls bot IA | COUNT(payment_x402_completed) / COUNT(crawl_* WHERE ua_bucket LIKE 'ai_bot/*') | CF AE | >= 5 % | >= 8 % | >= 12 % |
 
-**Note B2A** : un "crawl agent" et une "visite humaine" sont mesurés séparément via UA-bucket. Le ratio agent/humain est un KPI de validation persona (§ 2.6).
+**Persona sponsor wallet humain (cible secondaire 15-20 % — top-up uniquement)**
+
+| KPI | Formule | Outil | Cible J7 | Cible M+1 | Cible M+6 |
+|---|---|---|---|---|---|
+| Visites uniques landing humaine (ip_hash 24h) | COUNT(DISTINCT ip_hash) WHERE event = landing_page_view | CF AE | >= 20 | >= 100 | >= 500 |
+| Sources de trafic landing (referrers) | COUNT(landing_page_view) GROUP BY referrer_bucket | CF AE | N/A J7 | top 5 documenté | top 5 documenté |
+| Top-up Stripe sponsor initiés | COUNT(sponsor_topup_stripe_initiated) | CF AE | N/A J7 | >= 1 | >= 5 |
 
 ### 2.2 Activation
 
+**Funnel agent IA vers paiement x402 (endpoint pricing + SDK)**
+
 | KPI | Formule | Outil | Cible J7 | Cible M+1 | Cible M+6 |
 |---|---|---|---|---|---|
-| Agents IA détectant 402 (= ratio crawl_endpoint → response_402) | COUNT(api_response_402_sent) / COUNT(api_request_received WHERE path LIKE '/api/*' AND ua_bucket LIKE 'ai_bot/*') | CF AE | >= 80 % (sanity) | >= 90 % | >= 95 % |
-| Agents IA tentant paiement après 402 (= ratio 402 → payment_x402_attempt) | COUNT(payment_x402_attempt) / COUNT(api_response_402_sent WHERE ua_bucket LIKE 'ai_bot/*') | CF AE | >= 5 % | >= 10 % | >= 15 % |
-| Humains cliquant Stripe Link (= ratio landing_view → cta_clicked) | COUNT(landing_cta_stripe_clicked) / COUNT(landing_page_view WHERE ua_bucket LIKE 'human/*') | CF AE | >= 2 % | >= 5 % | >= 8 % |
-| Agents IA complétant paiement x402 (= ratio attempt → completed) | COUNT(payment_x402_completed) / COUNT(payment_x402_attempt) | CF AE + Coinbase | >= 80 % (sanity protocole) | >= 90 % | >= 95 % |
-| Humains complétant Stripe checkout | COUNT(payment_stripe_checkout_completed) / COUNT(landing_cta_stripe_clicked) | Stripe dashboard | >= 30 % | >= 40 % | >= 50 % |
+| Agents IA détectant 402 (ratio crawl → 402) | COUNT(api_response_402_sent) / COUNT(api_request_received WHERE ua_bucket LIKE 'ai_bot/*') | CF AE | >= 80 % | >= 90 % | >= 95 % |
+| Agents IA tentant paiement (ratio 402 → attempt) | COUNT(payment_x402_attempt) / COUNT(api_response_402_sent WHERE ua_bucket LIKE 'ai_bot/*') | CF AE | >= 5 % | >= 10 % | >= 15 % |
+| Agents IA complétant paiement x402 one-shot | COUNT(payment_x402_completed WHERE pack_type IS NULL) / COUNT(payment_x402_attempt) | CF AE + Coinbase | >= 80 % | >= 85 % | >= 90 % |
+| Agents achetant un pack (ratio 402 → pack_purchased) | COUNT(pack_purchased) / COUNT(api_response_402_sent WHERE ua_bucket LIKE 'ai_bot/*') | CF AE | N/A J7 | >= 2 % | >= 5 % |
+
+**Funnel agent IA vers audit**
+
+| KPI | Formule | Outil | Cible J7 | Cible M+1 | Cible M+6 |
+|---|---|---|---|---|---|
+| Agents recevant 402 audit | COUNT(audit_402_served) | CF AE | >= 1 | >= 5 | >= 20 |
+| Agents payant l'audit | COUNT(audit_paid_x402) / COUNT(audit_402_served) | CF AE | >= 5 % | >= 10 % | >= 20 % |
+| Audits livrés avec succès | COUNT(audit_delivered) / COUNT(audit_paid_x402) | CF AE | >= 95 % | >= 98 % | >= 99 % |
+
+**Funnel sponsor wallet humain (top-up, secondaire)**
+
+| KPI | Formule | Outil | Cible M+1 | Cible M+6 |
+|---|---|---|---|---|
+| Top-up Stripe initiés → complétés | COUNT(sponsor_topup_stripe_completed) / COUNT(sponsor_topup_stripe_initiated) | CF AE + Stripe | >= 30 % | >= 50 % |
+| CTA curl-copied (signal intérêt technique) | COUNT(landing_cta_curl_copied) | CF AE | >= 5 | >= 50 |
 
 ### 2.3 Rétention
 
-| KPI | Formule | Outil | Cible J7 | Cible M+1 | Cible M+6 |
-|---|---|---|---|---|---|
-| Wallets x402 récurrents (>= 2 paiements en 7j) | COUNT(DISTINCT wallet_hash) WHERE COUNT(payment_x402_completed) >= 2 IN trailing_7d | CF AE | N/A J7 | >= 3 wallets | >= 30 wallets |
-| JWT humains réutilisés > 1 fois en 24h | COUNT(DISTINCT jwt_id) WHERE COUNT(payment_jwt_validated) > 1 IN 24h_post_issuance | CF AE | >= 50 % JWT | >= 70 % JWT | >= 85 % JWT |
-| Renouvellements quotidiens Stripe Link même customer (signal V2 mensuel) | COUNT(DISTINCT customer_id) WHERE COUNT(stripe_checkout_completed) >= 5 IN trailing_7d | Stripe dashboard | N/A J7 | >= 1 customer | >= 5 customers |
+| KPI | Formule | Outil | Cible M+1 | Cible M+6 |
+|---|---|---|---|---|
+| Wallets x402 récurrents (>= 2 paiements en 7j) | COUNT(DISTINCT wallet_hash) WHERE COUNT(payment_x402_completed) >= 2 IN trailing_7d | CF AE | >= 3 wallets | >= 30 wallets |
+| Packs rechargés (même wallet_hash, 2e pack_purchased) | COUNT(pack_purchased WHERE wallet_hash_count > 1) / COUNT(DISTINCT wallet_hash) | CF AE | N/A M+1 | >= 20 % wallets |
+| Audits récurrents (même wallet_hash, 2e audit_paid_x402) | COUNT(audit_paid_x402 WHERE prev_audit_wallet = true) / COUNT(DISTINCT wallet_hash) | CF AE | N/A M+1 | >= 10 % wallets |
+| Pack consumption rate (quota consommé / quota acheté) | AVG(pack_calls_used / pack_quota_total) GROUP BY wallet_hash | CF AE | N/A M+1 | >= 60 % [HYPOTHÈSE : taux d'usage pack estimé sans données V1] |
 
-**Note B2A** : la rétention agent IA est mesurée par récurrence du **wallet** (pseudonyme blockchain), pas par identité personnelle. Un wallet qui revient = un agent (ou un humain pilotant un agent) qui revient.
+**Note B2A** : la rétention agent IA est mesurée par récurrence du **wallet** (pseudonyme blockchain), pas par identité personnelle. Un wallet qui revient = un agent (ou dev pilotant un agent) qui revient.
 
 ### 2.4 Revenue
 
 | KPI | Formule | Outil | Cible M+6 |
 |---|---|---|---|
-| Revenu BRUT x402 (€) | SUM(amount_usdc * fx_usd_eur) | Coinbase | >= 305 € |
-| Revenu BRUT Stripe (€) | SUM(amount_eur) | Stripe | >= 320 € |
-| Revenu NET (= NSM, cf. § 1.2) | cf. § 1.2 | Calcul agrégé | >= 600 € |
-| MRR équivalent Stripe (signal abonnement V2) | (revenu Stripe trailing_30d / 30) * 30 | Stripe | indicateur, pas cible V1 |
-| ARPU x402 | SUM(amount_x402) / COUNT(DISTINCT wallet_hash) | CF AE + Coinbase | indicateur diagnostic |
-| ARPU Stripe | SUM(amount_stripe) / COUNT(DISTINCT customer_id) | Stripe | indicateur diagnostic |
-| % revenu x402 vs Stripe | revenu_x402_brut / revenu_total_brut | dashboard agrégé | cible cohérente positionnement B2A : >= 40 % x402 |
+| Revenu BRUT x402 — packs (€) | SUM(amount_usdc * fx_usd_eur) WHERE pack_purchased = true | Coinbase + CF AE | >= 330 € [HYPOTHÈSE : mix 50/50] |
+| Revenu BRUT x402 — audits (€) | SUM(amount_usdc * fx_usd_eur) WHERE audit_paid_x402 = true | Coinbase + CF AE | >= 330 € [HYPOTHÈSE : mix 50/50] |
+| Revenu NET (= NSM) | cf. § 1.2 | Calcul agrégé | >= 600 € |
+| ARPU x402 par wallet (mensuel) | SUM(amount_x402) / COUNT(DISTINCT wallet_hash) trailing_30d | CF AE + Coinbase | indicateur diagnostic |
+| % revenu packs vs audits | revenu_packs_brut / revenu_total_brut | dashboard agrégé | cible pilotage mix : surveiller >70 % audit → trigger pivot § 4.3 pricing-strategy.md |
+| % revenu x402 vs Stripe top-up | revenu_x402_brut / revenu_total_brut | dashboard agrégé | >= 90 % x402 (Stripe = marginal) |
 
-### 2.5 Referral (mesurable Phase 4 par @geo)
+### 2.5 Referral
 
 | KPI | Formule | Outil | Cible M+1 | Cible M+6 |
 |---|---|---|---|---|
-| Citations Perplexity / Claude / ChatGPT mentionnant "DevRefs" | requête manuelle ou outil GEO (ahrefs Brand Radar gratuit, alternative @geo Phase 4) | manuel + tooling Phase 4 | >= 5 | >= 30 |
-| Backlinks organiques Dev.to / Reddit / HN | COUNT(landing_page_view) WHERE referrer_bucket IN ('devto', 'reddit', 'hn') GROUP BY referrer_url | CF AE | >= 3 sources distinctes | >= 10 sources |
-| Forks GitHub / MCP servers dérivés | manuel (recherche GitHub "DevRefs") | manuel | N/A V1 | >= 1 mention |
-| Mentions HN/Reddit/X spontanées (search "devrefs") | manuel + alerts Google Alerts gratuit | manuel | >= 1 | >= 5 |
-
-**Note Phase 4 @geo** : instrumentation citations LLM est complexe (pas d'API publique sur Perplexity/Claude/ChatGPT). Méthode V1 : recherche manuelle hebdo avec query types ("LLM pricing 2026", "Anthropic Opus 4.7 pricing", "Vercel AI SDK breaking changes"). V2 : outil dédié si signal d'intérêt (ahrefs Brand Radar 99 $/mois est hors budget V1).
-
-### 2.6 Validation persona (référence brand-platform.md / personas.md)
-
-3 métriques pour vérifier que les personas sont réels et pas hypothèses :
-
-| KPI validation persona | Formule | Cible M+1 | Verdict si raté |
-|---|---|---|---|
-| Ratio agents IA identifiés (UA bot reconnaissable) sur trafic API | COUNT(api_request_received WHERE ua_bucket LIKE 'ai_bot/*') / COUNT(api_request_received) | >= 50 % | persona principal NON validé → revoir positionnement B2A |
-| Latence avant 1er paiement après détection 402 (médiane) | MEDIAN(timestamp_payment_x402_attempt - timestamp_response_402_sent) GROUP BY session | < 5 secondes | comportement non-autonome → revoir intégration MCP |
-| Ratio Stripe Link clic depuis IP avec cookie session existant vs IP unique sans cookie | COUNT(landing_cta_stripe_clicked WHERE has_session_cookie = true) / COUNT(landing_cta_stripe_clicked) | >= 30 % | dev humain pas identifiable → revoir UX humaine |
+| Citations Perplexity / Claude / ChatGPT | requête manuelle hebdo ("LLM pricing 2026", "Anthropic Opus 4.7 pricing") | Manuel + Google Alerts | >= 5 | >= 30 |
+| Backlinks Dev.to / Reddit / HN | COUNT(landing_page_view) WHERE referrer_bucket IN ('devto', 'reddit', 'hn') | CF AE | >= 3 sources | >= 10 sources |
+| Wallets IA uniques payants (signal croissance) | COUNT(DISTINCT wallet_hash) WHERE payment_x402_completed | CF AE | >= 2 | >= 30 |
 
 ---
 
-## 3. KPIs spécifiques DevRefs (au-delà AARRR)
+## 3. KPIs spécifiques DevRefs v2 (au-delà AARRR)
 
-### 3.1 Cohérence promesse↔réalité (renforcement #12 zéro fausse promesse)
+### 3.1 Cohérence promesse↔réalité (3 endpoints v2)
 
 | KPI | Formule | Outil | Cible | Alerte |
 |---|---|---|---|---|
-| Taille payload p50 / p95 / p99 (par endpoint) | PERCENTILE(quality_payload_size_bytes, [50, 95, 99]) GROUP BY path | CF AE | p99 < 50 KB | p99 > 50 KB → ROUGE (promesse landing brisée) |
-| Latence endpoint p50 / p95 / p99 (par endpoint) | PERCENTILE(quality_latency_ms, [50, 95, 99]) GROUP BY path | CF AE | p95 < 200 ms | p95 > 200 ms → ORANGE |
-| Fraîcheur réelle (= now - dateModified payload) | MEDIAN(now - dateModified) GROUP BY path | CF AE | < 6h pricing, < 24h SDK | dépassement seuil → ROUGE (cron probable down) |
-| % requêtes avec `dateModified` < 24h | COUNT(api_response_200_sent WHERE freshness_hours < 24) / COUNT(api_response_200_sent) | CF AE | 100 % | < 100 % → investiguer cron |
+| Taille payload p99 (par endpoint) | PERCENTILE(payload_size_bytes, 99) GROUP BY path | CF AE | p99 < 50 KB | p99 > 50 KB → ROUGE (promesse landing brisée) |
+| Latence endpoint p95 (par endpoint) | PERCENTILE(latency_ms, 95) GROUP BY path | CF AE | p95 < 200 ms | p95 > 200 ms → ORANGE |
+| Fraîcheur pricing (cron 6h) | MEDIAN(freshness_hours) WHERE path = '/api/llm-prices' | CF AE | < 6 h | > 6 h → ROUGE (cron probable down) |
+| Fraîcheur SDK (cron 24h) | MEDIAN(freshness_hours) WHERE path = '/api/sdk-status' | CF AE | < 24 h | > 24 h → ROUGE |
+| Fraîcheur audit heuristiques (refresh < 1h) | MAX(audit_heuristic_updated_at - now) | CF AE cron | < 1 h | > 1 h → ORANGE (heuristiques statiques mais re-vérifiées) |
 
-### 3.2 Validation hypothèses business
+### 3.2 KPIs pack (nouveau v2 — F8b)
 
-| Hypothèse | KPI de validation | Outil | Cible J30 |
+| KPI | Formule | Outil | Cible M+1 | Cible M+6 |
+|---|---|---|---|---|
+| Pack consumption rate (% quota consommé par pack) | AVG(pack_calls_used / pack_quota_total) GROUP BY pack_type | CF AE + KV | >= 40 % M+1 | >= 60 % M+6 [HYPOTHÈSE] |
+| Packs expirant avec quota > 50 % restant | COUNT(pack_expired WHERE remaining_quota_pct > 50) / COUNT(pack_expired) | CF AE | N/A M+1 | < 20 % [HYPOTHÈSE : pack bien calibré si < 20 % expiration gaspillage] |
+| Packs épuisés (quota consommé 100 %) | COUNT(pack_quota_exhausted) / COUNT(pack_purchased) | CF AE | N/A M+1 | >= 30 % (signal agents intensifs) |
+| Distribution par type pack | COUNT(pack_purchased) GROUP BY pack_type (Discovery $5 / Standard $10 / Pro $50 / Audit Pro $49) | CF AE | N/A J7 | top pack type identifié |
+
+### 3.3 KPIs audit (nouveau v2 — F1c/agent-audit-spec)
+
+| KPI | Formule | Outil | Cible M+1 | Alerte si raté |
+|---|---|---|---|---|
+| savings_pct médian par audit livré | MEDIAN(audit_savings_realized.savings_pct) | CF AE | >= 25 % | < 15 % → revoir heuristiques (H9 invalidée) |
+| % audits avec savings_pct >= 15 % | COUNT(audit_savings_realized WHERE savings_pct >= 15) / COUNT(audit_delivered) | CF AE | >= 80 % | < 80 % → révision heuristiques + alerter Thomas |
+| % audits déclenchant refund garantie (<15 % savings) | COUNT(audit_refund_triggered) / COUNT(audit_delivered) | CF AE | < 20 % | > 20 % → refund exposition $100/mois max, révision urgente |
+| Latence audit (p95) | PERCENTILE(audit_latency_ms, 95) | CF AE | < 2 000 ms (heuristiques statiques, zéro IA runtime) | > 5 000 ms → alerte ROUGE Worker timeout |
+| % audits avec auto_applicable recommendations | COUNT(audit_delivered WHERE auto_applicable_count > 0) / COUNT(audit_delivered) | CF AE | >= 50 % | < 30 % → signal valeur perçue faible |
+
+### 3.4 Validation hypothèses business v2
+
+| Hypothèse | KPI de validation | Outil | Cible | Lecture si raté |
+|---|---|---|---|---|
+| H1 — agent IA achète Pack $10 ou Audit $9.99 en autonomie | ratio crawl bot → payment_x402_completed | CF AE | >= 5 % J30 | H1 invalidée → diagnostic GEO + activation Stripe transitoire |
+| H9 — audit ROI 30-50 % économies réelles validables | savings_pct médian >= 25 % J60 | CF AE | >= 25 % | < 15 % → H9 invalidée, heuristiques insuffisantes |
+| H10 — 66 transactions/mois à M+6 | COUNT(payment_x402_completed + pack_purchased + audit_paid_x402) trailing_30d | CF AE + Coinbase | >= 22/mois M+1 / >= 44/mois M+3 / >= 66/mois M+6 | ramp-up : J7 >= 1, M+1 >= 22, M+3 >= 44, M+6 >= 66 |
+| H4 — fenêtre marché B2A 12-18 mois | % revenu x402 vs Stripe → croissance | dashboard | x402 croît chaque mois | stagnation → push GEO agent |
+| HT6 — heuristiques statiques suffisantes sans IA runtime | % audits savings_pct >= 15 % | CF AE | >= 80 % | < 60 % → considérer IA runtime V2 (coût à modéliser) |
+
+### 3.5 Validation persona (v2 — agent principal 80 % / sponsor secondaire 15 %)
+
+| KPI validation persona | Formule | Cible M+1 | Verdict si raté |
 |---|---|---|---|
-| H1 : agent IA achète en autonomie un payload à 0,49 € | ratio crawl bot → payment_x402_completed | CF AE | >= 5 % |
-| H2 : agent préfère payer 0,49 € que cramer 64 K tokens | latence avant 1er paiement après 402 (cf. § 2.6) | CF AE | < 5 s |
-| Friction protocole x402 acceptable | ratio payment_x402_attempt → payment_x402_completed | CF AE + Coinbase | >= 80 % |
-| V4 verbatim : humain bascule Stripe quand facture > 3 €/jour | ratio sessions wallet avec cumul_jour > 3€ → clic Stripe Link 24h après | CF AE + Coinbase + Stripe | indicateur diagnostic |
-
-### 3.3 Validation pricing
-
-| KPI | Formule | Cible | Décision si raté |
-|---|---|---|---|
-| Élasticité prix (test Phase 4 si 5-15 ventes J7 — cf. project-context.md plan d'action) | (volume_après_bump - volume_avant_bump) / volume_avant_bump | drop < 30 % entre 0,49 € et 0,99 € | si drop > 30 % → conserver 0,49 € |
-| ARPU x402 mensuel | cf. § 2.4 | indicateur diagnostic | < 0,49 € → wallet ne re-paie pas (problème UX ou valeur) |
-| ARPU Stripe mensuel | cf. § 2.4 | indicateur diagnostic | si 4,99 €/jour pas renouvelé > 1× → revoir packaging |
+| Ratio agents IA identifiés (UA-bucket) sur trafic API | COUNT(api_request_received WHERE ua_bucket LIKE 'ai_bot/*') / COUNT(api_request_received) | >= 50 % | persona principal NON validé → revoir positionnement B2A |
+| Ratio packs vs pay-per-call vs audit (usage mix) | COUNT DISTINCT (pack_purchased, payment_x402_completed one-shot, audit_paid_x402) GROUP BY offer_type | N/A cible — distribution à observer | identifier offre dominante M+1 pour orienter copy + GEO |
+| Latence avant 1er paiement après 402 (médiane) | MEDIAN(ts_payment_x402_attempt - ts_api_response_402_sent) GROUP BY session | < 5 secondes | comportement non-autonome → revoir intégration MCP/x402 |
+| Ratio sponsor top-up sur revenu total | COUNT(sponsor_topup_stripe_completed) / COUNT(total_transactions) | < 20 % (Stripe marginal) | > 30 % → pivot pricing ou onboarding x402 à améliorer |
 
 ---
 
-## 4. Validation persona — détaillée (cf. § 2.6)
+## 4. Privacy by design (zéro-PII confirmé v2)
 
-3 métriques pour confirmer que les personas définis dans `personas.md` (agent IA principal + dev humain secondaire) sont réels et non pas hypothèses :
+### 4.1 Données NON collectées (interdit absolu)
 
-1. **Ratio agents IA identifiés** : si > 50 % du trafic API a un UA-bucket reconnaissable (`claude`, `gpt`, `perplexity`, `mistral`, `agentkit`, `cursor`, `mcp`), persona principal validé. Si < 20 %, persona principal NON validé → repositionner ou changer canal d'acquisition.
+- **Aucune adresse email** côté DevRefs analytics (Stripe gère les emails dans son propre flow).
+- **Aucune adresse IP brute** stockée. IP utilisée pour rate-limit puis hashée SHA256(IP + daily_salt) TTL 24h.
+- **Aucun User-Agent string complet** : extraction `ua_bucket` catégoriel uniquement (11 buckets : `ai_bot/claude`, `ai_bot/gpt`, `ai_bot/perplexity`, `ai_bot/mistral`, `ai_bot/agentkit`, `ai_bot/cursor`, `ai_bot/mcp`, `ai_bot/other`, `human/desktop`, `human/mobile`, `unknown`). UA brut jeté immédiatement.
+- **Aucun mapping wallet → JWT** : wallet x402 et JWT sponsor = 2 identités distinctes, jamais reliées dans les analytics.
+- **Aucun cookie tiers** (analytics ou marketing). Seul cookie : JWT post-top-up `Secure;HttpOnly;SameSite=Strict` (strictement nécessaire, exempté RGPD art. 82 LIL).
+- **Aucun outil analytics tiers** : pas de Google Analytics, PostHog, Mixpanel, Amplitude, Plausible. CF Analytics Engine uniquement (server-side, zéro pixel JS).
+- **Nouveaux events v2** : `audit_request_received`, `audit_paid_x402`, `pack_purchased` — aucun contenu de l'audit (input agent, config) stocké dans CF AE. Seuls les méta-données agrégées (savings_pct, latency_ms, pack_type) sont loggées. Cf. handoff @legal § 6.
 
-2. **Latence avant 1er paiement** : un agent autonome qui détecte 402 et réagit en < 5 s prouve l'autonomie machine. Si > 60 s médiane, c'est un humain qui regarde la réponse 402 et décide manuellement → reconsidérer l'angle B2A.
-
-3. **Ratio session-cookie sur clics Stripe** : un humain qui clique Stripe Link depuis une session cookie active (déjà venu sur la landing) prouve un parcours d'acquisition humain réel (vs accident). Cible >= 30 %.
-
----
-
-## 5. Privacy by design (zéro-PII confirmé)
-
-### 5.1 Données NON collectées (interdit absolu)
-
-- **Aucune adresse email** côté DevRefs (Stripe gère les emails customer dans son propre flow, hors scope DevRefs Analytics).
-- **Aucune adresse IP brute** stockée. IP utilisée pour rate-limit puis hashée SHA256(IP + daily_salt) avec rotation salt quotidienne. Hash supprimé après 24h via TTL CF KV.
-- **Aucun User-Agent string complet** : extraction d'un `ua_bucket` catégoriel uniquement (`ai_bot/claude`, `ai_bot/gpt`, `ai_bot/perplexity`, `ai_bot/mistral`, `ai_bot/agentkit`, `ai_bot/cursor`, `ai_bot/mcp`, `ai_bot/other`, `human/desktop`, `human/mobile`, `unknown`). Le UA brut est jeté immédiatement après extraction.
-- **Aucun mapping wallet → JWT** : un wallet x402 et un JWT Stripe sont 2 identités distinctes, jamais reliées dans les analytics. L'anonymat persona principal (agent IA) est préservé.
-- **Aucun cookie tiers** (analytics ou marketing). Seul cookie posé : JWT post-Stripe `Secure;HttpOnly;SameSite=Strict` (strictement nécessaire, exempté consentement RGPD art. 82 LIL).
-- **Aucun outil analytics tiers** : pas de Google Analytics, pas de PostHog, pas de Mixpanel, pas d'Amplitude. CF Analytics Engine est server-side uniquement (pas de pixel JS chargé sur le navigateur humain pour la mesure de base).
-
-### 5.2 Données collectées (justifiées)
+### 4.2 Données collectées (justifiées)
 
 | Donnée | Pourquoi collectée | Anonymisation | Rétention |
 |---|---|---|---|
-| `ua_bucket` (catégoriel) | Validation persona principal vs secondaire (§ 2.6, § 4) | catégorisation immédiate, UA brut jeté | 30 jours (CF AE retention) |
-| `path`, `method`, `status_code` | Mesure fonnel API (Activation § 2.2) | aucune PII | 30 jours |
-| `wallet_hash` (SHA256 wallet x402) | Rétention agents (§ 2.3) | wallet déjà pseudonyme blockchain, hashage supplémentaire | 30 jours |
-| `jwt_id` (UUID v4 random) | Rétention humains (§ 2.3) | UUID non corrélable à un email Stripe | 30 jours |
-| `customer_id` Stripe | Rétention paiements humains (§ 2.3) | identifiant Stripe pseudonyme, jamais lié à l'email côté DevRefs | 30 jours côté analytics, 10 ans côté Stripe (compta) |
-| `referrer_bucket` (catégoriel : devto / reddit / hn / x / direct / other) | Sources de trafic (§ 2.1) | URL référente brute jetée | 30 jours |
-| `payload_size_bytes`, `latency_ms`, `freshness_hours` | Cohérence promesse↔réalité (§ 3.1) | aucune PII | 30 jours |
-
-### 5.3 Conformité
-
-- Cohérent `legal-audit.md` § 1.1 (zéro PII confirmé).
-- Cohérent `rgpd-checklist.md` § 7.1 (aucun cookie tiers, JWT exempté consentement).
-- Cohérent `privacy-policy.md` (aucun analytics tiers déclaré).
-- Cohérent founder-prefs (anti-vendor lock-in, budget analytics 0 €).
-- Pas de bannière cookies requise V1.
+| `ua_bucket` (catégoriel) | Validation persona principal (§ 3.5) | catégorisation immédiate, UA brut jeté | 30 jours CF AE |
+| `wallet_hash` SHA256 | Rétention agents, déduplication packs (§ 2.3) | wallet déjà pseudonyme on-chain, hashage supplémentaire | 30 jours CF AE |
+| `pack_type`, `pack_quota_total`, `pack_calls_used` | KPIs pack (§ 3.2) | aucune PII | 30 jours CF AE |
+| `savings_pct`, `audit_latency_ms` | KPIs audit (§ 3.3) | agrégat numérique, zéro contenu input/output audit | 30 jours CF AE |
+| `path`, `status_code`, `latency_ms` | Funnel activation (§ 2.2), cohérence (§ 3.1) | aucune PII | 30 jours CF AE |
 
 ---
 
-## 6. Mapping KPIs ↔ critères de succès V1 (vérification couverture)
+## 5. Stack analytics (0 €, 100 % CF)
 
-| Critère succès V1 (v1-scope.md § 3) | KPI(s) du framework qui mesure(nt) |
-|---|---|
-| J7 >= 5 paiements x402 OU >= 1 JWT | Revenue § 2.4 (compteur jour) + Activation § 2.2 |
-| J30 >= 50 € revenu net | NSM § 1.2 (snapshot J30) |
-| J90 >= 200 € revenu net | NSM § 1.2 (cumul J0-J90) |
-| M+6 >= 600 €/mois (NSM) | NSM § 1.2 (mois M+6) |
-| Crawl agent uniques / 24h cibles | Acquisition § 2.1 ligne 1 |
-| Ratio crawl → paiement cibles | Activation § 2.2 ligne 2 + Validation hypothèses § 3.2 |
-| Citations Perplexity cibles | Referral § 2.5 ligne 1 |
-| % payloads `dateModified` < 24h | Cohérence § 3.1 ligne 4 |
-| Latence p95 endpoints < 200 ms | Cohérence § 3.1 ligne 2 |
+| Outil | Usage | Coût |
+|---|---|---|
+| **CF Workers Analytics Engine** | Events server-side (tous les events tracking-plan.md v2), SQL queries via CF dashboard | 0 € (free tier 100 K events/jour — volume V2 estimé 3 200-3 500 events/jour) |
+| **Coinbase facilitator API** | Revenue x402 settled tx (amount_usdc, fees, tx_hash) | 0 € (API gratuite) |
+| **CF KV** | Pack quota state (`pack:{wallet_hash}:remaining`, `pack:{wallet_hash}:expires_at`), snapshot NSM | 0 € (free tier) |
+| **Mailchannels** | Alertes ROUGE email Thomas (cron_scrape_failed, p99 > 50 KB, NSM jour < 0) | 0 € (inclus CF Workers) |
 
-100 % des critères de succès V1 sont mesurés par >= 1 KPI du framework. Cohérence cross-fichiers vérifiée.
+**Outils REJETÉS (inchangé v1)** : GA4 (RGPD), PostHog (vendor externe), Mixpanel (freemium events plafonnés + vendor externe), Amplitude, Plausible.
 
 ---
 
-## 7. Flags Phase 4 (autres agents)
+## 6. Seuils d'alerte et actions associées
 
-- **@sales-enablement (F27 + F28)** : KPIs utiles au playbook commercial = ARPU x402 + ARPU Stripe + nb paiements x402 cumulés (social proof "X paiements x402 en N jours") + ratio renouvellement Stripe Link (ROI calculator).
-- **@growth (F29 + F30)** : data stories possibles depuis les KPIs = top 5 modèles consultés (data story "Quels modèles les agents IA consultent en 2026"), top 5 SDKs avec breaking changes (data story F30), volume crawls agents par UA-bucket (data story "1 000 agents IA ont crawlé devrefs.dev en 30j" si seuil atteint M+1).
-- **@geo (Phase 4)** : instrumentation citations LLM (cf. § 2.5) — méthode V1 manuelle, V2 outil si budget débloqué.
+| KPI | Seuil VERT | Seuil ORANGE | Seuil ROUGE | Action ROUGE |
+|---|---|---|---|---|
+| NSM jour | >= objectif J/30 | 50-70 % | < 50 % | Email Thomas immédiat, vérifier Coinbase webhook + cron |
+| p99 payload size | < 50 KB | 50-75 KB | > 75 KB | Investiguer compression + endpoint buggy |
+| p95 latence | < 200 ms | 200-500 ms | > 500 ms | CF Worker performance audit |
+| Fraîcheur pricing | < 6 h | 6-12 h | > 12 h | Vérifier cron_scrape_failed + source officielle down |
+| % audits refund triggered | < 10 % | 10-20 % | > 20 % | Révision heuristiques d'audit urgente |
+| savings_pct médian | >= 25 % | 15-25 % | < 15 % | H9 potentiellement invalidée, alerter Thomas |
+| Test E1 J7 | >= 1 paiement x402 | N/A | 0 paiement à J7 | Diagnostic H1 : GEO push + activation Stripe transitoire |
 
 ---
 
-## Handoff @data-analyst → tracking-plan.md (étape suivante du même agent)
+## Handoff → @data-analyst (interne) / @fullstack (Phase 1)
 
-- **Fichier produit** : `/home/user/AI-agents-platform/docs/analytics/kpi-framework.md`
-- **Décisions prises** : NSM = revenu NET, AARRR adapté B2A double persona, KPIs spécifiques DevRefs (cohérence promesse↔réalité), zéro-PII confirmé, stack analytics 0 € (CF AE + Coinbase + Stripe).
-- **Points d'attention pour tracking-plan.md** :
-  - Tous les KPIs ci-dessus doivent être instrumentés via events détaillés dans tracking-plan.md.
-  - Naming convention `{domain}_{verb}_{object}` (cf. § 2 du tracking-plan).
-  - Anti-PII : chaque event doit être validé contre la liste § 5.1.
+**Fichiers produits** :
+- `docs/analytics/kpi-framework.md` v2 (ce fichier)
+
+**Décisions prises** :
+- NSM = revenu NET x402 uniquement (Stripe sponsor marginal, non comptabilisé direct)
+- Cible 600 €/mois = 66 transactions mix packs + audits (source pricing-strategy.md)
+- 3 nouveaux blocs KPI : pack consumption rate, audit savings_pct, refund triggers
+- Privacy by design strict : events audit ne loggent aucun contenu input/output
+
+**Points d'attention** :
+- H9 et H10 sont des hypothèses non testées — les KPIs les mesurent mais les cibles sont marquées [HYPOTHÈSE]
+- Le pack consumption rate target (60 %) est une hypothèse calibrée sans données V1 — à observer dès M+1
