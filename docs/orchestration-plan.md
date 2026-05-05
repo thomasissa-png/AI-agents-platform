@@ -42,8 +42,9 @@
   - @creative-strategy : 4 fichiers `docs/strategy/` (1217 lignes), 5/5/5/5/5, naming `DevRefs` confirmé, domaine `devrefs.dev` recommandé, Category Design B2A
   - @legal : 4 fichiers `docs/legal/` (979 lignes), 5/5/5/5/5, GO CONDITIONNEL (4 actions P0 avant 1ère tx, recommandation rester sous franchise art. 293 B)
   - Cohérence wave 1 : 0 placeholder, pricing/JWT/naming cohérents cross 8 fichiers
-- **Wave 2 (séquentiel après wave 1)** : @product-manager ("Vision produit & roadmap" + "Définir le scope V1" mergés) — `EN COURS`
-- **Wave 3 (séquentiel après wave 2)** : @data-analyst ("KPIs & tracking plan")
+- **Wave 2 (séquentiel après wave 1)** : @product-manager ("Vision produit & roadmap" + "Définir le scope V1" mergés) — `COMPLETE 2026-05-05`
+  - 6 fichiers `docs/product/` (5/5/5/5/5), 26 features V1 (17 épics + 9 support), 7 V2 reportées, hypothèse business agrégée H1+H2 testée E1 J7 binaire, critères succès J7≥5 paiements OU JWT actif / J30 ≥50€ / J90 ≥200€ / M+6 ≥600€/mois (KPI North Star), citation Perplexity ≥1 à M+1 / ≥30 à M+6
+- **Wave 3 (séquentiel après wave 2)** : @data-analyst ("KPIs & tracking plan") — `EN COURS`
 - **Wave 4 (parallèle après wave 3)** : @creative-strategy + @copywriter ("Construire la messaging matrix") + @product-manager + @data-analyst + @growth + @legal ("Stratégie de pricing complète")
 - **Checkpoint utilisateur OBLIGATOIRE après Phase 0** (renforcement #9)
 - **Livrables attendus** :
@@ -100,8 +101,8 @@
 |---|---|---|---|---|---|---|
 | 0a | 1 (@ia) | 0 | 0 | 0 | ~$3-5 | COMPLETE |
 | 0 (wave 1) | 2 (@creative-strategy + @legal) | 2 | 0 | 0 | ~$8-12 | COMPLETE |
-| 0 (wave 2) | 1 (@product-manager) | 0 | 0 | 0 | ~$4-6 | EN COURS |
-| 0 (wave 3) | 1 (@data-analyst) | 0 | 0 | 0 | ~$3-5 | EN ATTENTE |
+| 0 (wave 2) | 1 (@product-manager) | 0 | 0 | 0 | ~$4-6 | COMPLETE |
+| 0 (wave 3) | 1 (@data-analyst) | 0 | 0 | 0 | ~$3-5 | EN COURS |
 | 0 (wave 4) | 6 multi (messaging + pricing) | partiel | 0 | 0 | ~$15-25 | EN ATTENTE |
 | 1 | 5 | 3 | — | — | ~$20-30 | EN ATTENTE |
 | 2 | 5 + 2 testeurs | partiel | — | — | ~$25-40 | EN ATTENTE |
