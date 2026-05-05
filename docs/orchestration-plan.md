@@ -96,7 +96,7 @@
 | Phase | Agents | Parallèles | Relances | P0 | Coût estimé | Statut |
 |---|---|---|---|---|---|---|
 | 0a | 1 (@ia) | 0 | 0 | 0 | ~$3-5 | COMPLETE |
-| 0 (wave 1) | 2 (@creative-strategy + @legal) | 2 | 0 | 0 | ~$8-12 | EN COURS |
+| 0 (wave 1) | 2 (@creative-strategy + @legal) | 2 | 0 | 0 | ~$8-12 | COMPLETE |
 | 0 (wave 2) | 1 (@product-manager) | 0 | 0 | 0 | ~$4-6 | EN ATTENTE |
 | 0 (wave 3) | 1 (@data-analyst) | 0 | 0 | 0 | ~$3-5 | EN ATTENTE |
 | 0 (wave 4) | 6 multi (messaging + pricing) | partiel | 0 | 0 | ~$15-25 | EN ATTENTE |
@@ -108,11 +108,17 @@
 
 ## Compteur de session courante
 
-- Phases complétées : 1/6 (Phase 0a COMPLETE)
-- Tasks producteurs lancés : 1 (cap recommandé : 8-12 par session pour préserver le contexte)
+- Phases complétées : 2/6 (Phase 0a + Phase 0 wave 1 COMPLETE)
+- Tasks producteurs lancés : 3 (cap recommandé : 8-12 par session — encore 5-9 disponibles)
 - Tasks consultation : 0
 - Drift détecté : NON
 - Dernière session : 2026-05-05 (en cours)
+- Décisions structurantes wave 1 :
+  - Naming définitif = **DevRefs** (working name confirmé sans pivot, validé sur 4/5 critères)
+  - Domaine = **devrefs.dev** (TLD .dev privilégié vs .io pour HSTS forcé + connotation dev)
+  - Catégorie = **B2A — Agent-first reference layer for fresh tech data** (Category Design)
+  - Verdict legal = **GO CONDITIONNEL** (4 P0 actions hors-code à exécuter par Thomas en parallèle du dev)
+  - Architecture **zéro-PII** confirmée comme native — RGPD allégé, pas de bannière cookies, pas de DPO
 
 ## Feedbacks remontants
 
