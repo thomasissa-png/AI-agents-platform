@@ -189,44 +189,62 @@ Lis project-context.md et docs/orchestration-plan.md, continue où on s'est arr�
 
 ---
 
-## 📋 MEMO DE REPRISE — Prochaine session (Session 3 — @legal review v2 + checkpoint final)
+## 📋 MEMO DE REPRISE — Prochaine session (Session 3 — Phase 2 build)
 
 **Numéro de session prochaine** : Session 3 du projet DevRefs.
 
-**Statut au 2026-05-05 (fin session 2)** :
-- Phase 0 v2 wave brand+specs : **COMPLETE session 1** (4 specs @ia + 4 livrables strategy v2)
-- Phase 0 v2 wave 2 : **COMPLETE session 2** (@product-manager — 7 livrables produit, 5/5/5/5/5, pivot pricing intégré)
-- Phase 0 v2 wave 3 : **COMPLETE session 2** (@data-analyst — 4 livrables analytics, 5/5/5/5/5, 47 events actifs)
-- Compteur producteur Tasks session 2 : 2 (PM + DA), cohérence cross-wave validée
-- 0 P0/P1 learning non-propagé en attente
-- Branch active : `claude/devrefs-s2-phase0-v2-wave2-vm2Em` (pousser vers `claude/devrefs-s3-legal-review-v2-XXXX` en session 3)
+**Statut au 2026-05-05 (fin session 2 étendue)** :
+- Phase 0a + Phase 0 v1 (waves 1-3) + Phase 0 v2 (brand+specs + wave 2 + wave 3 + legal v2 + checkpoint final) : **COMPLETE** — 23 livrables (~5800 lignes)
+- Phase 1 conception : **COMPLETE session 2** — 5 agents en parallèle (@ux + @design + @copywriter + @product-manager + @qa), 7 livrables (3718 lignes), 5/5/5/5/5 chacun, 0 contradiction
+- 31 livrables cumulés Phase 0 + Phase 1 (~9 500 lignes), 0 P0/P1 learning non-propagé en attente
+- Compteur Tasks producteur session 2 : 9 (PM + DA + legal + 5 Phase 1 + 1 PM relance suite timeout API stream-idle)
+- Branch active : `claude/devrefs-s2-phase0-v2-wave2-vm2Em` → renommer en début session 3 vers `claude/devrefs-s3-phase2-build-XXXX`
 
-**À faire en SESSION 2 (commande de reprise ci-dessus)** :
+**À faire en SESSION 3 — Phase 2 build (commande de reprise standard)** :
 
-### Étape 1 — Lecture de reprise session 3 (5-7 min)
-1. `project-context.md` (sections Modèle économique + Cible v2)
-2. `docs/orchestration-plan.md` (ce fichier — section Phase 0 v2 session 3)
-3. `docs/product/pricing-strategy.md` v2 (garantie ROI 50% refund + scénarios revenu)
-4. `docs/analytics/tracking-plan.md` v2 (47 events, dont 12 nouveaux audit/pack/sponsor)
-5. `docs/dev-decisions.md` v2 (handoff @legal — 5 questions PII spécifiques)
-6. `docs/legal/legal-audit.md` v1 (à reviewer pour v2)
-7. `docs/legal/cgu-draft.md` v1 (clauses Stripe humain pilier à retirer + clause /api/agent-audit à ajouter)
-8. `docs/legal/privacy-policy.md` v1 (zéro-PII confirmé v1, à valider sur 12 nouveaux events)
+### Étape 1 — Lecture de reprise session 3 (8-10 min)
+1. `project-context.md` (sections Stack technique + Modèle économique v2)
+2. `docs/orchestration-plan.md` (ce fichier — section Phase 2)
+3. `docs/product/functional-specs.md` v1 (10 endpoints, 6 KV namespaces, 5 crons, 7 secrets, 10 gates fonctionnels GA-01→GA-10) — c'est la source #1 pour @fullstack
+4. `docs/design/design-system.md` (12 composants V1, tokens CSS, light+dark) + `docs/design/page-compositions.md` (5 surfaces, H1 verrouillé)
+5. `docs/copy/landing.md` (7 sections + paywall 3 checkboxes Art. 4quater verbatim + 5 emails Mailchannels + meta SEO)
+6. `docs/qa/qa-strategy.md` (pyramide 60/25/10/3/2, 32 gates + GP1-GP10 + GC1-GC10, matrice traçabilité)
+7. `docs/ux/user-flows.md` (6 parcours pour cross-check parcours implémentés)
+8. `docs/dev-decisions.md` v2 (handoff technique @fullstack + KV pack + audit endpoint + 47 events)
+9. `docs/legal/cgu-draft.md` v2 (clauses à respecter dans l'implémentation : Art. 3bis/4bis/4ter/4quater)
 
-### Étape 2 — @legal review v2 (1 Task producteur)
-**Mission** : reviewer et patcher 4 livrables legal pour intégrer pivot v2 + 12 nouveaux events.
-- `docs/legal/legal-audit.md` v2 — retirer §§ Stripe humain pilier, ajouter §§ audit endpoint (clause garantie ROI 50% refund) + §§ pack pré-payé x402 (irrévocabilité on-chain, expiration quota, droit rétractation L.221-18 vs L.221-28 13°).
-- `docs/legal/cgu-draft.md` v2 — clause `/api/agent-audit` (input non persisté, output watermark HMAC, garantie savings_pct ≥ 15% sur 30j sinon refund 50%) + clause `pack_purchased` (validity period, non-refundable, transferable wallet only) + retrait clauses Stripe humain pilier (conserver clauses Stripe top-up sponsor marginales).
-- `docs/legal/privacy-policy.md` v2 — confirmer zéro-PII sur 12 nouveaux events. Trancher 5 questions PII data-analyst : (a) `wallet_hash` SHA256 (pseudonyme RGPD ou non ?), (b) `tx_hash` on-chain stocké 30j CF AE (PII si combinable avec on-chain explorer ?), (c) `customer_id` Stripe (pseudonyme interne sans email — PII résiduelle si stocké côté DevRefs ?), (d) garantie refund vs droit rétractation L.221-18 14j (renonciation L.221-28 13° suffisante pour service numérique consommé immédiatement ?), (e) contenu `agent_config` + `sample_traces` audit input (mémoire Worker uniquement, jamais persisté — suffisant pour conformité ?).
-- `docs/legal/rgpd-checklist.md` v2 — réévaluer 43 items dont les nouveaux events impactent (probablement ~5 items à ajuster).
-- Référence inputs : tracking-plan v2 (47 events), pricing-strategy v2 (garantie + packs), agent-audit-spec.md (heuristiques + watermark HMAC).
+### Étape 2 — @agent-factory : créer 2 agents testeurs (1 Task producteur)
+**Mission** : créer `@testeur-agent-ia` (gates GP1-GP10, simule Claude Code/Cursor/AgentKit) + `@testeur-sponsor-humain` (gates GC1-GC10, simule humain qui top-up wallet) avec specs déjà documentées dans `docs/strategy/brand-platform.md` v2 §8.
+- Inputs : qa-strategy.md §6+§7 (méthodes + seuils) + brand-platform.md v2 §8 (specs Inputs/Outputs/Critère succès)
+- Output : `.claude/agents/testeur-agent-ia.md` + `.claude/agents/testeur-sponsor-humain.md`
+- Note : prérequis avant Phase 2 sub-phases 2c (test agent IA) + 2d (test sponsor humain)
 
-### Étape 3 — Checkpoint final V2 Phase 0 → GO/AJUSTER avant Phase 1
-**Mission** : @orchestrator consolide les 11 livrables Phase 0 v2 (4 strategy + 4 ia + 7 product + 4 analytics + 1 dev-decisions + 4 legal v2) et présente synthèse à Thomas pour arbitrage GO/AJUSTER avant lancement Phase 1 (build).
-- Critères GO Phase 1 : 0 contradiction cross-fichier, 0 placeholder, 100% gates G7+G15+G17+G32 PASS, 4 actions P0 @legal exécutables hors-code (Coinbase DPA, BNC stablecoin, Stripe Tax, immatriculation auto-entreprise).
-- Si GO : lancer Phase 1 conception — @ux + @design + @copywriter + @product-manager (specs fonctionnelles) + @qa (tests dérivés). Estimation 5 agents en parallèle.
+### Étape 3 — @infrastructure : CI/CD + setup pipeline (1 Task producteur)
+**Mission** : choisir et configurer pipeline CI/CD (GitHub Actions vs Cloudflare CI), setup wrangler.toml bindings (6 KV namespaces + AE binding + Service binding cron worker), 7 secrets env vars (EVM_PRIVATE_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, COINBASE_WEBHOOK_SECRET, JWT_HMAC_SECRET, MAILCHANNELS_API_KEY, RESOURCE_SERVER_URL), pre-commit hook build check (`tsc --noEmit && next lint && npm run build` ou équivalent CF Workers + esbuild), GitHub branch protection.
+- Inputs : functional-specs.md §5 (dépendances techniques exhaustives) + qa-strategy.md §9 (process QA) + project-context.md (stack 0 € free tier)
+- Output : `.github/workflows/`, `wrangler.toml`, scripts pre-commit, README setup
 
-**Compteur cible session 3** : 1 Task producteur (@legal) + 1 consolidation @orchestrator + checkpoint utilisateur OBLIGATOIRE.
+### Étape 4 — @fullstack : V1 complète (Tasks producteur multiples, séquentiel par dépendance)
+**Mission** : implémenter 29 features V1 selon functional-specs + page-compositions + landing copy. Séquencement par chemin critique :
+- 4a (foundation) : middleware x402 unifié, KV namespaces, JWT HMAC, scaffolding Worker API + Worker cron + page Cloudflare statique HTML
+- 4b (endpoints) : `/api/llm-prices`, `/api/sdk-status`, `/api/agent-audit` avec watermark HMAC + KV pack quota
+- 4c (cron jobs) : 5 crons (prices 6h, sdk 24h, indexnow, pack-expiry, cron-health-check)
+- 4d (frontend) : landing publique HTML statique + paywall 3 checkboxes + dashboard sponsor JWT + page référence /llm-prices + llms.txt + robots.txt + sitemap.xml + 12 favicons (G31)
+- 4e (intégration) : Stripe Payment Link top-up sponsor + Coinbase x402 sandbox + Mailchannels emails + 47 events tracking-plan instrumentés
+- 4f (tests + boucle visuelle) : pre-commit build check OBLIGATOIRE chaque commit src/ + screenshots Playwright sur 3 devices (375/768/1280) sauvegardés dans `tests/screenshots/` vs baselines page-compositions (G26 BLOQUANT)
+- Référence stricte : `docs/REPLIT_ACTIONS.md` à créer si modifications config (cf. règle 10 CLAUDE.md)
+
+### Étape 5 — Sub-phases 2c + 2d : tests testeur-persona-agent + testeur-sponsor (1-2 Tasks producteur)
+- 2c : @testeur-agent-ia exécute GP1-GP10 sur stack live sandbox (Coinbase x402 testnet)
+- 2d : @testeur-sponsor-humain exécute GC1-GC10 sur stack live (Stripe test mode)
+- Verdict gates : 32/32 G1-G32 PASS + 10/10 GP1-GP10 + 10/10 GC1-GC10 BLOQUANT pour passer Phase 3
+
+**Compteur cible session 3** : 4-6 Tasks producteur (@agent-factory + @infrastructure + 3-4 sous-phases @fullstack + checkpoint utilisateur intermédiaire). Le scope freeze est ACTIF après Phase 2 (CLAUDE.md règle implicite). Toute nouvelle feature → `docs/product/backlog-v2.md`.
+
+**Sessions 4+ prévues** :
+- Session 4 : Phase 3 visibilité (@seo + @geo + @copywriter calendrier éditorial)
+- Session 5 : Phase 4 acquisition (@growth + @social + @sales-enablement playbook)
+- Session 6 : Phase 5 audit & lancement (@reviewer + @qa audit final + checklist GO/NO-GO + @infrastructure monitoring post-launch)
 
 **Hypothèses à monitorer post-V1 (calibrées session 2)** :
 - [HYPOTHÈSE] pack consumption rate cible 60% M+6 — lever : données réelles M+1 (data-analyst).
