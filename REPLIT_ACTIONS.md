@@ -135,3 +135,52 @@ pnpm deploy:prod
 ```
 
 Cron triggers (5) sont activés automatiquement par Wrangler depuis `wrangler.toml [triggers].crons`.
+
+## I. Sub-phases 4e + 4f (2026-05-06)
+
+### I.1 Stripe Tax — Activer dans Dashboard
+
+1. https://dashboard.stripe.com/tax
+2. Activer Stripe Tax sur le compte
+3. Reverse charge UE (B2B) : auto si TVA intracommunautaire renseignée
+4. OSS UE (B2C) : auto selon `customer_address.country`
+5. Aucun calcul TVA côté DevRefs (Stripe gère).
+
+### I.2 Webhooks Stripe (Dashboard)
+
+1. https://dashboard.stripe.com/webhooks → 'Add endpoint'
+2. URL : `https://devrefs.dev/api/webhooks/stripe`
+3. Events : `checkout.session.completed`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `checkout.session.expired`
+4. Récupérer signing secret → `wrangler secret put STRIPE_WEBHOOK_SECRET`
+
+### I.3 Webhooks Coinbase x402 (Facilitator)
+
+1. Configurer URL webhook : `https://devrefs.dev/api/webhooks/coinbase`
+2. Événements : `x402.settle.completed`, `x402.settle.failed`, `x402.pack.purchased`
+3. Signature shared key → `COINBASE_X402_FACILITATOR_KEY` (déjà existant)
+
+### I.4 Génération baselines screenshots Playwright (1 fois)
+
+```bash
+pnpm exec playwright install chromium
+UPDATE_SCREENSHOTS=1 pnpm test:visual
+git add tests/screenshots/baseline/
+git commit -m 'chore: add visual regression baselines'
+```
+
+### I.5 Lancer les tests E2E + a11y + visual
+
+```bash
+pnpm exec playwright install --with-deps
+pnpm test:e2e         # 21 tests US
+pnpm test:a11y        # 4 pages, 0 serious/critical
+pnpm test:visual      # diff vs baselines (seuil 100 px)
+pnpm test:integration # 7 tests pivot v2
+```
+
+### I.6 Vérification finale 4e+4f
+
+```bash
+pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm build
+du -b dist/worker.js  # < 1 MB (actuellement ~114 KB)
+```

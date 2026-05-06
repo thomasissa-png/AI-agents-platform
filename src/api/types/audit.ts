@@ -103,6 +103,7 @@ export interface RefundRequestBody {
     recommendations_applied_pct: number;
   };
   signature: string; // EIP-191 du wallet
+  timestamp: string; // ISO — fait partie du message signé
 }
 
 export interface RefundResponseApproved {

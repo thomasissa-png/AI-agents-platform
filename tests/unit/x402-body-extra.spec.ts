@@ -107,7 +107,8 @@ describe("uaBucket", () => {
     [null, "unknown"],
     ["", "unknown"],
     ["claude-code/1.0", "claude-code"],
-    ["@anthropic-ai/sdk", "anthropic-sdk"],
+    // "@anthropic-ai/sdk" contient "anthropic" → bucket "claude_bot" (priorité crawl IA v2)
+    ["@anthropic-ai/sdk", "claude_bot"],
     ["openai-node/4.0", "openai-sdk"],
     ["axios/1.0", "axios"],
     ["node-fetch/3", "fetch"],
@@ -115,8 +116,14 @@ describe("uaBucket", () => {
     ["python-requests/2.0", "python"],
     ["curl/8.0", "curl"],
     ["Mozilla/5.0 Chrome/120", "browser"],
-    ["GoogleBot/2.1 crawler", "bot"],
+    // GoogleBot ne match aucun crawler-IA spécifique → bucket "other_bot" (v2)
+    ["GoogleBot/2.1 crawler", "other_bot"],
     ["RandomTool/1", "other"],
+    // v2 — crawl-IA buckets explicites
+    ["ClaudeBot/1.0", "claude_bot"],
+    ["GPTBot/1.2", "gpt_bot"],
+    ["PerplexityBot/1.0", "perplexity_bot"],
+    ["Cursor/0.42", "cursor_agent"],
   ])("buckets %s -> %s", (ua, expected) => {
     expect(uaBucket(ua)).toBe(expected);
   });

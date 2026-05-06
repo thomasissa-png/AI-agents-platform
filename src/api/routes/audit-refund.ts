@@ -7,6 +7,7 @@
 import type { AuditMetadataKv, RefundRequestBody, RefundResponseApproved, RefundResponseRejected } from "@/api/types/audit";
 import { KV_KEYS } from "@/api/lib/kv-keys";
 import { emitAeEvent, type AnalyticsEngineDataset } from "@/api/lib/ae-events";
+import { buildRefundMessage, verifyEip191 } from "@/api/lib/eip191";
 
 export interface AuditRefundEnv {
   AUDIT_METADATA_KV: KVNamespace;
@@ -15,18 +16,6 @@ export interface AuditRefundEnv {
 }
 
 const REFUND_DELAY_MAX_DAYS = 30;
-
-/**
- * Vérification signature EIP-191 du wallet.
- * V1 : implémentation simplifiée — convention message verbatim
- *   `"DevRefs refund request for audit {audit_id} at {timestamp}"`
- * Vérification réelle EIP-191 nécessite viem.verifyMessage. En V1 on accepte la signature
- * comme preuve de possession du wallet (validation manuelle Thomas avant settle).
- */
-function isValidSignatureFormat(sig: string): boolean {
-  // EIP-191 signature = 0x-prefixed hex 132 chars (65 bytes)
-  return typeof sig === "string" && /^0x[a-fA-F0-9]{130}$/.test(sig);
-}
 
 export async function handleAuditRefund(request: Request, env: AuditRefundEnv): Promise<Response> {
   if (request.method !== "POST") {
@@ -46,18 +35,24 @@ export async function handleAuditRefund(request: Request, env: AuditRefundEnv): 
     });
   }
 
-  if (!body.audit_id || !body.wallet_hash || !body.evidence || !body.signature) {
+  if (!body.audit_id || !body.wallet_hash || !body.evidence || !body.signature || !body.timestamp) {
     return new Response(
-      JSON.stringify({ error: "missing_fields", required: ["audit_id", "wallet_hash", "evidence", "signature"] }),
+      JSON.stringify({
+        error: "missing_fields",
+        required: ["audit_id", "wallet_hash", "evidence", "signature", "timestamp"],
+      }),
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 
-  if (!isValidSignatureFormat(body.signature)) {
-    return new Response(JSON.stringify({ error: "INVALID_SIGNATURE_FORMAT" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+  // EIP-191 strict via viem ecrecover — message canonique DevRefs.
+  const message = buildRefundMessage(body.audit_id, body.timestamp);
+  const ver = await verifyEip191(message, body.signature, body.wallet_hash);
+  if (!ver.ok) {
+    return new Response(
+      JSON.stringify({ error: "INVALID_SIGNATURE", reason: ver.error }),
+      { status: 401, headers: { "Content-Type": "application/json" } },
+    );
   }
 
   emitAeEvent(env.DEVREFS_AE, "audit_refund_requested", {

@@ -11,7 +11,7 @@
   "packageManager": "pnpm@9.12.0",
   "scripts": {
     "dev": "wrangler dev",
-    "build": "esbuild src/api/index.ts --bundle --format=esm --target=es2022 --platform=neutral --outfile=dist/worker.js --external:cloudflare:* --minify",
+    "build": "esbuild src/api/index.ts --bundle --format=esm --target=es2022 --platform=neutral --outfile=dist/worker.js --external:cloudflare:* --external:node:* --external:ws --external:stream --external:events --external:http --external:https --external:net --external:tls --external:url --external:zlib --external:crypto --external:buffer --external:util --external:fs --external:path --external:os --external:child_process --external:async_hooks --external:perf_hooks --conditions=workerd,worker,browser --minify",
     "lint": "eslint src --ext .ts --max-warnings 50",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"**/*.{ts,json,md,yml}\"",
@@ -23,6 +23,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:screenshots:update": "playwright test --update-snapshots",
+    "test:visual": "playwright test --config playwright.visual.config.ts",
+    "test:a11y": "playwright test --config playwright.a11y.config.ts",
     "deploy:preview": "wrangler deploy --env preview",
     "deploy:prod": "wrangler deploy --env production",
     "kv:create:all": "wrangler kv:namespace create PRICES_KV && wrangler kv:namespace create SDK_KV && wrangler kv:namespace create PACK_KV && wrangler kv:namespace create AUDIT_METADATA_KV && wrangler kv:namespace create JWT_KV && wrangler kv:namespace create CRON_STATE_KV",
@@ -36,7 +38,11 @@
       "prettier --write"
     ]
   },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
   "devDependencies": {
+    "@axe-core/playwright": "^4.9.0",
     "@cloudflare/workers-types": "^4.20260501.0",
     "@playwright/test": "^1.45.0",
     "@types/node": "^20.14.0",

@@ -9,6 +9,17 @@ import { handleAuditRefund, type AuditRefundEnv } from "@/api/routes/audit-refun
 import { handlePackStatus, type PackStatusEnv } from "@/api/routes/pack-status";
 import { handlePackQuota, type PackQuotaRouteEnv } from "@/api/routes/pack-quota";
 import { handleLlmsTxt } from "@/api/routes/llms-txt";
+import { handleSponsorTopupInit, type SponsorTopupInitEnv } from "@/api/routes/sponsor-topup-init";
+import {
+  handleSponsorTopupConfirm,
+  type SponsorTopupConfirmEnv,
+} from "@/api/routes/sponsor-topup-confirm";
+import { handleJwtIssue, type JwtIssueEnv } from "@/api/routes/jwt-issue";
+import { handleStripeWebhook, type StripeWebhookEnv } from "@/api/routes/webhooks/stripe";
+import { handleCoinbaseWebhook, type CoinbaseWebhookEnv } from "@/api/routes/webhooks/coinbase";
+import { handleAuditSavings, type AuditSavingsEnv } from "@/api/routes/audit-savings";
+import { handleTrack, type TrackEnv } from "@/api/routes/track";
+import { emitCrawlEvent } from "@/api/middleware/ua-detection";
 import { dispatchCron, type CronEnv } from "@/cron/index";
 import type { AnalyticsEngineDataset } from "@/api/lib/ae-events";
 
@@ -18,7 +29,14 @@ export interface DevRefsEnv
     AgentAuditEnv,
     AuditRefundEnv,
     PackStatusEnv,
-    PackQuotaRouteEnv {
+    PackQuotaRouteEnv,
+    SponsorTopupInitEnv,
+    SponsorTopupConfirmEnv,
+    JwtIssueEnv,
+    StripeWebhookEnv,
+    CoinbaseWebhookEnv,
+    AuditSavingsEnv,
+    TrackEnv {
   PRICES_KV: KVNamespace;
   SDK_KV: KVNamespace;
   PACK_KV: KVNamespace;
@@ -74,6 +92,7 @@ export default {
     try {
       // Public manifest
       if (path === "/llms.txt" && request.method === "GET") {
+        emitCrawlEvent(env.DEVREFS_AE, "llms_txt", request.headers.get("User-Agent"));
         return withCors(handleLlmsTxt());
       }
       // Health
@@ -111,6 +130,33 @@ export default {
       }
       if (path === "/api/pack/quota" && request.method === "GET") {
         return withCors(await handlePackQuota(request, env));
+      }
+
+      // 4e — Sponsor Stripe top-up + JWT
+      if (path === "/api/sponsor/topup-init" && request.method === "POST") {
+        return withCors(await handleSponsorTopupInit(request, env));
+      }
+      if (path === "/api/sponsor/topup-confirm" && request.method === "GET") {
+        return withCors(await handleSponsorTopupConfirm(request, env));
+      }
+      if (path === "/api/jwt/issue" && request.method === "POST") {
+        return withCors(await handleJwtIssue(request, env));
+      }
+
+      // 4e — Webhooks (signature validée, pas de CORS write strict — Origin: *)
+      if (path === "/api/webhooks/stripe" && request.method === "POST") {
+        return withCors(await handleStripeWebhook(request, env));
+      }
+      if (path === "/api/webhooks/coinbase" && request.method === "POST") {
+        return withCors(await handleCoinbaseWebhook(request, env));
+      }
+
+      // 4e — Audit savings declaratif + tracking landing
+      if (path === "/api/audit/savings" && request.method === "POST") {
+        return withCors(await handleAuditSavings(request, env));
+      }
+      if (path === "/api/track" && request.method === "POST") {
+        return withCors(await handleTrack(request, env));
       }
 
       return withCors(jsonError(404, "not_found", `Route ${request.method} ${path} not found`));
