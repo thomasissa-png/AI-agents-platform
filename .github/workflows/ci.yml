@@ -130,7 +130,7 @@ jobs:
   # ─────────────────────────────────────────────────────────
   deploy-preview:
     name: Deploy preview (Cloudflare)
-    needs: [lint-test, e2e, build]
+    needs: [lint-test, build]
     if: startsWith(github.ref, 'refs/heads/claude/')
     runs-on: ubuntu-latest
     timeout-minutes: 5
