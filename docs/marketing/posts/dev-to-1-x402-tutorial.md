@@ -110,7 +110,7 @@ pnpm install
 claude mcp add devrefs-x402 \
   --command pnpm \
   --args "--dir,/absolute/path/to/x402/typescript/examples/clients/mcp,dev" \
-  --env "EVM_PRIVATE_KEY=0x...,RESOURCE_SERVER_URL=https://devrefs-api-preview.thomas-issa.workers.dev"
+  --env "EVM_PRIVATE_KEY=0x...,RESOURCE_SERVER_URL=https://api.devrefs.dev"
 ```
 
 Top-up your wallet with $10 USDC on Base mainnet (Pack Standard = 10,000 calls at $0.001 each). Coinbase Onramp handles the card → USDC flow in about 5 minutes if you don't already have USDC.
@@ -119,7 +119,7 @@ Top-up your wallet with $10 USDC on Base mainnet (Pack Standard = 10,000 calls a
 
 ```bash
 # First call — 402 response with roi_summary
-curl -i https://devrefs-api-preview.thomas-issa.workers.dev/api/llm-prices?model=claude-opus-4-7
+curl -i https://api.devrefs.dev/api/llm-prices?model=claude-opus-4-7
 
 # After the MCP handles payment, you get:
 # HTTP/2 200
@@ -176,7 +176,7 @@ If your agent calls any model more than once a day before cost-sensitive decisio
 Try it:
 
 ```bash
-curl https://preview.devrefs-frontend.pages.dev/api/llm-prices?model=claude-opus-4-7
+curl https://devrefs.dev/api/llm-prices?model=claude-opus-4-7
 ```
 
 Source: [github.com/coinbase/x402](https://github.com/coinbase/x402) — the x402 client library DevRefs uses for payment handling.

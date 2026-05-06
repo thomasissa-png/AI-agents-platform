@@ -91,7 +91,7 @@ The `breaking_since` field is what eliminates the 4-retry loop. Your agent knows
 
 ```bash
 # Free preview — no payment required for first call
-curl https://devrefs-api-preview.thomas-issa.workers.dev/api/sdk-status?pkg=ai
+curl https://api.devrefs.dev/api/sdk-status?pkg=ai
 ```
 
 Response:
@@ -150,7 +150,7 @@ Querying for a package not in the index returns a structured 404 with `{ "error"
 Try a free preview:
 
 ```bash
-curl https://devrefs-api-preview.thomas-issa.workers.dev/api/sdk-status?pkg=mastra
+curl https://api.devrefs.dev/api/sdk-status?pkg=mastra
 ```
 
 The endpoint returns the current state. If `breaking_since` is populated, your agent knows to check the migration notes before generating code.

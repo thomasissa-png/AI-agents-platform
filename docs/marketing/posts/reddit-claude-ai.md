@@ -55,9 +55,9 @@ One $10 USDC top-up = 10,000 calls. At current usage, that covers months of pre-
 
 This is my weekend project. The Worker code, KV schema, HMAC signing, and x402 integration are on GitHub. It's working in preview but it's not production-hardened — no SLA, no 99.9% uptime guarantee. Take what's useful, fork it, poke at it.
 
-Live preview endpoint: `https://devrefs-api-preview.thomas-issa.workers.dev`
+Live preview endpoint: `https://api.devrefs.dev`
 
-Frontend: `https://preview.devrefs-frontend.pages.dev`
+Frontend: `https://devrefs.dev`
 
 ---
 

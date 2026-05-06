@@ -116,6 +116,11 @@ id = "66ce89294a5a4d5f8b6ad6b55bbaec55"
 
 [env.production]
 name = "devrefs-api"
+routes = [
+  { pattern = "api.devrefs.dev/*", zone_name = "devrefs.dev" },
+  { pattern = "devrefs.dev/api/*", zone_name = "devrefs.dev" },
+  { pattern = "devrefs.dev/llms.txt", zone_name = "devrefs.dev" },
+]
 vars = { PUBLIC_ENV = "production", DEVREFS_VERSION = "0.1.0", INDEXNOW_HOST = "devrefs.dev" }
 
 [[env.production.kv_namespaces]]
