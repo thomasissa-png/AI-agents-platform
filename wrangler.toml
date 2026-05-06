@@ -50,9 +50,9 @@ id = "66ce89294a5a4d5f8b6ad6b55bbaec55"
 # Analytics Engine — events DevRefs (zéro PII, cf. tracking-plan v2)
 # ─────────────────────────────────────────────────────────────
 
-[[analytics_engine_datasets]]
-binding = "DEVREFS_AE"
-dataset = "devrefs_events"
+# [[analytics_engine_datasets]] — désactivé temporairement (token API CF nécessite scope Account Analytics:Read)
+# binding = "DEVREFS_AE"
+# dataset = "devrefs_events"
 
 # ─────────────────────────────────────────────────────────────
 # Vars publiques non-secrètes
@@ -110,9 +110,9 @@ id = "7a09074247bf488a828bb06a7d4ec3ee"
 binding = "CRON_STATE_KV"
 id = "66ce89294a5a4d5f8b6ad6b55bbaec55"
 
-[[env.preview.analytics_engine_datasets]]
-binding = "DEVREFS_AE"
-dataset = "devrefs_events_preview"
+# [[env.preview.analytics_engine_datasets]] — désactivé temporairement (token CF scope manquant)
+# binding = "DEVREFS_AE"
+# dataset = "devrefs_events_preview"
 
 [env.production]
 name = "devrefs-api"
@@ -142,9 +142,9 @@ id = "7a09074247bf488a828bb06a7d4ec3ee"
 binding = "CRON_STATE_KV"
 id = "66ce89294a5a4d5f8b6ad6b55bbaec55"
 
-[[env.production.analytics_engine_datasets]]
-binding = "DEVREFS_AE"
-dataset = "devrefs_events"
+# [[env.production.analytics_engine_datasets]] — désactivé temporairement (token CF scope manquant)
+# binding = "DEVREFS_AE"
+# dataset = "devrefs_events"
 
 # ─────────────────────────────────────────────────────────────
 # Build (esbuild bundle Worker) — pas de Next.js (HTML statique + Workers TS)
