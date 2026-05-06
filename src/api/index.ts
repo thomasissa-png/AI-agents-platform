@@ -9,6 +9,8 @@ import { handleAuditRefund, type AuditRefundEnv } from "@/api/routes/audit-refun
 import { handlePackStatus, type PackStatusEnv } from "@/api/routes/pack-status";
 import { handlePackQuota, type PackQuotaRouteEnv } from "@/api/routes/pack-quota";
 import { handleLlmsTxt } from "@/api/routes/llms-txt";
+import { dispatchCron, type CronEnv } from "@/cron/index";
+import type { AnalyticsEngineDataset } from "@/api/lib/ae-events";
 
 export interface DevRefsEnv
   extends LlmPricesEnv,
@@ -31,6 +33,8 @@ export interface DevRefsEnv
   STRIPE_WEBHOOK_SECRET?: string;
   INDEXNOW_API_KEY?: string;
   JWT_SECRET?: string;
+  // analytics
+  DEVREFS_AE?: AnalyticsEngineDataset;
   // vars
   PUBLIC_ENV?: string;
   DEVREFS_VERSION?: string;
@@ -113,6 +117,16 @@ export default {
     } catch (e) {
       const msg = e instanceof Error ? e.message : "unknown_error";
       return withCors(jsonError(500, "internal_error", msg));
+    }
+  },
+
+  async scheduled(controller: ScheduledController, env: DevRefsEnv): Promise<void> {
+    const cronExpr = controller.cron ?? "";
+    try {
+      await dispatchCron(cronExpr, env as unknown as CronEnv, new Date(controller.scheduledTime));
+    } catch (e) {
+      // Best-effort logging — pas de crash propagé (CF retry sinon)
+      console.error("scheduled_dispatch_failed", cronExpr, e instanceof Error ? e.message : e);
     }
   },
 } satisfies ExportedHandler<DevRefsEnv>;

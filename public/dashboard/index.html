@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DevRefs — Sponsor dashboard</title>
+<meta name="robots" content="noindex,nofollow" />
+<link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+<link rel="manifest" href="/favicons/manifest.webmanifest" />
+<meta name="theme-color" content="#0052ff" />
+<link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+<header class="site-header" role="banner">
+  <div class="container">
+    <a class="brand" href="/">DevRefs</a>
+    <nav aria-label="Primary">
+      <a href="/llm-prices/">LLM prices</a>
+      <a href="/legal/cgv/">Terms</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section>
+  <div class="container">
+    <h1>Sponsor dashboard</h1>
+    <p class="text-muted">Read-only. Auth via JWT 24h (link from confirmation email).</p>
+
+    <div id="auth-error" class="alert danger" hidden>
+      <strong>Authentication required.</strong> Use the link from your top-up confirmation email. JWT links expire after 24h.
+    </div>
+
+    <div id="dashboard" hidden>
+      <div class="cards-grid cols-2">
+        <article class="card" aria-labelledby="zone-wallet">
+          <h3 id="zone-wallet">Zone 1 — Wallet</h3>
+          <p>Balance USDC Base : <strong id="wallet-balance" class="text-mono">—</strong></p>
+          <p><small>Live balance verification on <a href="https://basescan.org" target="_blank" rel="noopener">Basescan</a> (V2 — webhook Coinbase auto-update).</small></p>
+        </article>
+
+        <article class="card" aria-labelledby="zone-quota">
+          <h3 id="zone-quota">Zone 2 — Pack quota</h3>
+          <p>Pack type : <span id="quota-pack-type" class="text-mono">—</span></p>
+          <p><span id="quota-remaining" class="text-mono">—</span> / <span id="quota-total" class="text-mono">—</span> calls remaining</p>
+          <div class="quota-bar" id="quota-bar"><div class="fill" id="quota-fill" style="width: 0%"></div></div>
+          <p><small>Expires : <span id="quota-expires" class="text-mono">—</span></small></p>
+        </article>
+
+        <article class="card" aria-labelledby="zone-audits">
+          <h3 id="zone-audits">Zone 3 — Recent audits</h3>
+          <table>
+            <thead><tr><th>audit_id</th><th class="num">savings_pct</th><th>date</th><th>refund</th></tr></thead>
+            <tbody id="audits-body"><tr><td colspan="4" class="text-muted">No audits yet.</td></tr></tbody>
+          </table>
+        </article>
+
+        <article class="card" aria-labelledby="zone-alerts">
+          <h3 id="zone-alerts">Zone 4 — Alerts</h3>
+          <ul id="alerts-list"><li class="text-muted">No alerts.</li></ul>
+        </article>
+      </div>
+
+      <p style="margin-top: var(--s-4);">
+        <button class="btn btn-secondary" id="refresh-btn" data-track="dashboard_refresh">Refresh</button>
+        <a class="btn" id="topup-btn" href="/paywall/" hidden data-track="dashboard_topup">Top-up wallet</a>
+        <a class="btn btn-secondary" id="audit-btn" href="/openapi.json#/agent-audit" hidden data-track="dashboard_audit">Run new audit</a>
+      </p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer" role="contentinfo">
+  <div class="container"><div class="links"><a href="/legal/cgv/">Terms</a><a href="/legal/privacy/">Privacy</a></div></div>
+</footer>
+
+<script>
+(function () {
+  var qs = new URLSearchParams(location.search);
+  var token = qs.get("token");
+  var dash = document.getElementById("dashboard");
+  var err = document.getElementById("auth-error");
+  if (!token) { err.hidden = false; return; }
+  dash.hidden = false;
+
+  function load() {
+    fetch("/api/pack/quota?token=" + encodeURIComponent(token), { headers: { Accept: "application/json" } })
+      .then(function (r) { if (r.status === 401) { dash.hidden = true; err.hidden = false; throw new Error("auth"); } return r.json(); })
+      .then(function (data) {
+        var d = data.data || data;
+        document.getElementById("quota-pack-type").textContent = d.pack_type || "—";
+        document.getElementById("quota-remaining").textContent = (d.remaining ?? "—") + "";
+        document.getElementById("quota-total").textContent = (d.quota_total ?? "—") + "";
+        document.getElementById("quota-expires").textContent = d.expires_at || "—";
+        var pct = d.quota_total > 0 ? Math.round((d.remaining / d.quota_total) * 100) : 0;
+        var bar = document.getElementById("quota-bar");
+        var fill = document.getElementById("quota-fill");
+        fill.style.width = pct + "%";
+        bar.classList.remove("warn", "danger");
+        if (pct < 20) bar.classList.add("danger");
+        else if (pct < 50) bar.classList.add("warn");
+        if (pct < 20) document.getElementById("topup-btn").hidden = false;
+      })
+      .catch(function () {});
+  }
+  load();
+  document.getElementById("refresh-btn").addEventListener("click", load);
+})();
+</script>
+<script src="/scripts/tracking.js" defer></script>
+</body>
+</html>

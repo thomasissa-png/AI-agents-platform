@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Politique de confidentialité — DevRefs</title>
+<meta name="description" content="DevRefs Privacy — architecture zéro-PII, wallet pseudonyme, input audit non persisté." />
+<link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+<link rel="manifest" href="/favicons/manifest.webmanifest" />
+<link rel="stylesheet" href="/styles/main.css" />
+</head><body>
+<header class="site-header"><div class="container"><a class="brand" href="/">DevRefs</a><nav><a href="/legal/cgv/">Terms</a><a href="/legal/mentions-legales/">Mentions</a></nav></div></header>
+<main id="main"><section><div class="container" style="max-width: 820px;">
+<h1>Politique de confidentialité</h1>
+<p class="text-muted">Dernière mise à jour : 2026-05-05.</p>
+
+<h2>1. Architecture zéro-PII</h2>
+<p>DevRefs est conçu selon un principe de minimisation des données personnelles. Pour les paiements x402, l'Acheteur est identifié par un <code>wallet_hash</code> (SHA256 de l'adresse wallet) — aucune donnée nominative n'est collectée.</p>
+
+<h2>2. Données collectées</h2>
+<ul>
+<li><strong>Paiements x402</strong> : <code>wallet_hash</code> (pseudonyme), tx_hash blockchain, montant, timestamp.</li>
+<li><strong>Paiements Stripe (top-up sponsor)</strong> : Stripe collecte les données de paiement en tant que responsable de traitement distinct (PCI-DSS niveau 1). DevRefs ne reçoit qu'un <code>customer_id</code> pseudonyme + email (si fourni pour preuve légale L.221-28).</li>
+<li><strong>Logs HTTP techniques</strong> : path, status, latency, ua_bucket (catégoriel, max 10 valeurs). Conservés 30 jours.</li>
+<li><strong>Analytics Engine</strong> : events agrégés (cf. <code>tracking-plan.md</code>), aucune string d'email/IP brute/UA complet.</li>
+</ul>
+
+<h2>3. Input audit (non-persistance)</h2>
+<p>L'input soumis à <code>/api/agent-audit</code> est traité exclusivement en mémoire Worker (scope de la requête HTTP) et <strong>jamais persisté</strong> en base de données ou logs. Il est détruit à la fin de la requête.</p>
+
+<h2>4. Sous-traitants</h2>
+<ul>
+<li>Stripe Payments Europe Ltd (Irlande) — paiement carte.</li>
+<li>Coinbase Inc. (USA) — facilitator paiement x402.</li>
+<li>Cloudflare Inc. (USA) — hébergement Workers, KV, Analytics Engine.</li>
+</ul>
+<p>Transferts hors UE encadrés par les Clauses Contractuelles Types européennes (SCC).</p>
+
+<h2>5. Vos droits (RGPD)</h2>
+<p>Droit d'accès, rectification, effacement, portabilité, limitation, opposition. Demandes : <a href="mailto:legal@devrefs.dev">legal@devrefs.dev</a>. Recours possible auprès de la CNIL (<a href="https://www.cnil.fr">cnil.fr</a>).</p>
+
+<h2>6. Cookies</h2>
+<p>DevRefs n'utilise <strong>aucun cookie de tracking tiers</strong> (pas de Google Analytics, pas de Facebook Pixel, pas de PostHog). Aucun cookie n'est déposé sans consentement explicite. Le site fonctionne entièrement sans cookie.</p>
+
+<h2>7. Durées de conservation</h2>
+<ul>
+<li>Logs HTTP : 30 jours.</li>
+<li>Métadonnées audit (audit_id, savings_pct, wallet_hash, date) : 13 mois (garantie ROI + comptabilité).</li>
+<li>Quota Pack KV : 12 mois (durée de validité Pack).</li>
+</ul>
+
+<h2>8. Contact DPO</h2>
+<p><a href="mailto:legal@devrefs.dev">legal@devrefs.dev</a></p>
+</div></section></main>
+<footer class="site-footer"><div class="container"><div class="links"><a href="/">Home</a><a href="/legal/cgv/">Terms</a></div></div></footer>
+<script src="/scripts/tracking.js" defer></script>
+</body></html>

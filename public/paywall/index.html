@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DevRefs — Top-up your agent's wallet</title>
+<meta name="description" content="Top-up agent wallet — Pack Standard $10 USDC. 10 000 calls. Renonciation expresse au droit de rétractation L.221-28 13°." />
+<meta name="robots" content="noindex,follow" />
+<link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+<link rel="manifest" href="/favicons/manifest.webmanifest" />
+<meta name="theme-color" content="#0052ff" />
+<link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" role="banner">
+  <div class="container">
+    <a class="brand" href="/">DevRefs</a>
+    <nav aria-label="Primary"><a href="/legal/cgv/">Terms</a></nav>
+  </div>
+</header>
+
+<main id="main">
+<section>
+  <div class="container" style="max-width: 720px;">
+    <h1>Top-up your agent's wallet</h1>
+    <p class="text-muted">Pack Standard — $10 USDC — 10 000 calls (validity: 12 months).</p>
+
+    <div class="alert">
+      <p><strong>Service numérique à exécution immédiate.</strong> En tant que consommateur, votre droit de rétractation de 14 jours (art. L.221-18 Code conso) ne s'applique pas si vous demandez l'exécution immédiate du service et y renoncez expressément (art. L.221-28 13°).</p>
+    </div>
+
+    <form id="paywall-form" action="/api/sponsor/topup-init" method="POST" novalidate>
+
+      <fieldset style="border: 1px solid var(--color-border); padding: var(--s-3); border-radius: var(--r-md); margin-bottom: var(--s-4);">
+        <legend style="font-family: var(--font-mono); padding: 0 var(--s-2);">Renonciation expresse — 3 cases obligatoires</legend>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="cb-a" name="checkbox_a" required aria-describedby="cb-a-desc" />
+          <label for="cb-a" id="cb-a-desc">Je comprends et j'accepte que l'exécution immédiate du service entraîne la perte de mon droit de rétractation de 14 jours conformément à l'article L.221-28 13° du Code de la consommation.</label>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="cb-b" name="checkbox_b" required aria-describedby="cb-b-desc" />
+          <label for="cb-b" id="cb-b-desc">Je consens expressément à l'exécution immédiate du service numérique avant l'expiration du délai de rétractation de 14 jours.</label>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="cb-c" name="checkbox_c" required aria-describedby="cb-c-desc" />
+          <label for="cb-c" id="cb-c-desc">Je souhaite recevoir une confirmation écrite de cette renonciation à l'adresse email ci-dessous.</label>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="email">Email (confirmation écrite)</label>
+        <input type="email" id="email" name="email" required autocomplete="email" placeholder="email@example.com" />
+      </div>
+
+      <div class="field">
+        <label for="wallet_hash">Wallet hash agent (optionnel — peut être renseigné par l'agent au paiement)</label>
+        <input type="text" id="wallet_hash" name="wallet_hash" autocomplete="off" pattern="[a-fA-F0-9]{8,64}" placeholder="0x..." />
+      </div>
+
+      <p>
+        <button type="submit" id="pay-btn" class="btn" disabled aria-disabled="true" data-track="paywall_pay_clicked">Pay $10 USDC via Stripe</button>
+      </p>
+      <p><small>Le bouton se débloque dès que les 3 cases sont cochées et l'email renseigné. Validation côté serveur identique : aucune transaction sans les 3 consentements.</small></p>
+    </form>
+
+    <hr class="divider" />
+
+    <p><small>Source légale : <a href="/legal/cgv/#art-4quater">CGV Art. 4quater.2</a> — DevRefs respecte la conformité L.221-28 13° Code de la consommation.</small></p>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer" role="contentinfo">
+  <div class="container">
+    <div class="links">
+      <a href="/legal/cgv/">Terms</a>
+      <a href="/legal/privacy/">Privacy</a>
+      <a href="/legal/mentions-legales/">Mentions légales</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var form = document.getElementById("paywall-form");
+  var btn = document.getElementById("pay-btn");
+  var inputs = ["cb-a", "cb-b", "cb-c", "email"].map(function (id) { return document.getElementById(id); });
+  function check() {
+    var a = document.getElementById("cb-a").checked;
+    var b = document.getElementById("cb-b").checked;
+    var c = document.getElementById("cb-c").checked;
+    var email = document.getElementById("email").value.trim();
+    var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    var ok = a && b && c && emailOk;
+    btn.disabled = !ok;
+    btn.setAttribute("aria-disabled", String(!ok));
+  }
+  inputs.forEach(function (el) { if (el) { el.addEventListener("change", check); el.addEventListener("input", check); } });
+  check();
+})();
+</script>
+<script src="/scripts/tracking.js" defer></script>
+</body>
+</html>

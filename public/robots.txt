@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /llms.txt
+Allow: /openapi.json
+Allow: /about/
+Allow: /legal/
+Allow: /llm-prices/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /paywall/
+
+Sitemap: https://devrefs.dev/sitemap.xml

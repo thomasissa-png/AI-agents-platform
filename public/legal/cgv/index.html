@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Conditions générales — DevRefs</title>
+<meta name="description" content="CGV/CGU DevRefs v2. Service B2A x402, garantie ROI 50 %, renonciation L.221-28 13°." />
+<link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+<link rel="manifest" href="/favicons/manifest.webmanifest" />
+<link rel="stylesheet" href="/styles/main.css" />
+</head><body>
+<header class="site-header"><div class="container"><a class="brand" href="/">DevRefs</a><nav><a href="/">Home</a><a href="/legal/privacy/">Privacy</a><a href="/legal/mentions-legales/">Mentions</a></nav></div></header>
+<main id="main"><section><div class="container" style="max-width: 820px;">
+
+<h1>Conditions Générales de Vente et d'Utilisation — DevRefs v2</h1>
+<p class="text-muted">Version 2.0 · Date d'effet : à compléter à la publication. Dernière mise à jour : 2026-05-05.</p>
+
+<nav aria-label="Sommaire" style="border: 1px solid var(--color-border); padding: var(--s-3); border-radius: var(--r-md); margin-bottom: var(--s-5);">
+<strong>Sommaire</strong>
+<ul>
+  <li><a href="#art-1">Art. 1 — Objet et définitions</a></li>
+  <li><a href="#art-2">Art. 2 — Acceptation</a></li>
+  <li><a href="#art-3">Art. 3 — Description du Service</a></li>
+  <li><a href="#art-4">Art. 4 — Tarifs et paiement</a></li>
+  <li><a href="#art-4bis">Art. 4bis — Packs pré-payés</a></li>
+  <li><a href="#art-4ter">Art. 4ter — Garantie ROI 50 %</a></li>
+  <li><a href="#art-4quater">Art. 4quater — Droit de rétractation B2C</a></li>
+  <li><a href="#art-5">Art. 5 — SLA</a></li>
+  <li><a href="#art-6">Art. 6 — Propriété intellectuelle</a></li>
+  <li><a href="#art-7">Art. 7 — Anti-fraude</a></li>
+  <li><a href="#art-8">Art. 8 — Responsabilité</a></li>
+  <li><a href="#art-9">Art. 9 — Données personnelles</a></li>
+  <li><a href="#art-10">Art. 10 — Suspension et résiliation</a></li>
+  <li><a href="#art-11">Art. 11 — Droit applicable</a></li>
+</ul>
+</nav>
+
+<section id="art-1"><h2>Article 1 — Objet et définitions</h2>
+<p>Les présentes CGV/CGU régissent l'accès et l'utilisation du Service DevRefs, fourniture via 3 endpoints HTTP API de données techniques (LLM pricing, SDK status, Audit agent IA). Définitions : Acheteur, Agent IA, Opérateur, Sponsor, x402, Pack, Audit, savings_pct, wallet_hash, audit_id, Payload (cf. document source <code>cgu-draft.md</code>).</p>
+</section>
+
+<section id="art-2"><h2>Article 2 — Acceptation</h2>
+<p>L'envoi d'une requête signée x402 vaut acceptation. Pour les Sponsors, le clic Stripe après validation des CGV vaut acceptation. Capacité juridique requise (≥ 18 ans). Modifications : effet 7 jours après publication.</p>
+</section>
+
+<section id="art-3"><h2>Article 3 — Description du Service</h2>
+<h3>3.1 Endpoints</h3>
+<ul>
+  <li><code>/api/llm-prices</code> — GET, x402 $0.001/call ou Pack</li>
+  <li><code>/api/sdk-status</code> — GET, x402 $0.001/call ou Pack</li>
+  <li><code>/api/agent-audit</code> — POST, x402 $9.99 ou Pack Pro Audit</li>
+</ul>
+<h3>3.2 Format payloads</h3>
+<p>JSON conforme à un schéma Schema.org <code>Dataset</code>, champ <code>dateModified</code> ISO 8601, <code>fetched_at</code>, <code>_signature</code> HMAC, <code>_audit_id</code> UUID (audit). Taille max payload data 50 Ko, input audit 100 Ko.</p>
+<h3>3.4 Non-persistance input audit</h3>
+<p>L'input <code>/api/agent-audit</code> est traité exclusivement en mémoire Worker (scope requête) et <strong>jamais persisté</strong> en KV/D1/R2/AE/logs. L'Acheteur garantit l'absence de PII de tiers dans ses inputs.</p>
+</section>
+
+<section id="art-4"><h2>Article 4 — Tarifs et paiement</h2>
+<table>
+<thead><tr><th>Produit</th><th class="num">Prix</th><th>Mode</th></tr></thead>
+<tbody>
+<tr><td>Call unitaire</td><td class="num">$0.001 USDC</td><td>x402 one-shot</td></tr>
+<tr><td>Pack Discovery (5 000)</td><td class="num">$5.00 USDC</td><td>x402 pack</td></tr>
+<tr><td>Pack Standard (10 000)</td><td class="num">$10.00 USDC</td><td>x402 pack — recommandé</td></tr>
+<tr><td>Pack Pro (60 000)</td><td class="num">$50.00 USDC</td><td>x402 pack</td></tr>
+<tr><td>Audit one-shot</td><td class="num">$9.99 USDC</td><td>x402 one-shot</td></tr>
+<tr><td>Pack Pro Audit (6 audits)</td><td class="num">$49.00 USDC</td><td>x402 pack</td></tr>
+</tbody></table>
+<p>Hors taxes. <strong>TVA non applicable, art. 293 B du CGI.</strong> Paiements x402 irrévocables une fois settlement Coinbase confirmé. Stripe = service auxiliaire (top-up sponsor).</p>
+</section>
+
+<section id="art-4bis"><h2>Article 4bis — Packs pré-payés</h2>
+<p>Validité <strong>12 mois</strong> à compter de la date d'achat. Quota non consommé à expiration définitivement perdu. Notification J-7 si email sponsor renseigné. Non-remboursable une fois ≥ 1 call consommé (sauf garantie ROI Audit 4ter). Non transférable V1.</p>
+</section>
+
+<section id="art-4ter"><h2>Article 4ter — Garantie ROI 50 % (savings_pct ≥ 15 % à 30 jours)</h2>
+<p>Si <code>savings_pct</code> mesuré &lt; 15 % après 30 jours, remboursement <strong>50 % du prix Audit</strong> en USDC Base.</p>
+<h3>Conditions cumulatives</h3>
+<ol>
+<li>Volume ≥ 5 000 000 input tokens/mois sur la période de 30 jours.</li>
+<li>≥ 80 % des recommandations appliquées (preuve incombe à l'Acheteur).</li>
+<li>Modèle LLM principal non remplacé pendant les 30 jours.</li>
+<li>Demande dans les 30 jours suivant la date de l'Audit.</li>
+</ol>
+<p>Procédure : <code>POST /api/audit/refund</code> avec <code>audit_id</code>, signature wallet, preuve savings, déclaration patches ≥ 80 %. Vérification 7 jours ouvrés. Remboursement 7 jours ouvrés supplémentaires.</p>
+</section>
+
+<section id="art-4quater"><h2>Article 4quater — Droit de rétractation B2C et renonciation expresse</h2>
+<h3>4quater.1 Champ d'application</h3>
+<p>Consommateurs au sens art. L.212-2 Code conso. Hors champ : Agents IA pour Opérateur professionnel + personnes morales (art. L.221-3).</p>
+<h3>4quater.2 Renonciation expresse (L.221-28 13°)</h3>
+<p>Conformément à l'art. L.221-28 13° Code conso, l'Acheteur consommateur reconnaît expressément, en cochant la case dédiée AVANT validation, <strong>renoncer à son droit de rétractation de 14 jours</strong> en demandant l'exécution immédiate.</p>
+<p>Matérialisation :</p>
+<ul>
+<li>(a) cochage case dédiée — libellé exact : « Je comprends et j'accepte que l'exécution immédiate du service entraîne la perte de mon droit de rétractation de 14 jours conformément à l'article L.221-28 13° du Code de la consommation. »</li>
+<li>(b) email de confirmation post-achat récapitulant la renonciation et le contenu acheté ;</li>
+<li>(c) conservation de ces éléments par l'Éditeur comme preuve.</li>
+</ul>
+<p>Bouton de paiement désactivé tant que la case (a) n'est pas cochée.</p>
+</section>
+
+<section id="art-5"><h2>Article 5 — SLA v2</h2>
+<p>Disponibilité 99,5 % mensuel. Fraîcheur : LLM &lt; 6h, SDK &lt; 24h. Latence cible p95 &lt; 200 ms (LLM/SDK), &lt; 2 000 ms (Audit). SLA de moyens.</p>
+</section>
+
+<section id="art-6"><h2>Article 6 — Propriété intellectuelle</h2>
+<p>Données factuelles non protégées par droit d'auteur. Format DevRefs + heuristiques + base = œuvre composite + base sui generis. Licence non exclusive limitée à l'usage interne. Interdit : redistribuer, masquer <code>_signature</code>/<code>_audit_id</code>, extraction systématique.</p>
+</section>
+
+<section id="art-7"><h2>Article 7 — Anti-fraude et rate-limiting</h2>
+<p>Watermark HMAC, rate-limit 1 000 req/jour/wallet, 1 audit/jour/wallet, logs 30 jours. Sanctions : blacklist permanente sur fraude refund, redistribution payload, bypass paiement, scraping massif sans paiement.</p>
+</section>
+
+<section id="art-8"><h2>Article 8 — Responsabilité</h2>
+<p>Plafond : $0.001 par call, prix Pack pour défaillance Pack, $9.99 par Audit. Garantie ROI 4ter = seul mécanisme de remboursement contractuel sur Audit. Exclusions : dommages indirects, décisions opérationnelles, inexactitudes sources tierces, force majeure, PII inputs.</p>
+</section>
+
+<section id="art-9"><h2>Article 9 — Données personnelles</h2>
+<p>Architecture zéro-PII. wallet_hash pseudonyme. Stripe responsable de traitement distinct. Input audit non persisté. Sous-traitants : Stripe (IE), Coinbase (USA), Cloudflare (USA). SCC européennes pour transferts hors UE.</p>
+<p>Cf. <a href="/legal/privacy/">Politique de confidentialité</a>.</p>
+</section>
+
+<section id="art-10"><h2>Article 10 — Suspension et résiliation</h2>
+<p>Suspension sans préavis en cas de fraude/non-respect/demande autorités/maintenance. Pas de résiliation anticipée des Packs (sauf garantie ROI 4ter).</p>
+</section>
+
+<section id="art-11"><h2>Article 11 — Droit applicable et juridiction</h2>
+<p>Droit français. B2B : Tribunal de commerce du siège (par défaut Paris). B2C UE : juridiction du domicile consommateur (Bruxelles I bis art. 17-19). Médiation conso (art. L.616-1) — coordonnées à publier. Plateforme ODR : <a href="https://ec.europa.eu/consumers/odr" rel="noopener">ec.europa.eu/consumers/odr</a>.</p>
+</section>
+
+<hr class="divider" />
+<p><small>Source canonique : <code>docs/legal/cgu-draft.md</code> v2. Toute contradiction entre la présente page HTML et le document source est résolue en faveur du document source. Contact : <a href="mailto:legal@devrefs.dev">legal@devrefs.dev</a>.</small></p>
+
+</div></section></main>
+<footer class="site-footer"><div class="container"><div class="links"><a href="/">Home</a><a href="/legal/privacy/">Privacy</a><a href="/legal/mentions-legales/">Mentions</a></div></div></footer>
+<script src="/scripts/tracking.js" defer></script>
+</body></html>

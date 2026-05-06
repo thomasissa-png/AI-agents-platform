@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Data sources — DevRefs</title>
+<meta name="description" content="DevRefs data sources — official LLM pricing pages + npm registry + GitHub releases. Cron 6h / 24h." />
+<link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+<link rel="manifest" href="/favicons/manifest.webmanifest" />
+<link rel="stylesheet" href="/styles/main.css" />
+</head><body>
+<header class="site-header"><div class="container"><a class="brand" href="/">DevRefs</a><nav><a href="/">Home</a><a href="/about/data-schema/">Data schema</a></nav></div></header>
+<main id="main"><section><div class="container">
+<h1>Data sources</h1>
+<p>DevRefs collects data exclusively from public, official sources. No scraping of third-party aggregators or paywalled APIs.</p>
+
+<h2>LLM pricing (cron 6h)</h2>
+<ul>
+  <li>Anthropic — <a href="https://www.anthropic.com/pricing" rel="noopener">anthropic.com/pricing</a> (3 models)</li>
+  <li>OpenAI — <a href="https://openai.com/pricing" rel="noopener">openai.com/pricing</a> (3 models)</li>
+  <li>Google AI — <a href="https://ai.google.dev/pricing" rel="noopener">ai.google.dev/pricing</a> (2 models)</li>
+  <li>Mistral — <a href="https://mistral.ai/pricing" rel="noopener">mistral.ai/pricing</a> (2 models)</li>
+  <li>DeepSeek — <a href="https://www.deepseek.com/pricing" rel="noopener">deepseek.com/pricing</a> (2 models)</li>
+</ul>
+
+<h2>SDK status (cron 24h)</h2>
+<ul>
+  <li>npm registry — <a href="https://registry.npmjs.org" rel="noopener">registry.npmjs.org</a> (~50 packages)</li>
+  <li>GitHub releases — <a href="https://api.github.com" rel="noopener">api.github.com</a> (changelog parsing for breaking changes)</li>
+</ul>
+
+<h2>User-Agent</h2>
+<p>All scraping requests use the identifiable User-Agent: <code>DevRefs-Bot/1.0 (+https://devrefs.dev/bot)</code>. Rate-limited at 1 req/sec on npm.</p>
+
+<h2>Fallback policy</h2>
+<p>If a scraping run fails for a given source, the previous KV value is preserved (never overwritten with null). Fallback values are documented in the source code and updated manually from official release notes when scraping is broken &gt; 3 consecutive runs.</p>
+</div></section></main>
+<footer class="site-footer"><div class="container"><div class="links"><a href="/legal/cgv/">Terms</a></div></div></footer>
+<script src="/scripts/tracking.js" defer></script>
+</body></html>

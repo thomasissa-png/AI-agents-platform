@@ -1,0 +1,336 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "DevRefs API",
+    "version": "0.1.0",
+    "description": "DevRefs — Cost intelligence for AI agents. x402-native pricing, monetization extension `x-x402` documented per endpoint.",
+    "contact": {
+      "name": "DevRefs",
+      "email": "legal@devrefs.dev",
+      "url": "https://devrefs.dev"
+    },
+    "license": {
+      "name": "Proprietary — Non-redistribution",
+      "url": "https://devrefs.dev/legal/cgv/#art-6"
+    }
+  },
+  "servers": [{ "url": "https://devrefs.dev", "description": "Production" }],
+  "paths": {
+    "/api/llm-prices": {
+      "get": {
+        "summary": "Atomic LLM pricing payload",
+        "operationId": "getLlmPrices",
+        "x-x402": {
+          "price_usdc": 0.001,
+          "facilitator": "coinbase",
+          "currency": "USDC",
+          "network": "base"
+        },
+        "parameters": [
+          {
+            "name": "model",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "claude-opus-4-7",
+                "claude-sonnet-4-6",
+                "claude-haiku-4-5",
+                "gpt-5",
+                "gpt-4o",
+                "gpt-4o-mini",
+                "gemini-2-5-pro",
+                "gemini-2-0-flash",
+                "mistral-large-3",
+                "mistral-small-3",
+                "deepseek-r2",
+                "deepseek-v3"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LlmPriceResponse" }
+              }
+            }
+          },
+          "402": {
+            "description": "Payment required (x402)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/X402ErrorBody" }
+              }
+            }
+          },
+          "401": { "description": "Pack exhausted" },
+          "429": { "description": "Rate limited" },
+          "503": { "description": "Facilitator down" }
+        }
+      }
+    },
+    "/api/sdk-status": {
+      "get": {
+        "summary": "SDK latest + breaking_since",
+        "operationId": "getSdkStatus",
+        "x-x402": {
+          "price_usdc": 0.001,
+          "facilitator": "coinbase",
+          "currency": "USDC",
+          "network": "base"
+        },
+        "parameters": [
+          {
+            "name": "pkg",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SdkStatusResponse" }
+              }
+            }
+          },
+          "402": { "description": "Payment required" },
+          "404": { "description": "Package not tracked" }
+        }
+      }
+    },
+    "/api/agent-audit": {
+      "post": {
+        "summary": "Heuristic-based agent audit",
+        "operationId": "postAgentAudit",
+        "x-x402": {
+          "price_usdc": 9.99,
+          "facilitator": "coinbase",
+          "currency": "USDC",
+          "network": "base"
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AuditInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audit delivered",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuditOutput" }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "402": { "description": "Payment required" },
+          "413": { "description": "Payload too large (max 100 KB)" }
+        }
+      }
+    },
+    "/api/audit/refund": {
+      "post": {
+        "summary": "Request 50% refund (CGV Art. 4ter)",
+        "operationId": "postAuditRefund",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefundRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Refund approved or rejected (decision in body)"
+          },
+          "400": { "description": "Ineligible (one of 4 conditions not met)" },
+          "404": { "description": "audit_id not found" },
+          "409": { "description": "Already refunded" }
+        }
+      }
+    },
+    "/api/pack/status": {
+      "get": {
+        "summary": "Get pack quota state",
+        "operationId": "getPackStatus",
+        "parameters": [
+          {
+            "name": "wallet_hash",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Pack state" },
+          "401": { "description": "Missing wallet_hash" },
+          "404": { "description": "No pack on this wallet" }
+        }
+      }
+    },
+    "/api/pack/quota": {
+      "get": {
+        "summary": "Live quota readout (sponsor dashboard)",
+        "operationId": "getPackQuota",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Sponsor JWT 24h"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Quota live" },
+          "401": { "description": "JWT invalid or expired" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "LlmPriceResponse": {
+        "type": "object",
+        "required": ["data", "_signature"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "model": { "type": "string" },
+              "input_per_mtok": { "type": "number" },
+              "output_per_mtok": { "type": "number" },
+              "effective_cost_factor": { "type": "number" },
+              "currency": { "type": "string", "enum": ["USD"] },
+              "date_modified": { "type": "string", "format": "date-time" },
+              "fetched_at": { "type": "string", "format": "date-time" },
+              "same_as": { "type": "string", "format": "uri" },
+              "schema_version": { "type": "string", "const": "1.0" }
+            }
+          },
+          "_signature": {
+            "type": "string",
+            "description": "HMAC-SHA256 anti-redistribution"
+          },
+          "_jsonld_dataset": { "type": "object" }
+        }
+      },
+      "SdkStatusResponse": {
+        "type": "object",
+        "required": ["data", "_signature"],
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "pkg": { "type": "string" },
+              "latest": { "type": "string" },
+              "breaking_since": { "type": ["string", "null"] },
+              "deprecated_versions": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "date_modified": { "type": "string", "format": "date-time" },
+              "fetched_at": { "type": "string", "format": "date-time" },
+              "same_as": { "type": "string", "format": "uri" },
+              "schema_version": { "type": "string", "const": "1.0" }
+            }
+          },
+          "_signature": { "type": "string" }
+        }
+      },
+      "AuditInput": {
+        "type": "object",
+        "required": ["agent_config", "sample_traces"],
+        "properties": {
+          "agent_config": {
+            "type": "object",
+            "properties": {
+              "primary_model": { "type": "string" },
+              "secondary_models": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "model": { "type": "string" },
+                    "share_pct": { "type": "number" }
+                  }
+                }
+              },
+              "monthly_input_tokens": { "type": "number" },
+              "monthly_output_tokens": { "type": "number" }
+            }
+          },
+          "sample_traces": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 50,
+            "items": { "type": "object" }
+          }
+        }
+      },
+      "AuditOutput": {
+        "type": "object",
+        "properties": {
+          "audit_id": { "type": "string", "format": "uuid" },
+          "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "savings_pct": { "type": "number" },
+          "recommendations": { "type": "array", "items": { "type": "object" } },
+          "monthly_cost_current": { "type": "number" },
+          "monthly_cost_optimized": { "type": "number" },
+          "_signature": { "type": "string" },
+          "_audit_id": { "type": "string" }
+        }
+      },
+      "RefundRequest": {
+        "type": "object",
+        "required": [
+          "audit_id",
+          "wallet_sig",
+          "savings_proof",
+          "patches_applied_pct"
+        ],
+        "properties": {
+          "audit_id": { "type": "string" },
+          "wallet_sig": { "type": "string" },
+          "savings_proof": {
+            "type": "object",
+            "properties": {
+              "before_usd": { "type": "number" },
+              "after_usd": { "type": "number" },
+              "period_days": { "type": "integer" }
+            }
+          },
+          "patches_applied_pct": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      },
+      "X402ErrorBody": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "const": "payment_required" },
+          "price_usdc": { "type": "number" },
+          "facilitator": { "type": "string", "const": "coinbase" },
+          "alternative_cost_estimate": { "type": "object" },
+          "roi_summary": { "type": "object" },
+          "freshness_proof": { "type": "object" },
+          "payload_preview": { "type": "object" },
+          "packs_available": { "type": "array" }
+        }
+      }
+    }
+  }
+}

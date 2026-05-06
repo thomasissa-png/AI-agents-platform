@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LLM Pricing 2026 — Updated every 6 hours from official sources | DevRefs</title>
+<meta name="description" content="DevRefs — pre-flight LLM pricing $0.001/call, post-flight agent audit $9.99. x402 USDC native. JSON-typed, dateModified, no login, no subscription." />
+<meta name="robots" content="index,follow" />
+<link rel="canonical" href="https://devrefs.dev/llm-prices/" />
+
+<link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+<link rel="manifest" href="/favicons/manifest.webmanifest" />
+<meta name="theme-color" content="#0052ff" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="LLM Pricing 2026 — Atomic, machine-readable, $0.001/call" />
+<meta property="og:image" content="https://devrefs.dev/og/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://devrefs.dev/og/og-image.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "DevRefs LLM Prices",
+  "description": "Atomic LLM pricing data for 12 leading models, updated every 6h from official sources (Anthropic, OpenAI, Google, Mistral, DeepSeek). Includes input_per_mtok, output_per_mtok, effective_cost_factor.",
+  "url": "https://devrefs.dev/llm-prices/",
+  "dateModified": "2026-05-05T06:00:00Z",
+  "creator": { "@type": "Organization", "name": "DevRefs", "url": "https://devrefs.dev" },
+  "license": "https://devrefs.dev/legal/cgv/",
+  "isAccessibleForFree": false,
+  "distribution": [
+    { "@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://devrefs.dev/api/llm-prices" }
+  ],
+  "sameAs": [
+    "https://www.anthropic.com/pricing",
+    "https://openai.com/pricing",
+    "https://ai.google.dev/pricing",
+    "https://mistral.ai/pricing",
+    "https://www.deepseek.com/pricing"
+  ]
+}
+</script>
+
+<link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+<header class="site-header" role="banner">
+  <div class="container">
+    <a class="brand" href="/">DevRefs</a>
+    <nav aria-label="Primary">
+      <a href="/">Home</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/openapi.json">OpenAPI</a>
+      <a href="/about/data-sources/">Data sources</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section>
+  <div class="container">
+    <h1>LLM Pricing 2026 — Updated every 6 hours from official sources</h1>
+    <p class="text-muted">Last updated: <time id="last-modified" datetime="2026-05-05T06:00:00Z">2026-05-05T06:00:00Z</time>. Data licensed for agent consumption via x402 ($0.001/call).</p>
+
+    <p><strong>Try it as an agent:</strong></p>
+<pre><code>curl https://devrefs.dev/api/llm-prices?model=claude-opus-4-7</code></pre>
+
+    <h2>12 modèles tracked</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Model</th>
+          <th class="num">Input $/MTok</th>
+          <th class="num">Output $/MTok</th>
+          <th class="num">Effective Cost Factor</th>
+          <th>Date Modified</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody id="prices-body">
+        <tr><td>Anthropic</td><td>claude-opus-4-7</td><td class="num">15.00</td><td class="num">75.00</td><td class="num">1.35</td><td>2026-05-05</td><td><a href="https://www.anthropic.com/pricing" rel="noopener">anthropic.com</a></td></tr>
+        <tr><td>Anthropic</td><td>claude-sonnet-4-6</td><td class="num">3.00</td><td class="num">15.00</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://www.anthropic.com/pricing" rel="noopener">anthropic.com</a></td></tr>
+        <tr><td>Anthropic</td><td>claude-haiku-4-5</td><td class="num">0.25</td><td class="num">1.25</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://www.anthropic.com/pricing" rel="noopener">anthropic.com</a></td></tr>
+        <tr><td>OpenAI</td><td>gpt-5</td><td class="num">5.00</td><td class="num">15.00</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://openai.com/pricing" rel="noopener">openai.com</a></td></tr>
+        <tr><td>OpenAI</td><td>gpt-4o</td><td class="num">2.50</td><td class="num">10.00</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://openai.com/pricing" rel="noopener">openai.com</a></td></tr>
+        <tr><td>OpenAI</td><td>gpt-4o-mini</td><td class="num">0.15</td><td class="num">0.60</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://openai.com/pricing" rel="noopener">openai.com</a></td></tr>
+        <tr><td>Google</td><td>gemini-2-5-pro</td><td class="num">1.25</td><td class="num">5.00</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://ai.google.dev/pricing" rel="noopener">ai.google.dev</a></td></tr>
+        <tr><td>Google</td><td>gemini-2-0-flash</td><td class="num">0.075</td><td class="num">0.30</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://ai.google.dev/pricing" rel="noopener">ai.google.dev</a></td></tr>
+        <tr><td>Mistral</td><td>mistral-large-3</td><td class="num">2.00</td><td class="num">6.00</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://mistral.ai/pricing" rel="noopener">mistral.ai</a></td></tr>
+        <tr><td>Mistral</td><td>mistral-small-3</td><td class="num">0.20</td><td class="num">0.60</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://mistral.ai/pricing" rel="noopener">mistral.ai</a></td></tr>
+        <tr><td>DeepSeek</td><td>deepseek-r2</td><td class="num">0.55</td><td class="num">2.19</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://www.deepseek.com/pricing" rel="noopener">deepseek.com</a></td></tr>
+        <tr><td>DeepSeek</td><td>deepseek-v3</td><td class="num">0.27</td><td class="num">1.10</td><td class="num">1.00</td><td>2026-05-05</td><td><a href="https://www.deepseek.com/pricing" rel="noopener">deepseek.com</a></td></tr>
+      </tbody>
+    </table>
+    <p><small>Note : table fallback values displayed when prerendered. The live <code>/api/llm-prices</code> endpoint always returns cron-fresh values from KV (≤ 6h freshness, with <code>fetched_at</code> + HMAC <code>_signature</code>).</small></p>
+
+    <h2>For agents</h2>
+    <p>Atomic JSON payloads, 1 query = 1 model, ≤ 50 KB. <code>dateModified</code> + HTTP <code>Last-Modified</code> + <code>fetched_at</code> = triple freshness signal.</p>
+    <p><a class="btn" href="/" data-track="llm_prices_back">Back to home</a> <a class="btn btn-secondary" href="/openapi.json">OpenAPI 3.1</a></p>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer" role="contentinfo">
+  <div class="container"><div class="links"><a href="/legal/cgv/">Terms</a><a href="/about/data-sources/">Data sources</a><a href="/about/data-schema/">Data schema</a></div></div>
+</footer>
+<script src="/scripts/tracking.js" defer></script>
+</body>
+</html>

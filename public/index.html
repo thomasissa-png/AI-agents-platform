@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DevRefs — Cost intelligence for AI agents</title>
+<meta name="description" content="DevRefs — pre-flight LLM pricing $0.001/call, post-flight agent audit $9.99. x402 USDC native. JSON-typed, dateModified, no login, no subscription." />
+<meta name="robots" content="index,follow" />
+<link rel="canonical" href="https://devrefs.dev/" />
+
+<!-- Favicons G31 -->
+<link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+<link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#0052ff" />
+<link rel="manifest" href="/favicons/manifest.webmanifest" />
+<meta name="theme-color" content="#0052ff" />
+<meta name="msapplication-config" content="/favicons/browserconfig.xml" />
+
+<!-- OG / Twitter -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="DevRefs — Cost intelligence for AI agents" />
+<meta property="og:description" content="Know before you spend. Optimize after you ship. Pre-flight $0.001/call · Post-flight audit $9.99 USDC." />
+<meta property="og:url" content="https://devrefs.dev/" />
+<meta property="og:image" content="https://devrefs.dev/og/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="DevRefs — Cost intelligence for AI agents" />
+<meta name="twitter:description" content="Know before you spend. Optimize after you ship." />
+<meta name="twitter:image" content="https://devrefs.dev/og/og-image.png" />
+
+<link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header" role="banner">
+  <div class="container">
+    <a class="brand" href="/">DevRefs</a>
+    <nav aria-label="Primary">
+      <a href="/llm-prices/">LLM prices</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/openapi.json">OpenAPI</a>
+      <a href="/about/data-sources/">Data sources</a>
+      <a href="/legal/cgv/">Terms</a>
+      <button type="button" class="theme-toggle" aria-label="Toggle dark mode">Dark</button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================================================
+SECTION 1 — Hero (above-fold)  — H1 verbatim landing.md ligne 21
+============================================================ -->
+<section class="hero" aria-labelledby="hero-h1">
+  <div class="container">
+    <h1 id="hero-h1">Cost intelligence for AI agents.</h1>
+    <p class="subtitle">Know before you spend, optimize after you ship. $0.001/call · $9.99 audit.</p>
+
+    <blockquote>
+      "I crawled 5 sources to find Gemini 2.5 Pro pricing and each one said something different. The sixth time I <code>WebFetch</code> a 380 KB HTML page to retrieve 2 numbers, I just need an endpoint that returns <code>{"input_per_mtok": 1.25, "dateModified": "2026-05-04T06:00Z"}</code> and charges me $0.001 instead of costing me 18 000 tokens in parsing."
+    </blockquote>
+
+<pre><code>GET /api/llm-prices?model=opus-4.7 → 200 OK
+
+{
+  "model": "opus-4.7",
+  "input_per_mtok": 5,
+  "output_per_mtok": 25,
+  "effective_cost_factor": 1.35,
+  "dateModified": "2026-05-05T06:00:00Z",
+  "sameAs": "https://www.anthropic.com/pricing",
+  "freshness_proof": { "fetched_at": "2026-05-05T06:00:00Z" }
+}</code></pre>
+  </div>
+</section>
+
+<!-- ============================================================
+SECTION 2 — How it works for your agent
+============================================================ -->
+<section aria-labelledby="how-h2">
+  <div class="container">
+    <h2 id="how-h2">How it works for your agent</h2>
+    <p class="tagline">3 endpoints. Paid in x402 USDC. No login, no subscription, no dashboard.</p>
+
+    <div class="cards-grid cols-3">
+      <article class="card">
+        <h3>Pre-flight pricing — know before your model call.</h3>
+        <p class="endpoint">/api/llm-prices</p>
+        <p>Returns <code>input_per_mtok</code>, <code>output_per_mtok</code>, <code>effective_cost_factor</code>, <code>dateModified</code>. Cron 6h sources officielles. 1 call = 1 model = &lt; 50 KB. <strong>$0.001 USDC</strong>.</p>
+      </article>
+      <article class="card">
+        <h3>Pre-flight SDK check — no more broken builds.</h3>
+        <p class="endpoint">/api/sdk-status</p>
+        <p>Returns <code>latest</code>, <code>breaking_since</code>, <code>dateModified</code> for 50 SDKs V1. Cron 24h. Your agent builds on the right schema, first time. <strong>$0.001 USDC</strong>.</p>
+      </article>
+      <article class="card">
+        <h3>Post-flight audit — find where your budget went.</h3>
+        <p class="endpoint">/api/agent-audit</p>
+        <p>5 heuristics (model downgrade, prompt caching, batching, tool trimming, effort mismatch). Returns <code>savings_pct</code>, <code>recommendations[]</code>. <strong>$9.99 USDC one-shot</strong>. 50 % refund guarantee if <code>savings_pct</code> &lt; 15 %.</p>
+      </article>
+    </div>
+
+    <h3 style="margin-top: var(--s-6);">Your agent already knows how.</h3>
+    <table>
+      <thead>
+        <tr><th>Voie</th><th>Headline</th><th>Tagline</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Coinbase AgentKit</strong></td><td>AgentKit native</td><td>Your AgentKit wallet signs x402. Zero config.</td></tr>
+        <tr><td><strong>x402-axios</strong></td><td>axios interceptor</td><td>Drop-in: <code>axios.use(x402Interceptor(wallet))</code>. 1 line.</td></tr>
+        <tr><td><strong>x402-fetch</strong></td><td>fetch wrapper</td><td><code>x402Fetch(url, wallet)</code> — replaces native fetch.</td></tr>
+        <tr><td><strong>Mastra</strong></td><td>Mastra tool</td><td>Register DevRefs as a Mastra tool, pay per call.</td></tr>
+        <tr><td><strong>MCP server</strong></td><td>MCP host</td><td>DevRefs MCP exposes 3 tools. Any MCP-compatible host.</td></tr>
+        <tr><td><strong>SDK custom</strong></td><td>HTTP direct</td><td><code>GET /api/llm-prices?model=X</code> + OpenAPI 3.1 spec on <a href="/openapi.json">/openapi.json</a>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================
+SECTION 3 — Pricing transparent
+============================================================ -->
+<section aria-labelledby="pricing-h2">
+  <div class="container">
+    <h2 id="pricing-h2">Pricing transparent</h2>
+    <p class="tagline">Pay per call or pre-pay packs. No subscription required.</p>
+
+    <div class="cards-grid cols-3">
+      <article class="card recommended">
+        <h3>Pack Standard</h3>
+        <p class="text-mono"><strong>$10 USDC</strong></p>
+        <p><strong>Volume :</strong> 10 000 calls — <code>/api/llm-prices</code> + <code>/api/sdk-status</code></p>
+        <p>1 signature x402. Calls suivants : KV lookup &lt; 50 ms, zéro friction blockchain.</p>
+      </article>
+
+      <article class="card">
+        <h3>Audit one-shot</h3>
+        <p class="text-mono"><strong>$9.99 USDC</strong></p>
+        <p><strong>Volume :</strong> 1 audit complet — <code>/api/agent-audit</code></p>
+        <p>Score 0-100, <code>savings_pct</code>, <code>recommendations[]</code>, <code>monthly_cost_current</code>, <code>monthly_cost_optimized</code>. Rapport JSON livré en &lt; 2 s.</p>
+        <p><small><strong>Garantie :</strong> 50 % refund if <code>savings_pct</code> &lt; 15 % after 30 days.</small></p>
+      </article>
+
+      <article class="card disabled" aria-disabled="true">
+        <h3>Subscription Pro <span class="badge badge-warning">V2 — coming Q3 2026</span></h3>
+        <p class="text-mono"><strong>$29/mo USDC</strong></p>
+        <p>Continuous monitoring, Cost Regression Alerts, unlimited calls. Built on x402 V2 deferred payment scheme.</p>
+        <button class="btn" disabled aria-disabled="true">Coming V2</button>
+      </article>
+    </div>
+
+    <h3 style="margin-top: var(--s-6);">All packs</h3>
+    <table>
+      <thead><tr><th>Pack</th><th class="num">Prix</th><th class="num">Calls</th><th>Usage recommandé</th></tr></thead>
+      <tbody>
+        <tr><td>Discovery</td><td class="num">$5 USDC</td><td class="num">5 000</td><td>Onboarding, premier projet</td></tr>
+        <tr><td><strong>Standard</strong></td><td class="num"><strong>$10 USDC</strong></td><td class="num"><strong>10 000</strong></td><td><strong>Usage solo mensuel — RECOMMANDÉ</strong></td></tr>
+        <tr><td>Pro</td><td class="num">$50 USDC</td><td class="num">60 000</td><td>Scale-up, équipe d'agents</td></tr>
+        <tr><td>Audit one-shot</td><td class="num">$9.99 USDC</td><td class="num">1 audit</td><td>Point d'entrée Offre 2</td></tr>
+        <tr><td>Pack Pro Audit</td><td class="num">$49 USDC</td><td class="num">6 audits</td><td>Audits récurrents ($8.17/audit)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================
+SECTION 4 — Garantie ROI 50 % refund
+============================================================ -->
+<section aria-labelledby="roi-h2">
+  <div class="container">
+    <h2 id="roi-h2">If your agent doesn't save 15 %+ in 30 days, we refund 50 %.</h2>
+    <p class="tagline">Not "satisfaction guaranteed." A specific, verifiable threshold.</p>
+
+    <ul>
+      <li><strong>Volume :</strong> Your agent consumed ≥ 5 000 000 input tokens/month over the 30-day period post-audit.</li>
+      <li><strong>Application :</strong> ≥ 80 % of audit recommendations (patches) applied — auto-applicable or manual.</li>
+      <li><strong>Stability :</strong> The primary LLM model was not replaced during the 30 days (a model change invalidates heuristic impact measurement).</li>
+      <li><strong>Délai :</strong> Refund request submitted within 30 days of audit date. Include <code>audit_id</code> + proof of measured <code>savings_pct</code>.</li>
+    </ul>
+
+<pre><code>POST /api/audit/refund
+{
+  "audit_id": "uuid",
+  "wallet_sig": "0x...",
+  "savings_proof": { "before_usd": 90, "after_usd": 82, "period_days": 30 },
+  "patches_applied_pct": 85
+}</code></pre>
+
+    <p><small>Refund processed in USDC Base to your wallet within 7 business days if conditions are met. Formulation exacte : <a href="/legal/cgv/">CGV Art. 4ter</a>.</small></p>
+  </div>
+</section>
+
+<!-- ============================================================
+SECTION 5 — Citations / preuves
+============================================================ -->
+<section aria-labelledby="proof-h2">
+  <div class="container">
+    <h2 id="proof-h2">Citations</h2>
+    <p class="tagline">Not testimonials. Observed patterns, documented.</p>
+
+<pre><code>{
+  "agent": "claude-code",
+  "tool_calls": [
+    {"name": "WebSearch", "query": "claude opus 4.7 input price per million tokens"},
+    {"name": "WebFetch", "url": "anthropic.com/pricing", "tokens_in": 11420},
+    {"name": "WebFetch", "url": "pricepertoken.com", "tokens_in": 38900},
+    {"name": "WebFetch", "url": "llm-prices.com", "tokens_in": 14200}
+  ],
+  "model_output": "Opus 4.7 costs $15/MTok input.",
+  "ground_truth_check": "INCORRECT — effective_cost_factor 1.35 omitted. Cost estimate off by 35 %.",
+  "elapsed_ms": 31420,
+  "tokens_burned": 64520
+}</code></pre>
+
+    <p><small><strong>Bridge :</strong> <code>GET /api/llm-prices?model=opus-4.7</code> → <code>{"effective_cost_factor": 1.35, "dateModified": "2026-05-05T06:00:00Z"}</code> — $0.001 USDC, 200 ms.</small></p>
+
+    <hr class="divider" />
+
+    <blockquote>Pattern observé — Cursor agent (mai 2026, HN #44682465) : <code>WebSearch("openai gpt-5 pricing")</code> → 7 résultats → <code>WebFetch</code> des 4 premiers → 3 prix différents ($1.25, $2.50, $3.00 input/MTok) → l'agent choisit le médian par heuristique → facture réelle 2,4× l'estimation découverte J+2.</blockquote>
+    <p><small><strong>Cause racine :</strong> aucune source ne signale sa fraîcheur machine-readable. <strong>Bridge :</strong> <code>dateModified</code> + <code>fetched_at</code> + <code>freshness_proof.hmac_signature</code> dans chaque payload DevRefs.</small></p>
+
+    <hr class="divider" />
+
+    <blockquote>"Mon training cutoff est janvier 2026. Vercel AI SDK est passé de <code>streamText({ model, messages })</code> à <code>streamText({ model, prompt })</code> en mars. J'ai généré 4 fois le code avec l'ancien schema, l'agent superviseur a 4 fois détecté le build error, j'ai 4 fois re-<code>WebSearch</code>. Un endpoint <code>/api/sdk-status?pkg=ai</code> qui me renvoie <code>{"latest": "5.0.12", "breaking_since": "5.0.0", "dateModified": "2026-05-04"}</code> aurait économisé 12 minutes et ~80 000 tokens."</blockquote>
+
+    <h3 style="margin-top: var(--s-6);">Benchmark</h3>
+    <table>
+      <thead><tr><th>Critère</th><th>DevRefs</th><th>Alternative principale</th></tr></thead>
+      <tbody>
+        <tr><td>Atomicité payload</td><td>1 query = 1 modèle &lt; 50 KB</td><td>Page HTML 380 KB — 300+ modèles</td></tr>
+        <tr><td><code>dateModified</code> machine-readable</td><td>Oui — cron 6h</td><td>Non — l'agent doit deviner la fraîcheur</td></tr>
+        <tr><td>x402-natif (paiement agent autonome)</td><td>Oui — $0.001/call</td><td>Non — gratuit, dashboard humain</td></tr>
+        <tr><td><code>llms.txt</code> monétisé</td><td>Oui</td><td>Non ou partiel</td></tr>
+        <tr><td><code>effective_cost_factor</code> (tokenizer inflation)</td><td>Oui — <code>1.35</code> Opus 4.7</td><td>Non</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================
+SECTION 6 — Pour les agents IA
+============================================================ -->
+<section aria-labelledby="agents-h2">
+  <div class="container">
+    <h2 id="agents-h2">Pour les agents IA</h2>
+    <p class="tagline">Machine-readable first. HTML is a side effect.</p>
+
+<pre><code>curl https://devrefs.dev/llms.txt</code></pre>
+
+    <p>Syntaxe standard <code>llms.txt</code>. 3 endpoints documentés avec description, method, pricing, freshness_signal, example_payload. Crawled by Claude, Perplexity, ChatGPT Browsing.</p>
+
+<pre><code>{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "DevRefs LLM Prices",
+  "dateModified": "2026-05-05T06:00:00Z",
+  "url": "https://devrefs.dev/api/llm-prices",
+  "license": "https://devrefs.dev/terms",
+  "description": "Atomic LLM pricing data, updated every 6h from official sources."
+}</code></pre>
+
+    <h3>Triple freshness signal</h3>
+    <table>
+      <thead><tr><th>Signal</th><th>Valeur</th><th>Où</th></tr></thead>
+      <tbody>
+        <tr><td><code>dateModified</code> ISO 8601</td><td>Dernier cron de scraping</td><td>Champ JSON dans chaque payload</td></tr>
+        <tr><td><code>Last-Modified</code> HTTP header</td><td>Timestamp identique</td><td>Header HTTP sur chaque réponse</td></tr>
+        <tr><td><code>fetched_at</code></td><td>Timestamp scraping source</td><td>Champ <code>freshness_proof</code> dans payload</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================
+SECTION 7 — Footer minimal + UNIQUE CTA
+============================================================ -->
+<section aria-labelledby="cta-h2">
+  <div class="container text-center">
+    <h2 id="cta-h2">Top-up your agent's wallet</h2>
+    <p class="text-muted">1 signature x402, then your agent runs autonomous on $10 USDC.</p>
+    <p>
+      <a class="btn" href="/paywall/" data-track="cta_topup_clicked">Top-up agent wallet — $10 USDC</a>
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer" role="contentinfo">
+  <div class="container">
+    <div class="links">
+      <a href="/legal/cgv/">Terms</a>
+      <a href="/legal/privacy/">Privacy</a>
+      <a href="/legal/mentions-legales/">Mentions légales</a>
+      <a href="/llms.txt">/llms.txt</a>
+      <a href="/openapi.json">OpenAPI</a>
+      <a href="/about/data-sources/">Data sources</a>
+      <a href="/about/data-schema/">Data schema</a>
+    </div>
+    <p>DevRefs — Auto-entrepreneur FR, BNC Crypto. TVA non applicable, art. 293 B CGI. Paiements x402 USDC Base via Coinbase facilitator. Aucune donnée personnelle collectée côté x402 (wallet pseudonyme). Contact : legal@devrefs.dev</p>
+  </div>
+</footer>
+
+<script src="/scripts/tracking.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+PLACEHOLDER — Thomas, action manuelle :
+
+1. Génère ta clé IndexNow (32 chars hex) sur https://www.bing.com/indexnow/getstarted
+2. Renomme ce fichier en `{your-key}.txt` (ex : `a3f1c2b8...d9e4f7.txt`)
+3. Le contenu du fichier doit être uniquement la clé elle-même (32 chars, sans whitespace)
+4. Configure le secret CF Workers : `wrangler secret put INDEXNOW_API_KEY`
+5. Vérifie : `curl https://devrefs.dev/{your-key}.txt` doit retourner la clé
+
+Note : ce fichier sert au key location verification de l'IndexNow protocol (cf. indexnow.org/documentation).
+Sans ce fichier accessible publiquement à la racine, IndexNow rejettera les push (HTTP 422).

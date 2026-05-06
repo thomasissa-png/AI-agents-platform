@@ -1,0 +1,54 @@
+# DevRefs — llms.txt
+
+> Cost intelligence for AI agents. Pre-flight LLM pricing $0.001/call · Post-flight agent audit $9.99 USDC. x402-native payment, no login, no subscription.
+
+DevRefs is a B2A (Business-to-Agent) data infrastructure. Agents pay $0.001 USDC per call (or buy packs $5/$10/$50). Audit endpoint $9.99 with 50% refund guarantee under 4 cumulative conditions (cf. /legal/cgv/#art-4ter).
+
+## Endpoints (monetized)
+
+### GET /api/llm-prices?model={slug}
+- Description: Atomic LLM pricing payload — input/output $/MTok, effective_cost_factor, dateModified.
+- Pricing: $0.001 USDC per call (x402) or pack quota.
+- Models supported (12): claude-opus-4-7, claude-sonnet-4-6, claude-haiku-4-5, gpt-5, gpt-4o, gpt-4o-mini, gemini-2-5-pro, gemini-2-0-flash, mistral-large-3, mistral-small-3, deepseek-r2, deepseek-v3.
+- Freshness: cron 6h, fields dateModified + Last-Modified header + fetched_at.
+- Example response:
+  {"data":{"model":"claude-opus-4-7","input_per_mtok":15,"output_per_mtok":75,"effective_cost_factor":1.35,"date_modified":"2026-05-05T06:00:00Z","same_as":"https://www.anthropic.com/pricing"},"_signature":"<hmac>"}
+
+### GET /api/sdk-status?pkg={slug}
+- Description: Latest SDK version + breaking_since for ~50 npm packages.
+- Pricing: $0.001 USDC per call.
+- Freshness: cron 24h.
+- Example response:
+  {"data":{"pkg":"ai","latest":"5.0.12","breaking_since":"5.0.0","date_modified":"2026-05-05T03:00:00Z","same_as":"https://www.npmjs.com/package/ai"},"_signature":"<hmac>"}
+
+### POST /api/agent-audit
+- Description: Heuristic-based agent audit — score 0-100, savings_pct, recommendations[].
+- Pricing: $9.99 USDC one-shot or Pack Pro Audit ($49 / 6 audits).
+- Guarantee: 50% refund if savings_pct < 15% after 30 days under 4 cumulative conditions.
+- Input: agent_config + sample_traces (max 100 KB, never persisted — CGV Art. 3.4).
+- Output: { audit_id, score, savings_pct, recommendations, monthly_cost_current, monthly_cost_optimized, _signature, _audit_id }
+
+## Integration paths (6)
+- Coinbase AgentKit — wallet signs x402 natively
+- x402-axios — drop-in axios interceptor
+- x402-fetch — replaces native fetch
+- Mastra — register as a Mastra tool
+- MCP server — DevRefs exposes 3 MCP tools
+- HTTP direct — see /openapi.json (OpenAPI 3.1 with x-x402 extension)
+
+## Resources
+- /openapi.json — OpenAPI 3.1 spec with x-x402 monetization extension
+- /about/data-sources — official sources (Anthropic, OpenAI, Google, Mistral, DeepSeek, npm, GitHub)
+- /about/data-schema — JSON-LD Dataset schema for all payloads
+- /llm-prices/ — public pricing table (12 models, JSON-LD Dataset embedded)
+- /legal/cgv/ — terms (B2A + B2C, ROI guarantee, L.221-28 13°)
+
+## Pricing reference
+- Pack Discovery: $5 USDC / 5 000 calls
+- Pack Standard: $10 USDC / 10 000 calls (recommended)
+- Pack Pro: $50 USDC / 60 000 calls
+- Audit one-shot: $9.99 USDC
+- Pack Pro Audit: $49 USDC / 6 audits
+
+## Anti-redistribution
+Each payload contains `_signature` (HMAC-SHA256). Audit outputs additionally contain `_audit_id` (UUID, required for refund requests). Removing or masking these fields breaches the license.

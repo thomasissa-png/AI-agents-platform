@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Data schema — DevRefs</title>
+<meta name="description" content="JSON-LD Dataset schema for DevRefs payloads. dateModified, fetched_at, sameAs, _signature HMAC." />
+<link rel="icon" href="/favicons/favicon.ico" sizes="any" />
+<link rel="manifest" href="/favicons/manifest.webmanifest" />
+<link rel="stylesheet" href="/styles/main.css" />
+</head><body>
+<header class="site-header"><div class="container"><a class="brand" href="/">DevRefs</a><nav><a href="/">Home</a><a href="/about/data-sources/">Data sources</a></nav></div></header>
+<main id="main"><section><div class="container">
+<h1>Data schema</h1>
+<p>Every DevRefs payload is JSON-typed and conforms to a Schema.org <code>Dataset</code> shape, with HMAC <code>_signature</code> for anti-redistribution proof.</p>
+
+<h2>Pricing payload (<code>/api/llm-prices</code>)</h2>
+<pre><code>{
+  "data": {
+    "model": "claude-opus-4-7",
+    "input_per_mtok": 15,
+    "output_per_mtok": 75,
+    "effective_cost_factor": 1.35,
+    "currency": "USD",
+    "date_modified": "2026-05-05T06:00:00Z",
+    "fetched_at": "2026-05-05T06:00:00Z",
+    "same_as": "https://www.anthropic.com/pricing",
+    "schema_version": "1.0"
+  },
+  "_signature": "&lt;HMAC-SHA256 hex&gt;",
+  "_jsonld_dataset": {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "dateModified": "2026-05-05T06:00:00Z",
+    "sameAs": "https://www.anthropic.com/pricing"
+  }
+}</code></pre>
+
+<h2>SDK payload (<code>/api/sdk-status</code>)</h2>
+<pre><code>{
+  "data": {
+    "pkg": "ai",
+    "latest": "5.0.12",
+    "breaking_since": "5.0.0",
+    "deprecated_versions": [],
+    "date_modified": "2026-05-05T03:00:00Z",
+    "fetched_at": "2026-05-05T03:00:00Z",
+    "same_as": "https://www.npmjs.com/package/ai",
+    "schema_version": "1.0"
+  },
+  "_signature": "&lt;HMAC-SHA256 hex&gt;"
+}</code></pre>
+
+<h2>Audit payload (<code>/api/agent-audit</code>)</h2>
+<p>Cf. <code>agent-audit-spec.md</code> for the full input/output schema. Each output contains a unique <code>_audit_id</code> UUID + HMAC <code>_signature</code>, which are required to file a refund request under the 50 % ROI guarantee.</p>
+
+<h2>Headers</h2>
+<ul>
+  <li><code>Last-Modified</code> — same value as <code>dateModified</code> for cache validation</li>
+  <li><code>Cache-Control: public, max-age=21600</code> on pricing endpoint (6h cron)</li>
+  <li><code>X-PAYMENT-RESPONSE</code> — x402 settlement reference (Coinbase facilitator)</li>
+</ul>
+</div></section></main>
+<footer class="site-footer"><div class="container"><div class="links"><a href="/legal/cgv/">Terms</a></div></div></footer>
+<script src="/scripts/tracking.js" defer></script>
+</body></html>
