@@ -2,6 +2,7 @@
   "name": "devrefs",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "DevRefs — Pricing & SDK references for AI agents (x402 native, Cloudflare Workers).",
   "engines": {
     "node": ">=20",
@@ -28,8 +29,12 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": ["eslint --fix --max-warnings 50"],
-    "*.{json,md,yml,yaml}": ["prettier --write"]
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix --max-warnings 50"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260501.0",
