@@ -204,11 +204,75 @@ Lis project-context.md et docs/orchestration-plan.md, continue où on s'est arr�
 
 ---
 
-## 📋 MEMO DE REPRISE — Prochaine session (Session 4 — Phase 2 close + Phase 3 visibilité)
+## 📋 MEMO DE REPRISE — Prochaine session (Session 5 — Coinbase + Stripe + Phase 3 visibilité)
 
-**Numéro de session prochaine** : Session 4 du projet DevRefs.
+**Numéro de session prochaine** : Session 5 du projet DevRefs.
 
-**Statut au 2026-05-06 (fin session 3 — Phase 2 build technique)** :
+**Statut au 2026-05-06 (fin session 4 — déploiement live + sub-phase 2c testeur PASS)** :
+
+- **Worker preview** : `https://devrefs-api-preview.thomas-issa.workers.dev` — 12 modèles + 7 SDKs seedés, 4 secrets configurés (HMAC, JWT, INDEXNOW, ADMIN_ALERT_EMAIL), HMAC signature live + JSON-LD Dataset
+- **Frontend Pages preview** : `https://preview.devrefs-frontend.pages.dev/` — landing 16.6 KB + paywall 3 checkboxes L.221-28 + dashboard sponsor + /llm-prices SEO + llms.txt + robots/sitemap/openapi
+- **Sub-phase 2c** : @testeur-agent-ia **8/8 PASS** gates exécutables (GP1-GP8). GP9/GP10 SKIP justifiés (pack purchase réel nécessite Coinbase x402 settle)
+- **Analytics Engine** : désactivé (token CF manque scope `Account Analytics: Read`)
+- **CI/CD GitHub Actions** : opérationnel (lint-test/build/deploy-preview verts, e2e en attente baselines screenshots)
+
+**Étape 5 du mémo précédent (testeurs sub-phases 2c/2d) partiellement complète** :
+
+- 2c PASS sur ce qui est testable sans Coinbase
+- 2d skippée — @testeur-sponsor-humain GC1-GC10 nécessite Stripe Payment Link test mode
+
+**Observations GP8 non-bloquantes à corriger avant prod (5 fixes mineurs @fullstack)** :
+
+1. `_audit_id` format `aud_YYYY-MM-DD_HHMMSS` vs spec UUID v4 → aligner spec ou code
+2. `freshness_proof` absent du body 402 audit (présent sur llm-prices) → ajouter dans `x402-body.ts` audit context
+3. `roi_multiplier: 0` dans 402 audit (calc vs Opus < $9.99) → recalculer vs consultant humain ($200-2000)
+4. GP10 message erreur pack exhausted = `invalid_signature` au lieu de `Pack expired — re-purchase or pay-per-call`
+5. `monthly_volume_estimate` placement spec (root vs `agent_config.*`) à aligner
+
+**À faire en SESSION 5 — Actions Thomas (manuelles non-automatisables) + Phase 3** :
+
+### Étape 1 — Actions Thomas (~30 min, comptes externes)
+
+1. **Coinbase Developer Platform** : créer compte + activer x402 facilitator sandbox + récupérer API key + créer wallet Base USDC treasury → secrets Worker `COINBASE_X402_FACILITATOR_KEY` + `DEVREFS_TREASURY_WALLET`
+2. **Stripe** : activer test mode + créer Payment Link top-up (5/10/50 EUR) + webhook endpoint vers `/api/webhooks/stripe` + récupérer signing secret → secrets Worker `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`
+3. **Domaine devrefs.dev** : achat (~$15/an Cloudflare Registrar ou Namecheap) + DNS pointing CF
+4. **Immatriculation BNC auto-entreprise** : URSSAF (P0 legal-audit, délai 7-14j) — bloquant 1ère vraie tx
+5. **Token CF** : créer un nouveau API token avec scope `Account Analytics: Read` ajouté + remplacer GitHub secret pour réactiver Analytics Engine
+
+### Étape 2 — Sub-phase 2c bis : tester GP9/GP10 (1 Task @testeur-agent-ia)
+
+Post-Coinbase setup → re-lancer testeur sur pack purchase + quota consumption flow réel.
+
+### Étape 3 — Sub-phase 2d : @testeur-sponsor-humain (1 Task)
+
+Post-Stripe setup → exécuter GC1-GC10 sur landing publique + paywall + dashboard sponsor + refund EIP-191.
+
+### Étape 4 — 5 fixes mineurs @fullstack (1 Task)
+
+Corriger les 5 observations GP8/GP10 listées ci-dessus.
+
+### Étape 5 — Phase 3 visibilité (3-4 Tasks)
+
+- @seo : audit SEO technique + sitemap signoff + meta SEO 4 pages
+- @geo : optimisation visibilité LLM (Perplexity / Claude / ChatGPT) + monitoring citations
+- @copywriter : calendrier éditorial 2 posts Dev.to + 1 post Reddit r/ClaudeAI ou r/LocalLLaMA
+
+**Sessions 6-7 prévues (inchangé)** :
+
+- Session 6 : Phase 4 acquisition (@growth + @social + @sales-enablement)
+- Session 7 : Phase 5 audit & lancement (@reviewer + @qa final + GO/NO-GO)
+
+**Compteur session 4 final** : 7 actions effectives livrées (token verify + 2 seeds KV + test live + frontend Pages + testeur GP1-GP10 + 6 fixes CI/wrangler de débogage).
+
+**⚠️ Sécurité** : Thomas doit **révoquer le token CF API** partagé en session 4 (`cfut_IjECKvFNAjD...`) post-clôture. Créer un nouveau token avec scope étendu (`Account Analytics: Read` ajouté) pour session 5 + remplacer GitHub Secret.
+
+---
+
+## 📋 MEMO ARCHIVÉ — Session 4 (déploiement live + sub-phase 2c) — clos 2026-05-06
+
+> Session 4 a livré : déploiement Worker preview live + frontend CF Pages + KV seedés (12 prix + 7 SDKs) + 4 secrets configurés + sub-phase 2c testeur-agent-ia 8/8 PASS. Reste pour session 5 : Coinbase + Stripe + domaine + immatriculation + Phase 3 visibilité.
+
+**Statut au 2026-05-06 initial (fin session 3 — Phase 2 build technique)** :
 
 - Phase 2 build technique COMPLET — 5 Tasks producteur livrées (cible 4-6) :
   - Étape 2 @agent-factory : `testeur-agent-ia.md` + `testeur-sponsor-humain.md` (commit 6c2be4d)
