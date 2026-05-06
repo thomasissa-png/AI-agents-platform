@@ -1,0 +1,66 @@
+{
+  "generatedAt": "2026-05-06T18:01:35.752Z",
+  "baseUrl": "https://devrefs.dev",
+  "results": [
+    {
+      "tag": "landing-375",
+      "status": "HTTP 200 → 664561 bytes",
+      "bytes": 664561
+    },
+    {
+      "tag": "paywall-375",
+      "status": "HTTP 200 → 122501 bytes",
+      "bytes": 122501
+    },
+    {
+      "tag": "dashboard-375",
+      "status": "HTTP 200 → 30104 bytes",
+      "bytes": 30104
+    },
+    {
+      "tag": "llm-prices-375",
+      "status": "HTTP 200 → 152475 bytes",
+      "bytes": 152475
+    },
+    {
+      "tag": "landing-768",
+      "status": "HTTP 200 → 646030 bytes",
+      "bytes": 646030
+    },
+    {
+      "tag": "paywall-768",
+      "status": "HTTP 200 → 121607 bytes",
+      "bytes": 121607
+    },
+    {
+      "tag": "dashboard-768",
+      "status": "HTTP 200 → 32618 bytes",
+      "bytes": 32618
+    },
+    {
+      "tag": "llm-prices-768",
+      "status": "HTTP 200 → 159497 bytes",
+      "bytes": 159497
+    },
+    {
+      "tag": "landing-1280",
+      "status": "HTTP 200 → 725077 bytes",
+      "bytes": 725077
+    },
+    {
+      "tag": "paywall-1280",
+      "status": "HTTP 200 → 125339 bytes",
+      "bytes": 125339
+    },
+    {
+      "tag": "dashboard-1280",
+      "status": "HTTP 200 → 31614 bytes",
+      "bytes": 31614
+    },
+    {
+      "tag": "llm-prices-1280",
+      "status": "HTTP 200 → 161766 bytes",
+      "bytes": 161766
+    }
+  ]
+}
