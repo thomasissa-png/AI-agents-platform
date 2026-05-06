@@ -110,6 +110,12 @@ export async function handleAgentAudit(request: Request, env: AgentAuditEnv): Pr
             ? { note: "ROI warning: monthly_volume < 5M tokens = ROI < 5x. Consider waiting until volume scales." }
             : {}),
         },
+        audit_freshness: {
+          audit_engine_version: "1.0.0",
+          heuristics_count: 5,
+          date_modified: new Date().toISOString(),
+        },
+        monthly_volume_estimate: input.agent_config.monthly_volume_estimate,
         payload_preview: {
           score: "***",
           monthly_cost_current_usd: "***",

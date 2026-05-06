@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>LLM Pricing 2026 — Updated every 6 hours from official sources | DevRefs</title>
-<meta name="description" content="DevRefs — pre-flight LLM pricing $0.001/call, post-flight agent audit $9.99. x402 USDC native. JSON-typed, dateModified, no login, no subscription." />
+<meta name="description" content="Pricing officiel 12 LLM (Claude, GPT, Gemini, Mistral, DeepSeek) — JSON signé HMAC, dateModified < 6h, payload < 50 KB, $0.001/call x402-natif." />
 <meta name="robots" content="index,follow" />
 <link rel="canonical" href="https://devrefs.dev/llm-prices/" />
 
@@ -12,13 +12,17 @@
 <link rel="manifest" href="/favicons/manifest.webmanifest" />
 <meta name="theme-color" content="#0052ff" />
 
+<meta property="og:title" content="LLM Pricing 2026 — DevRefs" />
+<meta property="og:description" content="Pricing officiel 12 LLM (Claude, GPT, Gemini, Mistral, DeepSeek) — JSON signé HMAC, dateModified < 6h." />
+<meta property="og:url" content="https://devrefs.dev/llm-prices/" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="LLM Pricing 2026 — Atomic, machine-readable, $0.001/call" />
 <meta property="og:image" content="https://devrefs.dev/og/og-image.png" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="LLM Pricing 2026 — DevRefs" />
+<meta name="twitter:description" content="Pricing officiel 12 LLM JSON signé HMAC, dateModified < 6h." />
 <meta name="twitter:image" content="https://devrefs.dev/og/og-image.png" />
 
-<script type="application/ld+json">
+<script type="application/ld+json" data-jsonld="dataset">
 {
   "@context": "https://schema.org",
   "@type": "Dataset",
@@ -107,5 +111,32 @@
   <div class="container"><div class="links"><a href="/legal/cgv/">Terms</a><a href="/about/data-sources/">Data sources</a><a href="/about/data-schema/">Data schema</a></div></div>
 </footer>
 <script src="/scripts/tracking.js" defer></script>
+<script>
+// Fix 9 — dateModified dynamique JSON-LD + <time> via 402 augmenté freshness_proof
+(async function () {
+  try {
+    const r = await fetch("https://api.devrefs.dev/api/llm-prices?model=claude-opus-4-7");
+    const j = await r.json();
+    const dm = j && j.freshness_proof && j.freshness_proof.date_modified;
+    if (!dm) return;
+    document.querySelectorAll("time[datetime]").forEach(function (el) {
+      el.setAttribute("datetime", dm);
+      el.textContent = new Date(dm).toLocaleString("fr-FR");
+    });
+    var ldEl = document.querySelector('script[data-jsonld="dataset"]');
+    if (ldEl) {
+      try {
+        var data = JSON.parse(ldEl.textContent);
+        data.dateModified = dm;
+        ldEl.textContent = JSON.stringify(data);
+      } catch (e) {
+        /* silent */
+      }
+    }
+  } catch (e) {
+    /* silent — fallback to static dateModified */
+  }
+})();
+</script>
 </body>
 </html>

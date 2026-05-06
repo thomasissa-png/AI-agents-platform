@@ -51,8 +51,10 @@ describe("build402Body — pricing one_shot", () => {
         cron_interval_hours: 6,
       },
     });
-    expect(body.freshness_proof?.cron_interval_hours).toBe(6);
-    expect(body.freshness_proof?.freshness_hours).toBeGreaterThan(0);
+    const fp = body.freshness_proof;
+    if (!fp || !("cron_interval_hours" in fp)) throw new Error("expected pricing freshness_proof shape");
+    expect(fp.cron_interval_hours).toBe(6);
+    expect(fp.freshness_hours).toBeGreaterThan(0);
   });
 });
 

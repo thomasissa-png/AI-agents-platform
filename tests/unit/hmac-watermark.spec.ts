@@ -66,9 +66,9 @@ describe("verifySignature", () => {
 });
 
 describe("generateAuditId", () => {
-  it("produces format aud_YYYY-MM-DD_hex6", () => {
+  it("produces format aud_{uuid_v4}", () => {
     const id = generateAuditId(new Date("2026-05-06T12:00:00Z"));
-    expect(id).toMatch(/^aud_2026-05-06_[a-f0-9]{6}$/);
+    expect(id).toMatch(/^aud_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   });
   it("is unique across calls", () => {
     const a = generateAuditId();

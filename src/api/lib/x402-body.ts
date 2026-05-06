@@ -27,6 +27,12 @@ export interface X402BodyContext {
     same_as: string;
     cron_interval_hours: number;
   };
+  // audit : freshness engine (pas de cron, version-driven)
+  audit_freshness?: {
+    audit_engine_version: string;
+    heuristics_count: number;
+    date_modified: string;
+  };
   // payload preview (clés masquées)
   payload_preview?: Record<string, unknown>;
   // ROI baseline tokens estimate (cf. agent-economics C.1)
@@ -36,6 +42,8 @@ export interface X402BodyContext {
     note?: string;
     agent_action_if_no_devrefs?: string;
   };
+  // audit : volume estimate input (sert au calcul monthly_savings_estimate_usd)
+  monthly_volume_estimate?: number;
 }
 
 const USDC_BASE_ASSET = {
@@ -69,14 +77,26 @@ export interface X402Body {
     alternative_cost_usd_opus_4_7: number;
     roi_multiplier: number;
     verdict: X402Verdict;
+    // audit only : économies projetées sur 1 mois si monthly_volume_estimate fourni
+    monthly_savings_estimate_usd?: number;
+    // audit only : baseline humain (consultant) utilisé pour le ROI
+    consultant_cost_baseline_usd?: number;
   };
-  freshness_proof?: {
-    date_modified: string;
-    fetched_at: string;
-    same_as: string;
-    freshness_hours: number;
-    cron_interval_hours: number;
-  };
+  freshness_proof?:
+    | {
+        // pricing/sdk shape
+        date_modified: string;
+        fetched_at: string;
+        same_as: string;
+        freshness_hours: number;
+        cron_interval_hours: number;
+      }
+    | {
+        // audit shape (pas de cron — versionning moteur)
+        audit_engine_version: string;
+        heuristics_count: number;
+        date_modified: string;
+      };
   payload_preview?: Record<string, unknown>;
   packs_available: Record<string, { price_usdc: number; calls?: number; audits?: number; recommended?: boolean }>;
   instructions_for_agent: string;
@@ -130,7 +150,13 @@ export function build402Body(ctx: X402BodyContext): X402Body {
   };
 
   const opusCost = altCost.cost_in_usd_per_model["claude-opus-4-7"] ?? 0.49;
-  const roiMultiplier = Math.round(opusCost / ctx.price_usdc);
+  // ROI audit recalibré vs consultant humain ($200 audit junior 1h) — pas vs cost LLM auto-discovery.
+  // Voir docs/ia/agent-economics.md : un audit DevRefs $9.99 remplace une mission consultant humain.
+  const CONSULTANT_COST_LOW_USD = 200;
+  const roiMultiplier =
+    ctx.endpoint === "agent-audit"
+      ? Math.round(CONSULTANT_COST_LOW_USD / ctx.price_usdc)
+      : Math.round(opusCost / ctx.price_usdc);
   const verdict: X402Verdict =
     ctx.endpoint === "agent-audit"
       ? "no_brainer_buy"
@@ -160,6 +186,18 @@ export function build402Body(ctx: X402BodyContext): X402Body {
       alternative_cost_usd_opus_4_7: opusCost,
       roi_multiplier: roiMultiplier,
       verdict,
+      ...(ctx.endpoint === "agent-audit"
+        ? {
+            consultant_cost_baseline_usd: CONSULTANT_COST_LOW_USD,
+            // hypothèse heuristique : 25% économies estimées sur le coût mensuel projeté à $5/M tokens
+            ...(ctx.monthly_volume_estimate && ctx.monthly_volume_estimate > 0
+              ? {
+                  monthly_savings_estimate_usd:
+                    Math.round(((ctx.monthly_volume_estimate / 1_000_000) * 5 * 0.25) * 100) / 100,
+                }
+              : {}),
+          }
+        : {}),
     },
     packs_available: buildPacksAvailable(scope),
     instructions_for_agent:
@@ -174,6 +212,12 @@ export function build402Body(ctx: X402BodyContext): X402Body {
       same_as: ctx.freshness.same_as,
       freshness_hours: hoursBetween(ctx.freshness.fetched_at, now),
       cron_interval_hours: ctx.freshness.cron_interval_hours,
+    };
+  } else if (ctx.audit_freshness) {
+    body.freshness_proof = {
+      audit_engine_version: ctx.audit_freshness.audit_engine_version,
+      heuristics_count: ctx.audit_freshness.heuristics_count,
+      date_modified: ctx.audit_freshness.date_modified,
     };
   }
   if (ctx.payload_preview) {

@@ -20,7 +20,16 @@ export interface PackQuotaResult {
   pack_type?: PackType;
   remaining?: number;
   total?: number;
-  reason?: "missing_token" | "invalid_signature" | "pack_not_found" | "pack_exhausted" | "wrong_scope" | "expired";
+  reason?:
+    | "missing_token"
+    | "invalid_signature"
+    | "pack_not_found"
+    | "pack_exhausted"
+    | "pack_expired"
+    | "wrong_scope"
+    | "expired";
+  message?: string;
+  next_action?: "buy_new_pack" | "pay_per_call";
 }
 
 /**
@@ -72,7 +81,13 @@ export async function checkAndConsumePack(
   }
   if (expiresRaw) {
     if (new Date(expiresRaw).getTime() < Date.now()) {
-      return { ok: false, wallet_hash: walletHash, reason: "expired" };
+      return {
+        ok: false,
+        wallet_hash: walletHash,
+        reason: "pack_expired",
+        message: "Pack expired — re-purchase or pay-per-call",
+        next_action: "buy_new_pack",
+      };
     }
   }
   const remaining = parseInt(remainingRaw, 10);
@@ -84,7 +99,16 @@ export async function checkAndConsumePack(
       pack_type: packTypeRaw,
       quota_remaining: 0,
     });
-    return { ok: false, wallet_hash: walletHash, pack_type: packTypeRaw as PackType, remaining: 0, total, reason: "pack_exhausted" };
+    return {
+      ok: false,
+      wallet_hash: walletHash,
+      pack_type: packTypeRaw as PackType,
+      remaining: 0,
+      total,
+      reason: "pack_exhausted",
+      message: "Pack expired — re-purchase or pay-per-call",
+      next_action: "buy_new_pack",
+    };
   }
 
   // Décrément atomique (last-write-wins V1)

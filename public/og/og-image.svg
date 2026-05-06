@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="DevRefs — Cost intelligence for AI agents">
+  <title>DevRefs — Cost intelligence for AI agents</title>
+
+  <!-- Fond dark slate -->
+  <rect width="1200" height="630" fill="#0F172A"/>
+
+  <!-- Accent line top -->
+  <rect x="0" y="0" width="1200" height="3" fill="#0052FF"/>
+
+  <!-- Logo "D" geometrique centré haut -->
+  <!-- D shape : rectangle gauche + arc droit simplifié en path -->
+  <g transform="translate(540, 80)">
+    <!-- Fond carré du logo 120x120 -->
+    <rect width="120" height="120" fill="#0052FF" rx="4"/>
+    <!-- Lettre D blanche en path -->
+    <path fill="#FFFFFF" d="M28 24h30c17 0 29 10.5 29 30s-12 30-29 30H28V24zm10 10v40h20c11 0 19-6.5 19-20s-8-20-19-20H38zm0 15h38v5H38v-5z"/>
+  </g>
+
+  <!-- Titre principal -->
+  <text
+    x="600"
+    y="270"
+    font-family="'JetBrains Mono', 'Courier New', 'Consolas', monospace"
+    font-weight="700"
+    font-size="60"
+    fill="#FFFFFF"
+    text-anchor="middle"
+    letter-spacing="-1"
+  >Cost intelligence for AI agents.</text>
+
+  <!-- Ligne de séparation -->
+  <rect x="480" y="300" width="240" height="2" fill="#0052FF" opacity="0.6"/>
+
+  <!-- Sous-titre accent vert -->
+  <text
+    x="600"
+    y="356"
+    font-family="'JetBrains Mono', 'Courier New', 'Consolas', monospace"
+    font-weight="400"
+    font-size="28"
+    fill="#00FF88"
+    text-anchor="middle"
+    letter-spacing="1"
+  >$0.001/call · 490× ROI · x402-native</text>
+
+  <!-- Tag produit -->
+  <text
+    x="600"
+    y="420"
+    font-family="'JetBrains Mono', 'Courier New', 'Consolas', monospace"
+    font-weight="400"
+    font-size="20"
+    fill="#64748B"
+    text-anchor="middle"
+    letter-spacing="2"
+  >REAL-TIME MODEL PRICING · MULTI-PROVIDER · OPEN STANDARD</text>
+
+  <!-- Footer domain -->
+  <text
+    x="1160"
+    y="600"
+    font-family="'JetBrains Mono', 'Courier New', 'Consolas', monospace"
+    font-weight="400"
+    font-size="22"
+    fill="#0052FF"
+    text-anchor="end"
+    opacity="0.9"
+  >devrefs.dev</text>
+
+  <!-- Footer accent bottom line -->
+  <rect x="0" y="627" width="1200" height="3" fill="#00FF88" opacity="0.4"/>
+</svg>

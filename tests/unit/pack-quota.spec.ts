@@ -87,7 +87,9 @@ describe("checkAndConsumePack", () => {
     const req = new Request("https://devrefs.dev/", { headers: { "X-Pack-Token": token } });
     const r = await checkAndConsumePack(req, env as never, "data", "llm-prices");
     expect(r.ok).toBe(false);
-    expect(r.reason).toBe("expired");
+    expect(r.reason).toBe("pack_expired");
+    expect(r.message).toBe("Pack expired — re-purchase or pay-per-call");
+    expect(r.next_action).toBe("buy_new_pack");
   });
 
   it("returns pack_not_found if KV empty", async () => {

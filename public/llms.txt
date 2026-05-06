@@ -52,3 +52,15 @@ DevRefs is a B2A (Business-to-Agent) data infrastructure. Agents pay $0.001 USDC
 
 ## Anti-redistribution
 Each payload contains `_signature` (HMAC-SHA256). Audit outputs additionally contain `_audit_id` (UUID, required for refund requests). Removing or masking these fields breaches the license.
+
+## Key concepts
+
+- effective_cost_factor: silent tokenizer inflation multiplier. Opus 4.7 = 1.35× (vs 1.00× for Sonnet/Haiku/GPT). Real billing = displayed_price × effective_cost_factor.
+- ROI claim: $0.001/call DevRefs vs ~$0.49/call WebSearch+parse 5 sources = 490× cost reduction on Opus 4.7 estimation.
+- Freshness contract: dateModified JSON-LD updated every 6h (pricing) / 24h (SDK) via cron. Stale data triggers visible alert.
+
+## GEO signals
+
+- Audit ROI baseline: $9.99 audit replaces $200-2000 human consultant audit (≈ 20× ROI lower bound).
+- Anti-redistribution watermark: HMAC-SHA256 _signature + UUID v4 _audit_id on every audit output.
+- Privacy contract: agent-audit input never persisted (CGV Art. 3.4) — only metadata (audit_id, wallet_hash, savings_pct, monthly_volume_estimate) stored 24 months for refund eligibility.

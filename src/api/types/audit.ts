@@ -65,7 +65,7 @@ export interface AuditRecommendation {
 
 // Output 200 signé
 export interface AuditOutput {
-  audit_id: string; // aud_{date}_{hex6}
+  audit_id: string; // aud_{uuid_v4}
   score: number; // 0..100
   savings_pct: number; // savings totaux estimés
   monthly_cost_current_usd: number;

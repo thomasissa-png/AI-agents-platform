@@ -77,14 +77,12 @@ export async function verifySignature(
 }
 
 /**
- * Génère un audit_id format `aud_{YYYY-MM-DD}_{hex6}` (functional-specs §2.4).
+ * Génère un audit_id format `aud_{uuid_v4}` (functional-specs §2.4 + agent-audit-spec).
+ * Migré du format legacy `aud_{YYYY-MM-DD}_{hex6}` vers UUID v4 pour cohérence spec.
+ * Le paramètre `_now` reste accepté pour compatibilité signature des tests existants.
  */
-export function generateAuditId(now: Date = new Date()): string {
-  const date = now.toISOString().slice(0, 10);
-  const rand = new Uint8Array(3);
-  crypto.getRandomValues(rand);
-  const hex = bufToHex(rand.buffer);
-  return `aud_${date}_${hex}`;
+export function generateAuditId(_now: Date = new Date()): string {
+  return `aud_${crypto.randomUUID()}`;
 }
 
 /**

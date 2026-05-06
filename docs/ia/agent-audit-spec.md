@@ -34,21 +34,26 @@ Max input size: 100 KB
   "agent_config": {
     "framework": "claude-code | cursor | agentkit | mastra | mcp-host | custom-py | custom-ts",
     "models_used": [
-      {"name": "claude-opus-4-7", "share_pct": 40, "default_effort": "high"},
-      {"name": "claude-sonnet-4-6", "share_pct": 40, "default_effort": "medium"},
-      {"name": "claude-haiku-4-5", "share_pct": 20, "default_effort": "low"}
+      { "name": "claude-opus-4-7", "share_pct": 40, "default_effort": "high" },
+      {
+        "name": "claude-sonnet-4-6",
+        "share_pct": 40,
+        "default_effort": "medium"
+      },
+      { "name": "claude-haiku-4-5", "share_pct": 20, "default_effort": "low" }
     ],
     "system_prompts": [
-      {"id": "main_orchestrator", "tokens": 1850, "cached": false},
-      {"id": "code_review_subagent", "tokens": 950, "cached": false}
+      { "id": "main_orchestrator", "tokens": 1850, "cached": false },
+      { "id": "code_review_subagent", "tokens": 950, "cached": false }
     ],
     "tools": [
-      {"name": "read_file", "description_tokens": 120},
-      {"name": "edit_file", "description_tokens": 540},
-      {"name": "search_web", "description_tokens": 720}
+      { "name": "read_file", "description_tokens": 120 },
+      { "name": "edit_file", "description_tokens": 540 },
+      { "name": "search_web", "description_tokens": 720 }
     ],
     "batch_eligible_workloads_pct": 30,
-    "request_pattern": "interactive | batch | mixed"
+    "request_pattern": "interactive | batch | mixed",
+    "monthly_volume_estimate": 10000000
   },
   "sample_traces": [
     {
@@ -60,20 +65,19 @@ Max input size: 100 KB
       "tool_calls_count": 2,
       "duration_ms": 4200
     }
-  ],
-  "monthly_volume_estimate": 10000000
+  ]
 }
 ```
 
 ### 2.1 Validation input (côté Worker, avant 402)
 
-| Champ | Validation | Action si invalide |
-|---|---|---|
-| `agent_config.models_used[].share_pct` | Somme = 100 ± 1 | HTTP 400 `INVALID_MODEL_SHARE` |
-| `monthly_volume_estimate` | Number > 0 | HTTP 400 `INVALID_VOLUME` |
-| `monthly_volume_estimate < 5_000_000` | Si oui → message warning dans 402 body | HTTP 402 avec `roi_warning: "audit recommended for agents > 5M tokens/month"` |
-| `sample_traces[].length` | Min 3, max 50 | HTTP 400 `SAMPLE_TRACES_OUT_OF_RANGE` |
-| Total payload size | <= 100 KB | HTTP 413 `PAYLOAD_TOO_LARGE` |
+| Champ                                              | Validation                             | Action si invalide                                                            |
+| -------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
+| `agent_config.models_used[].share_pct`             | Somme = 100 ± 1                        | HTTP 400 `INVALID_MODEL_SHARE`                                                |
+| `agent_config.monthly_volume_estimate`             | Number > 0                             | HTTP 400 `INVALID_VOLUME`                                                     |
+| `agent_config.monthly_volume_estimate < 5_000_000` | Si oui → message warning dans 402 body | HTTP 402 avec `roi_warning: "audit recommended for agents > 5M tokens/month"` |
+| `sample_traces[].length`                           | Min 3, max 50                          | HTTP 400 `SAMPLE_TRACES_OUT_OF_RANGE`                                         |
+| Total payload size                                 | <= 100 KB                              | HTTP 413 `PAYLOAD_TOO_LARGE`                                                  |
 
 ---
 
@@ -90,39 +94,42 @@ Max input size: 100 KB
     "tool_overhead": 14,
     "effort_calibration": 13
   },
-  "monthly_cost_current_usd": 90.20,
-  "monthly_cost_optimized_usd": 53.80,
+  "monthly_cost_current_usd": 90.2,
+  "monthly_cost_optimized_usd": 53.8,
   "savings_pct": 40.4,
-  "savings_usd_per_month": 36.40,
-  "annualized_savings_usd": 436.80,
+  "savings_usd_per_month": 36.4,
+  "annualized_savings_usd": 436.8,
   "recommendations": [
     {
       "id": "MODEL_DOWNGRADE_SIMPLE_TASKS",
       "severity": "high",
-      "delta_usd_month": 18.40,
+      "delta_usd_month": 18.4,
       "confidence": 0.85,
       "auto_applicable": true,
       "summary": "32% of your sample tasks classified 'simple' use Opus 4.7. Recommend Haiku 4.5 for these.",
       "evidence": {
         "matched_traces_count": 8,
-        "complexity_distribution": {"simple": 32, "medium": 41, "complex": 27}
+        "complexity_distribution": { "simple": 32, "medium": 41, "complex": 27 }
       },
       "patch": {
         "op": "modify_routing_rule",
         "rule_id": "default_model",
-        "from": {"task_complexity": "simple", "model": "claude-opus-4-7"},
-        "to": {"task_complexity": "simple", "model": "claude-haiku-4-5"}
+        "from": { "task_complexity": "simple", "model": "claude-opus-4-7" },
+        "to": { "task_complexity": "simple", "model": "claude-haiku-4-5" }
       }
     },
     {
       "id": "ENABLE_PROMPT_CACHING_SYSTEM_PROMPTS",
       "severity": "high",
-      "delta_usd_month": 12.50,
+      "delta_usd_month": 12.5,
       "confidence": 0.95,
       "auto_applicable": true,
       "summary": "2 system prompts > 1024 tokens are not cached. Anthropic prompt caching reduces cached input cost 90%.",
       "evidence": {
-        "uncached_prompts": [{"id": "main_orchestrator", "tokens": 1850}, {"id": "code_review_subagent", "tokens": 950}],
+        "uncached_prompts": [
+          { "id": "main_orchestrator", "tokens": 1850 },
+          { "id": "code_review_subagent", "tokens": 950 }
+        ],
         "estimated_cache_hit_rate": 0.78
       },
       "patch": {
@@ -134,11 +141,11 @@ Max input size: 100 KB
     {
       "id": "BATCH_PARALLELIZATION_ASYNC_WORKLOAD",
       "severity": "medium",
-      "delta_usd_month": 4.20,
-      "confidence": 0.70,
+      "delta_usd_month": 4.2,
+      "confidence": 0.7,
       "auto_applicable": false,
       "summary": "30% of workload tagged batch_eligible but uses interactive API. Anthropic Batch API = 50% off.",
-      "evidence": {"batch_eligible_pct": 30, "current_using_batch_pct": 0},
+      "evidence": { "batch_eligible_pct": 30, "current_using_batch_pct": 0 },
       "patch": {
         "op": "migrate_to_batch_api",
         "endpoint": "POST /v1/messages/batches",
@@ -149,11 +156,16 @@ Max input size: 100 KB
     {
       "id": "TOOL_DESCRIPTION_TRIMMING",
       "severity": "low",
-      "delta_usd_month": 0.80,
-      "confidence": 0.60,
+      "delta_usd_month": 0.8,
+      "confidence": 0.6,
       "auto_applicable": true,
       "summary": "Tool 'search_web' has 720 tokens of description. Recommend trim to <250 tokens.",
-      "evidence": {"tool": "search_web", "current_tokens": 720, "recommended_max": 250, "input_token_overhead_per_call": 720},
+      "evidence": {
+        "tool": "search_web",
+        "current_tokens": 720,
+        "recommended_max": 250,
+        "input_token_overhead_per_call": 720
+      },
       "patch": {
         "op": "trim_tool_description",
         "tool": "search_web",
@@ -165,14 +177,20 @@ Max input size: 100 KB
     {
       "id": "EFFORT_LEVEL_MISMATCH",
       "severity": "medium",
-      "delta_usd_month": 0.50,
+      "delta_usd_month": 0.5,
       "confidence": 0.65,
       "auto_applicable": true,
       "summary": "Opus 4.7 used with effort=high on 47% of simple tasks. Recommend effort=low for simple tasks.",
-      "evidence": {"opus_high_on_simple_pct": 47, "estimated_token_inflation_pct": 18},
+      "evidence": {
+        "opus_high_on_simple_pct": 47,
+        "estimated_token_inflation_pct": 18
+      },
       "patch": {
         "op": "set_effort_by_complexity",
-        "rules": [{"complexity": "simple", "effort": "low"}, {"complexity": "complex", "effort": "high"}]
+        "rules": [
+          { "complexity": "simple", "effort": "low" },
+          { "complexity": "complex", "effort": "high" }
+        ]
       }
     }
   ],
@@ -201,15 +219,16 @@ score = 100 - (
 )
 ```
 
-| Composante | Détection | Pénalité max |
-|---|---|---|
-| `model_efficiency_loss` | % tâches simples sur Opus + % tâches complexes sur Haiku | 30 |
-| `caching_loss` | system prompts > 1024 tokens non cachés × hit rate estimé | 15 |
-| `batching_loss` | `batch_eligible_pct` non utilisé via Batch API | 15 |
-| `tool_overhead_loss` | somme `description_tokens` > 1500 cumulés | 20 |
-| `effort_calibration_loss` | mismatch effort vs complexité (xhigh sur simple, low sur complex) | 20 |
+| Composante                | Détection                                                         | Pénalité max |
+| ------------------------- | ----------------------------------------------------------------- | ------------ |
+| `model_efficiency_loss`   | % tâches simples sur Opus + % tâches complexes sur Haiku          | 30           |
+| `caching_loss`            | system prompts > 1024 tokens non cachés × hit rate estimé         | 15           |
+| `batching_loss`           | `batch_eligible_pct` non utilisé via Batch API                    | 15           |
+| `tool_overhead_loss`      | somme `description_tokens` > 1500 cumulés                         | 20           |
+| `effort_calibration_loss` | mismatch effort vs complexité (xhigh sur simple, low sur complex) | 20           |
 
 **Interprétation score** :
+
 - 90-100 : agent quasi-optimal, audit peu rentable (refund 50% probable)
 - 70-89 : marges 10-20% possibles
 - 50-69 : marges 30-40% (zone target persona DevRefs)
@@ -222,6 +241,7 @@ score = 100 - (
 ### 5.1 Model downgrade par task complexity
 
 **Algo** :
+
 ```
 1. Pour chaque sample_trace, calculer complexity_score :
    - Heuristique : duration_ms < 2000 ET output_tokens < 500 ET tool_calls_count <= 2 → "simple"
@@ -237,6 +257,7 @@ score = 100 - (
 ### 5.2 Prompt caching activation
 
 **Algo** :
+
 ```
 1. Pour chaque system_prompt :
    - Si tokens > 1024 ET cached == false → candidate
@@ -252,6 +273,7 @@ score = 100 - (
 ### 5.3 Batch parallélisation
 
 **Algo** :
+
 ```
 1. Lire agent_config.batch_eligible_workloads_pct
 2. Si > 0 ET request_pattern != "batch" → opportunity
@@ -263,6 +285,7 @@ score = 100 - (
 ### 5.4 Tool description trimming
 
 **Algo** :
+
 ```
 1. Pour chaque tool dans agent_config.tools :
    - Si description_tokens > 250 → candidate
@@ -276,6 +299,7 @@ score = 100 - (
 ### 5.5 Effort level mismatch
 
 **Algo** :
+
 ```
 1. Pour chaque sample_trace :
    - Calculer complexity (cf. 5.1)
@@ -305,27 +329,28 @@ Worker handler:
 ```
 
 **Zéro dépendance externe runtime** :
+
 - Pas de LLM call
 - Pas de DB query (sauf KV pour validation paiement x402)
 - Pure analyse de l'input fourni par l'agent
 
 ### 6.2 Coût infra par audit
 
-| Ressource | Coût |
-|---|---|
-| CF Worker request (10 ms compute) | $0.000005 |
+| Ressource                         | Coût                     |
+| --------------------------------- | ------------------------ |
+| CF Worker request (10 ms compute) | $0.000005                |
 | CF Workers Analytics Engine event | $0 (free tier 100K/jour) |
-| KV read (validation x402) | $0 (free tier) |
-| Coinbase facilitator x402 fee | $0.00001 |
-| **Total infra par audit** | **~$0.00002** |
+| KV read (validation x402)         | $0 (free tier)           |
+| Coinbase facilitator x402 fee     | $0.00001                 |
+| **Total infra par audit**         | **~$0.00002**            |
 
 ### 6.3 Marge
 
-| Pricing | Coût | Marge brute |
-|---|---|---|
-| One-shot $9.99 | $0.00002 | **99.99998%** |
-| Pack Pro $49 / 6 audits = $8.17/audit | $0.00002 | 99.99975% |
-| Subscription $29/mois (illimité, cap 100/mois) | $0.002 | 99.99% |
+| Pricing                                        | Coût     | Marge brute   |
+| ---------------------------------------------- | -------- | ------------- |
+| One-shot $9.99                                 | $0.00002 | **99.99998%** |
+| Pack Pro $49 / 6 audits = $8.17/audit          | $0.00002 | 99.99975%     |
+| Subscription $29/mois (illimité, cap 100/mois) | $0.002   | 99.99%        |
 
 ### 6.4 Latence cible
 
@@ -339,13 +364,13 @@ Cohérent avec contrainte project-context.md "Latence endpoint cible < 200 ms p9
 
 ## 7. Évolutions V2 (out-of-scope V1)
 
-| Feature V2 | Raison report |
-|---|---|
-| 10+ heuristiques additionnelles (ex: PII detection in prompts, jailbreak risk) | Hypothèse non testée — V1 mesure si 5 heuristiques chiffrables suffisent |
-| Audit dynamique avec LLM-as-judge (audit IA utilisant un LLM) | Coûte ~$0.10-$0.50 par audit en tokens IA → casse la marge 99% |
-| Auto-apply patches via webhook agent | Hypothèse non testée — risque sécurité (l'agent doit valider ses patches manuellement) |
-| Comparaison historique (audit T+1 vs T) | Dépend retour utilisateur V1 (besoin de mémorisation cross-audit avec auth wallet) |
-| Multi-language support output (JA/ZH/ES) | Pas de signal demande V1 |
+| Feature V2                                                                     | Raison report                                                                          |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| 10+ heuristiques additionnelles (ex: PII detection in prompts, jailbreak risk) | Hypothèse non testée — V1 mesure si 5 heuristiques chiffrables suffisent               |
+| Audit dynamique avec LLM-as-judge (audit IA utilisant un LLM)                  | Coûte ~$0.10-$0.50 par audit en tokens IA → casse la marge 99%                         |
+| Auto-apply patches via webhook agent                                           | Hypothèse non testée — risque sécurité (l'agent doit valider ses patches manuellement) |
+| Comparaison historique (audit T+1 vs T)                                        | Dépend retour utilisateur V1 (besoin de mémorisation cross-audit avec auth wallet)     |
+| Multi-language support output (JA/ZH/ES)                                       | Pas de signal demande V1                                                               |
 
 ---
 

@@ -29,6 +29,35 @@
 <meta name="twitter:description" content="Know before you spend. Optimize after you ship." />
 <meta name="twitter:image" content="https://devrefs.dev/og/og-image.png" />
 
+<!-- JSON-LD Organization + WebSite (Fix 7 — signal SEO @geo) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://devrefs.dev/#organization",
+      "name": "DevRefs",
+      "url": "https://devrefs.dev/",
+      "description": "Cost intelligence for AI agents — pricing & SDK references API, x402-native.",
+      "sameAs": ["https://github.com/thomasissa-png/AI-agents-platform"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://devrefs.dev/#website",
+      "url": "https://devrefs.dev/",
+      "name": "DevRefs",
+      "publisher": { "@id": "https://devrefs.dev/#organization" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://devrefs.dev/llm-prices/?model={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+  ]
+}
+</script>
+
 <link rel="stylesheet" href="/styles/main.css" />
 </head>
 <body>
