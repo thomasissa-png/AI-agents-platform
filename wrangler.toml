@@ -158,5 +158,4 @@ command = "pnpm build"
 # CF Workers free : 100 000 req/jour, 10 ms CPU/req
 # ─────────────────────────────────────────────────────────────
 
-[limits]
-cpu_ms = 50
+# [limits] cpu_ms = 50  — non supporté sur Free plan, à réactiver après upgrade Workers Paid ($5/mois)
