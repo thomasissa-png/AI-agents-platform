@@ -1,0 +1,53 @@
+{
+  "name": "devrefs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DevRefs — Pricing & SDK references for AI agents (x402 native, Cloudflare Workers).",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "esbuild src/api/index.ts --bundle --format=esm --target=es2022 --platform=neutral --outfile=dist/worker.js --external:cloudflare:* --minify",
+    "lint": "eslint src --ext .ts --max-warnings 50",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"**/*.{ts,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md,yml}\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:unit": "vitest run --coverage",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:screenshots:update": "playwright test --update-snapshots",
+    "deploy:preview": "wrangler deploy --env preview",
+    "deploy:prod": "wrangler deploy --env production",
+    "kv:create:all": "wrangler kv:namespace create PRICES_KV && wrangler kv:namespace create SDK_KV && wrangler kv:namespace create PACK_KV && wrangler kv:namespace create AUDIT_METADATA_KV && wrangler kv:namespace create JWT_KV && wrangler kv:namespace create CRON_STATE_KV",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": ["eslint --fix --max-warnings 50"],
+    "*.{json,md,yml,yaml}": ["prettier --write"]
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260501.0",
+    "@playwright/test": "^1.45.0",
+    "@types/node": "^20.14.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.0",
+    "@typescript-eslint/parser": "^7.13.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "esbuild": "^0.21.5",
+    "eslint": "^9.5.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
+    "pixelmatch": "^6.0.0",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.3.2",
+    "typescript": "^5.5.2",
+    "vitest": "^1.6.0",
+    "wrangler": "^3.62.0"
+  }
+}

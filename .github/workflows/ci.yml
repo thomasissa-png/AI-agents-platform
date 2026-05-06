@@ -1,0 +1,185 @@
+# ci.yml — DevRefs V1
+# Source : qa-strategy.md §9 (process QA pre-commit + CI on PR + pre-deploy gate G26 BLOQUANT)
+# Choix retenu : GitHub Actions (anti-vendor lock-in, écosystème Playwright mature, gratuit privé 2000 min/mois)
+# Secrets GitHub repo requis (Settings → Secrets and variables → Actions) :
+#   - CLOUDFLARE_API_TOKEN     (scopes : Workers Scripts:Edit + KV:Edit + Pages:Edit + Account Analytics:Read)
+#   - CLOUDFLARE_ACCOUNT_ID    (visible CF dashboard → URL ou Worker Overview)
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: ["claude/**", main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9"
+
+jobs:
+  # ─────────────────────────────────────────────────────────
+  # 1. Lint + typecheck + tests unitaires/intégration (rapide ~3 min)
+  # ─────────────────────────────────────────────────────────
+  lint-test:
+    name: Lint + Typecheck + Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+      - name: Install (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm tsc --noEmit
+      - name: Lint
+        run: pnpm lint --max-warnings 50
+      - name: Unit tests
+        run: pnpm test:unit
+      - name: Integration tests
+        run: pnpm test:integration
+      - name: npm audit (high+ critical)
+        run: pnpm audit --audit-level=high || true
+      - name: Grep G15 placeholders
+        run: |
+          if grep -rn "TODO_BLOCKING\|FIXME_RELEASE\|XXX_PROD" src/ 2>/dev/null; then
+            echo "::error::G15 — placeholder bloquant détecté"; exit 1
+          fi
+
+  # ─────────────────────────────────────────────────────────
+  # 2. E2E Playwright multi-device + screenshots diff (G26 BLOQUANT)
+  # ─────────────────────────────────────────────────────────
+  e2e:
+    name: E2E Playwright + Screenshots
+    needs: lint-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps ${{ matrix.project }}
+      - name: Build Worker
+        run: pnpm build
+      - name: E2E + screenshots (3 viewports 375/768/1280)
+        run: pnpm test:e2e --project=${{ matrix.project }}
+        env:
+          PIXELMATCH_THRESHOLD: "100" # G26 BLOQUANT — fail si > 100 pixels diff sur 1280×720
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 7
+      - name: Upload screenshot diffs (failure only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-diffs-${{ matrix.project }}
+          path: tests/screenshots/diff/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────
+  # 3. Build artefact (sanity check — pas de deploy ici)
+  # Note : Cloudflare Workers est déployé via Cloudflare Pages Git-integration
+  # OU via wrangler deploy en post-merge manuel/automatisé selon préférence Thomas.
+  # Ce job valide uniquement que le bundle Worker est produit sans erreur.
+  # ─────────────────────────────────────────────────────────
+  build:
+    name: Build (Worker bundle)
+    needs: lint-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: "${{ env.PNPM_VERSION }}" }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - name: Build esbuild bundle
+        run: pnpm build
+      - name: Bundle size guard (< 1 MB)
+        run: |
+          SIZE=$(stat -c%s dist/worker.js)
+          echo "Worker bundle size : $SIZE bytes"
+          if [ "$SIZE" -gt 1048576 ]; then
+            echo "::error::Bundle > 1 MB — CF Workers free tier limit"; exit 1
+          fi
+
+  # ─────────────────────────────────────────────────────────
+  # 4. Deploy preview (push branche claude/**) — G26 doit passer
+  # ─────────────────────────────────────────────────────────
+  deploy-preview:
+    name: Deploy preview (Cloudflare)
+    needs: [lint-test, e2e, build]
+    if: startsWith(github.ref, 'refs/heads/claude/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: "${{ env.PNPM_VERSION }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: "pnpm" }
+      - run: pnpm install --frozen-lockfile
+      - name: Wrangler deploy preview
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env preview
+      - name: Comment PR with preview URL
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            Preview deployed : https://devrefs-api-preview.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev
+
+  # ─────────────────────────────────────────────────────────
+  # 5. Deploy prod (merge main) — gate G26 BLOQUANT déjà validé par needs
+  # ─────────────────────────────────────────────────────────
+  deploy-prod:
+    name: Deploy production (Cloudflare)
+    needs: [lint-test, e2e, build]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: "${{ env.PNPM_VERSION }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: "pnpm" }
+      - run: pnpm install --frozen-lockfile
+      - name: Wrangler deploy production
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env production

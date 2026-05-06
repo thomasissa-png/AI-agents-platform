@@ -1,0 +1,108 @@
+# wrangler.toml — DevRefs V1
+# Source : functional-specs.md §3 (KV), §4 (crons), §5 (env vars)
+#
+# SECRETS (7) à configurer post-merge via `wrangler secret put NAME` :
+#   - COINBASE_X402_FACILITATOR_KEY  (auth API Coinbase facilitator)
+#   - DEVREFS_TREASURY_WALLET        (adresse wallet reception USDC Base)
+#   - HMAC_SECRET_KEY                (signature watermark _signature + audit_id)
+#   - STRIPE_SECRET_KEY              (top-up sponsor)
+#   - STRIPE_WEBHOOK_SECRET          (validation webhooks Stripe)
+#   - INDEXNOW_API_KEY               (push Bing IndexNow post-cron)
+#   - JWT_SECRET                     (HMAC JWT sponsor dashboard 24 h)
+# Ne JAMAIS committer ces valeurs. cf. README §5.
+
+name = "devrefs-api"
+main = "src/api/index.ts"
+compatibility_date = "2026-05-05"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+
+# ─────────────────────────────────────────────────────────────
+# KV namespaces (6) — IDs à remplir après création CF
+# Run: wrangler kv:namespace create <NAME>  (×6)
+# ─────────────────────────────────────────────────────────────
+
+[[kv_namespaces]]
+binding = "PRICES_KV"
+id = "TODO_RUN: wrangler kv:namespace create PRICES_KV"
+
+[[kv_namespaces]]
+binding = "SDK_KV"
+id = "TODO_RUN: wrangler kv:namespace create SDK_KV"
+
+[[kv_namespaces]]
+binding = "PACK_KV"
+id = "TODO_RUN: wrangler kv:namespace create PACK_KV"
+
+[[kv_namespaces]]
+binding = "AUDIT_METADATA_KV"
+id = "TODO_RUN: wrangler kv:namespace create AUDIT_METADATA_KV"
+
+[[kv_namespaces]]
+binding = "JWT_KV"
+id = "TODO_RUN: wrangler kv:namespace create JWT_KV"
+
+[[kv_namespaces]]
+binding = "CRON_STATE_KV"
+id = "TODO_RUN: wrangler kv:namespace create CRON_STATE_KV"
+
+# ─────────────────────────────────────────────────────────────
+# Analytics Engine — events DevRefs (zéro PII, cf. tracking-plan v2)
+# ─────────────────────────────────────────────────────────────
+
+[[analytics_engine_datasets]]
+binding = "DEVREFS_AE"
+dataset = "devrefs_events"
+
+# ─────────────────────────────────────────────────────────────
+# Vars publiques non-secrètes
+# ─────────────────────────────────────────────────────────────
+
+[vars]
+PUBLIC_ENV = "production"
+DEVREFS_VERSION = "0.1.0"
+INDEXNOW_HOST = "devrefs.dev"
+
+# ─────────────────────────────────────────────────────────────
+# Cron Triggers (5 jobs) — fréquences UTC, cf. functional-specs §4
+# Service séparé déployé via wrangler-cron.toml ou même worker selon archi finale.
+# Ici déclaration sur worker principal — handler exporté default.scheduled().
+# ─────────────────────────────────────────────────────────────
+
+[triggers]
+crons = [
+  "0 */6 * * *",      # cron-prices-update — toutes les 6h
+  "0 3 * * *",        # cron-sdk-update — 1× /jour 03h00 UTC
+  "5 */6 * * *",      # cron-indexnow-push — 5 min après prices-update
+  "0 0 * * *",        # cron-pack-expiry-check — 1× /jour 00h00 UTC
+  "*/15 * * * *"      # cron-cron-health-check — watchdog 15 min
+]
+
+# ─────────────────────────────────────────────────────────────
+# Environnements (preview / production)
+# ─────────────────────────────────────────────────────────────
+
+[env.preview]
+name = "devrefs-api-preview"
+vars = { PUBLIC_ENV = "preview", DEVREFS_VERSION = "0.1.0-preview", INDEXNOW_HOST = "preview.devrefs.dev" }
+# KV bindings hérités via override post-création (mêmes namespaces ou dédiés preview).
+
+[env.production]
+name = "devrefs-api"
+route = { pattern = "devrefs.dev/api/*", zone_name = "devrefs.dev" }
+vars = { PUBLIC_ENV = "production", DEVREFS_VERSION = "0.1.0", INDEXNOW_HOST = "devrefs.dev" }
+
+# ─────────────────────────────────────────────────────────────
+# Build (esbuild bundle Worker) — pas de Next.js (HTML statique + Workers TS)
+# ─────────────────────────────────────────────────────────────
+
+[build]
+command = "pnpm build"
+
+# ─────────────────────────────────────────────────────────────
+# Limits (free tier guard — cf. functional-specs §5.3)
+# CF Workers free : 100 000 req/jour, 10 ms CPU/req
+# ─────────────────────────────────────────────────────────────
+
+[limits]
+cpu_ms = 50

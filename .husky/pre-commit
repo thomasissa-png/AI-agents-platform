@@ -1,0 +1,31 @@
+#!/usr/bin/env sh
+# Pre-commit guard — DevRefs (CLAUDE.md cmd 6 adapté CF Workers + esbuild)
+# Source : qa-strategy.md §9.1 (pre-commit Husky + lint-staged)
+# Refus commit si exit != 0.
+
+# 1. TypeScript check (rapide, ~3-5 s)
+pnpm tsc --noEmit || {
+  echo "Pre-commit FAIL — tsc errors"; exit 1;
+}
+
+# 2. ESLint sur fichiers staged (lint-staged — rapide)
+pnpm lint-staged || {
+  echo "Pre-commit FAIL — lint-staged errors"; exit 1;
+}
+
+# 3. Build check Worker (esbuild bundle — ~2-3 s)
+pnpm build || {
+  echo "Pre-commit FAIL — build errors"; exit 1;
+}
+
+# 4. Vitest sur fichiers changés (rapide, skip si pas de test impacté)
+pnpm vitest run --changed --passWithNoTests || {
+  echo "Pre-commit FAIL — unit tests"; exit 1;
+}
+
+# 5. Grep G15 — placeholders bloquants (cf. _gates.md G15)
+if grep -rn "TODO_BLOCKING\|FIXME_RELEASE\|XXX_PROD" src/ 2>/dev/null; then
+  echo "Pre-commit FAIL — G15 placeholder bloquant detected"; exit 1
+fi
+
+exit 0

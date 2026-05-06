@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build artefacts
+dist/
+.wrangler/
+*.tsbuildinfo
+
+# Env vars (jamais committés — voir wrangler.toml + REPLIT_ACTIONS.md)
+.env
+.env.*
+!.env.example
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Husky generated
+.husky/_/
+
+# Tests — Playwright
+playwright-report/
+test-results/
+tests/screenshots/diff/
+tests/screenshots/actual/
+# Note : tests/screenshots/baseline/ EST committé (référentiel G26)
+
+# Coverage
+coverage/
+*.lcov
+
+# Misc
+.cache/
+.temp/
