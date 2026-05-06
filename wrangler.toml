@@ -24,27 +24,27 @@ workers_dev = false
 
 [[kv_namespaces]]
 binding = "PRICES_KV"
-id = "TODO_RUN: wrangler kv:namespace create PRICES_KV"
+id = "23cce3ff6b8d42d29b9c5a7087609790"
 
 [[kv_namespaces]]
 binding = "SDK_KV"
-id = "TODO_RUN: wrangler kv:namespace create SDK_KV"
+id = "de1642574d0f4ecbad6649f913617ec5"
 
 [[kv_namespaces]]
 binding = "PACK_KV"
-id = "TODO_RUN: wrangler kv:namespace create PACK_KV"
+id = "3eca2653b1644ed2851b3cd839b9efb7"
 
 [[kv_namespaces]]
 binding = "AUDIT_METADATA_KV"
-id = "TODO_RUN: wrangler kv:namespace create AUDIT_METADATA_KV"
+id = "d36da5f2ed734a188bf3c58aeba97517"
 
 [[kv_namespaces]]
 binding = "JWT_KV"
-id = "TODO_RUN: wrangler kv:namespace create JWT_KV"
+id = "7a09074247bf488a828bb06a7d4ec3ee"
 
 [[kv_namespaces]]
 binding = "CRON_STATE_KV"
-id = "TODO_RUN: wrangler kv:namespace create CRON_STATE_KV"
+id = "66ce89294a5a4d5f8b6ad6b55bbaec55"
 
 # ─────────────────────────────────────────────────────────────
 # Analytics Engine — events DevRefs (zéro PII, cf. tracking-plan v2)
