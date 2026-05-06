@@ -204,11 +204,87 @@ Lis project-context.md et docs/orchestration-plan.md, continue où on s'est arr�
 
 ---
 
-## 📋 MEMO DE REPRISE — Prochaine session (Session 5 — Coinbase + Stripe + Phase 3 visibilité)
+## 📋 MEMO DE REPRISE — Prochaine session (Session 6 — Phase 4 acquisition + closing actions Thomas)
 
-**Numéro de session prochaine** : Session 5 du projet DevRefs.
+**Numéro de session prochaine** : Session 6 du projet DevRefs.
 
-**Statut au 2026-05-06 (fin session 4 — déploiement live + sub-phase 2c testeur PASS)** :
+**Statut au 2026-05-06 (fin session 5 — Coinbase + Stripe configurés + Phase 3 visibilité COMPLET)** :
+
+**Stack live functional** :
+
+- Worker API : `https://devrefs-api-preview.thomas-issa.workers.dev` — endpoints monétisés actifs, 6 secrets configurés (HMAC, JWT, INDEXNOW, ADMIN_EMAIL, COINBASE x2, STRIPE x2)
+- Frontend Pages : `https://preview.devrefs-frontend.pages.dev/` — landing 7 sections + paywall + dashboard + /llm-prices
+- KV seedés : 12 modèles PRICES_KV + 7 SDK_KV
+- Sub-phase 2c : 8/8 PASS gates exécutables (testeur-agent-ia GP1-GP8)
+- Sub-phase 2d : 5/10 PASS, 0 FAIL, 5 SKIP justifiés (testeur-sponsor-humain GC1/GC2/GC3/GC3bis/GC5/GC8)
+- Stripe Checkout dynamique fonctionnel : `cs_test_a1keXIpJt...` créé en live
+
+**Phase 3 visibilité COMPLET** :
+
+- @seo : `docs/seo/seo-audit.md` (453L) — 5 priorités identifiées (duplicate meta, IndexNow, Organization JSON-LD, og/twitter desc, dateModified hardcodé) + 12 actions concrètes (~45 min)
+- @geo : `docs/geo/geo-strategy.md` (312L) — 5 stratégies citations LLM + 10 prompts test + KPI cible M+1 ≥ 1 / M+3 ≥ 5 / M+6 ≥ 30
+- @copywriter : 3 articles prêts à publier (`docs/marketing/posts/`)
+  - dev-to-1-x402-tutorial.md (183L, ~1100 mots) — tutorial 5 min intégration
+  - dev-to-2-ai-sdk-fresh.md (159L, ~1200 mots) — freshness AI SDK breaking changes
+  - reddit-claude-ai.md (79L, ~700 mots) — case study weekend project
+
+**Plan publication suggéré** : J0 article 1 Dev.to + J+3 article 2 Dev.to + J+7 post Reddit r/ClaudeAI.
+
+**À faire en SESSION 6** :
+
+### Étape 1 — Closing actions Thomas restantes (en parallèle, ~45 min)
+
+1. **Achat domaine `devrefs.dev`** (~$15/an Cloudflare Registrar) → permet de retirer "preview" partout + activer route prod + Search Console + Bing Webmaster Tools
+2. **Configuration DKIM/SPF DNS Mailchannels** (action documentée REPLIT_ACTIONS.md §C) → débloque GC4/GC7 (emails sponsor) + alertes admin Mailchannels
+3. **Immatriculation auto-entreprise BNC URSSAF** (P0 legal-audit, délai 7-14j) → bloquant 1ère vraie tx prod
+4. **Token CF élargi avec scope Account Analytics: Read** → permet de réactiver Analytics Engine
+5. **Publier les 3 articles selon plan J0/J+3/J+7** (Thomas valide les jours)
+6. **Soumettre HuggingFace dataset "LLM Pricing 2026 Daily"** (action GEO §3) — impact citations Perplexity J+14
+7. **Awesome list GitHub PR** (awesome-llm-pricing, awesome-x402) — effort 1h, impact immédiat
+
+### Étape 2 — 5 fixes mineurs @fullstack (1 Task)
+
+Issues Phase 2 + Phase 3 à corriger avant prod :
+
+- \_audit_id format `aud_YYYY-MM-DD_HHMMSS` vs spec UUID v4 (testeur GP8)
+- freshness_proof absent body 402 audit (testeur GP8)
+- roi_multiplier: 0 dans 402 audit (calc vs Opus < $9.99)
+- GP10 message erreur pack exhausted = `invalid_signature` au lieu de `Pack expired`
+- monthly_volume_estimate placement spec root vs agent_config
+- dateModified hardcodé /llm-prices (signal SEO @seo + GEO @geo) — injection dynamique depuis KV
+- Duplicate meta description landing/llm-prices (signal SEO CRITIQUE)
+- Organization + WebSite JSON-LD absents landing (signal SEO HAUTE)
+- og/twitter description absents /llm-prices (signal SEO HAUTE)
+- llms.txt enrichissement ROI 490× + Key Concepts (signal GEO §5.2)
+
+### Étape 3 — Phase 4 acquisition (4-5 Tasks)
+
+- @growth : funnel acquisition AARRR adapté B2A + boucles virales agents IA (HuggingFace dataset → cite DevRefs → adopt)
+- @social : calendrier social media X.com / BlueSky 5-10 posts/mois fact-based + thread Twitter narrant le pivot 100% B2A
+- @sales-enablement : ROI calculator embeddable + onboarding agent IA (snippet-by-snippet pour 6 agents : Claude Code, Cursor, AgentKit, Mastra, MCP-host, SDK custom)
+- @data-analyst : dashboard live monitoring Phase 4 (revenue NET, citations LLM, conversion landing→paywall→Stripe)
+- @copywriter Phase 4 (optionnel) : variantes A/B test si conv < 2% sur Phase 3 articles
+
+### Étape 4 — Sub-phase 2c bis : tester GP9/GP10 sur paiements x402 réels
+
+Post-Coinbase production setup → re-lancer @testeur-agent-ia pour pack purchase + quota consumption flow réel.
+
+**Sessions 7+ prévues** :
+
+- Session 7 : Phase 5 audit & lancement (@reviewer + @qa final + checklist GO/NO-GO + @infrastructure monitoring post-launch)
+- Si plusieurs domaines à finaliser, session 8 : finalisation V1 production + 1ère vraie tx + ouvert au public
+
+**Compteur session 5 final** : 7 actions effectives (2 secrets Coinbase + 2 secrets Stripe + Sub-phase 2d testeur + 3 livrables Phase 3 visibilité + 1 fix Worker subdomain réactivé).
+
+**⚠️ Sécurité** : Thomas peut maintenant **révoquer le token CF API** partagé en sessions 4+5 (`cfut_IjECKvFNAjD...`) après vérification que le déploiement preview tourne. Créer un nouveau token avec scope étendu pour session 6 + remplacer GitHub Secret.
+
+---
+
+## 📋 MEMO ARCHIVÉ — Session 5 (Coinbase + Stripe + Phase 3) — clos 2026-05-06
+
+> Session 5 a livré : configuration Coinbase + Stripe en preview + sub-phase 2d testeur sponsor 5/10 PASS + Phase 3 visibilité complète (@seo + @geo + 3 articles @copywriter prêts à publier). Reste pour session 6 : closing actions Thomas (domaine, DKIM, immatriculation, publications) + 5 fixes mineurs @fullstack + Phase 4 acquisition.
+
+**Statut au 2026-05-06 initial (fin session 4 — déploiement live + sub-phase 2c testeur PASS)** :
 
 - **Worker preview** : `https://devrefs-api-preview.thomas-issa.workers.dev` — 12 modèles + 7 SDKs seedés, 4 secrets configurés (HMAC, JWT, INDEXNOW, ADMIN_ALERT_EMAIL), HMAC signature live + JSON-LD Dataset
 - **Frontend Pages preview** : `https://preview.devrefs-frontend.pages.dev/` — landing 16.6 KB + paywall 3 checkboxes L.221-28 + dashboard sponsor + /llm-prices SEO + llms.txt + robots/sitemap/openapi
