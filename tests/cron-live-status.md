@@ -6,22 +6,19 @@
 
 ## Résultats par cron (5 jobs configurés dans `wrangler.toml`)
 
-| Cron                     | Schedule                                  | Dernière exec              | Delta vs now | Verdict                                                                                                                                |
-| ------------------------ | ----------------------------------------- | -------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `cron-prices-update`     | `0 */6 * * *` (toutes les 6h)             | `2026-05-06T18:00:39.884Z` | 103 s        | **PASS**                                                                                                                               |
-| `cron-cron-health-check` | `*/15 * * * *` (toutes les 15 min)        | `2026-05-06T18:00:32.000Z` | 110 s        | **PASS**                                                                                                                               |
-| `cron-sdk-update`        | `0 3 * * *` (1×/jour 03:00 UTC)           | `null` (clé absente)       | n/a          | **SKIP** — n'a pas encore atteint sa fenêtre de run depuis le 1er deploy                                                               |
-| `cron-indexnow-push`     | `5 */6 * * *` (5 min après prices-update) | `null` (clé absente)       | n/a          | **FAIL** — devrait avoir tourné à 18:05 UTC mais le run précédent (12:05) n'a laissé aucune trace KV. Voir signaux d'alerte ci-dessous |
-| `cron-pack-expiry-check` | `0 0 * * *` (1×/jour 00:00 UTC)           | `null` (clé absente)       | n/a          | **SKIP** — fenêtre 00:00 UTC pas atteinte depuis le 1er deploy (déployé après 00:00)                                                   |
+| Cron                     | Schedule                                  | Dernière exec              | Delta vs now | Verdict                                                                                                                                                                                                                                                                                                                 |
+| ------------------------ | ----------------------------------------- | -------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cron-prices-update`     | `0 */6 * * *` (toutes les 6h)             | `2026-05-06T18:00:39.884Z` | 103 s        | **PASS**                                                                                                                                                                                                                                                                                                                |
+| `cron-cron-health-check` | `*/15 * * * *` (toutes les 15 min)        | `2026-05-06T18:00:32.000Z` | 110 s        | **PASS**                                                                                                                                                                                                                                                                                                                |
+| `cron-sdk-update`        | `0 3 * * *` (1×/jour 03:00 UTC)           | `null` (clé absente)       | n/a          | **SKIP** — n'a pas encore atteint sa fenêtre de run depuis le 1er deploy                                                                                                                                                                                                                                                |
+| `cron-indexnow-push`     | `5 */6 * * *` (5 min après prices-update) | `null` (clé absente)       | n/a          | **FIXED 2026-05-07** (@fullstack) — handler ne persistait pas `last_run` dans `CRON_STATE_KV`. Patch : ajout `env.CRON_STATE_KV.put(KV_KEYS.cronLastRun("indexnow-push"), ...)` en fin de run (succès + erreurs partielles + early return missing_api_key). À revérifier après prochaine fenêtre cron post-déploiement. |
+| `cron-pack-expiry-check` | `0 0 * * *` (1×/jour 00:00 UTC)           | `null` (clé absente)       | n/a          | **SKIP** — fenêtre 00:00 UTC pas atteinte depuis le 1er deploy (déployé après 00:00)                                                                                                                                                                                                                                    |
 
 ## Synthèse
 
 - **2/5 PASS** (prices-update, cron-health-check) — les crons fréquents tournent bien
-- **2/5 SKIP** légitimes (sdk-update, pack-expiry-check) — fenêtres journalières pas encore atteintes depuis le 1er deploy. À revérifier dans 24h
-- **1/5 FAIL potentiel** (indexnow-push) — clé KV absente alors qu'au moins une fenêtre 12:05/18:05 aurait dû passer. Trois hypothèses :
-  1. Le handler `cron-indexnow-push` ne persiste pas son `last_run` dans KV (bug d'écriture)
-  2. Le cron était bien déclaré mais a échoué silencieusement (à confirmer via `wrangler tail`)
-  3. Le 1er deploy est postérieur à 18:00 UTC — mais alors `prices-update` aurait dû ne pas avoir tourné non plus, donc improbable
+- **2/5 SKIP** légitimes (sdk-update, pack-expiry-check) — fenêtres journalières pas encore atteintes depuis le 1er deploy. Code vérifié 2026-05-07 (@fullstack) : les deux persistent bien `cron:{job}:last_run` en KV (sdk-update.ts L76-80, pack-expiry-check.ts L94-98). À revérifier en KV après leur prochaine fenêtre 24h.
+- **1/5 FIXED** (indexnow-push, 2026-05-07 @fullstack) — hypothèse 1 confirmée : le handler n'appelait jamais `CRON_STATE_KV.put`. Patch livré : ajout interface `CRON_STATE_KV?: KVNamespace`, helper `persistLastRun()` invoqué en fin de run (succès, catch, et early return `missing_api_key`). À revérifier après redéploiement prod + prochaine fenêtre 6h.
 
 ## Signaux d'alerte → @fullstack
 
