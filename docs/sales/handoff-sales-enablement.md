@@ -51,7 +51,7 @@
 | 50-70%                                           | Friction à identifier (quel step abandonne ?) | A/B test sur le step incriminé  |
 | < 50%                                            | Problème structurel                           | Réécriture complète du tutoriel |
 
-**Mesure** : CF Analytics events `onboarding_{agent}_step_{N}_completed` (à implémenter via JavaScript snippet dans la page de doc — handoff @fullstack).
+**Mesure V1** : taux de complétion suivi manuellement (Thomas lit les premiers feedbacks sponsor J7-J14). Events CF Analytics `onboarding_{agent}_step_{N}_completed` retirés du scope V1 (cf. tracking-plan.md § 2.5b — retirés : hors North Star funnel agent, effort JS disproportionné) — à reconsidérer V2.
 
 ### Time-to-1st-payment
 
@@ -106,8 +106,8 @@ Owner : @copywriter + @growth (A/B test setup).
 - [ ] Implémenter le ROI calculator widget selon `roi-calculator-spec.md`
   - Fichiers : `public/roi-calculator.ts` + bundle `public/roi-calculator.min.js`
   - CDN path : `https://devrefs.dev/roi-calculator.min.js`
-  - Events CF Analytics : `roi_calculator_viewed`, `roi_calculator_interacted`, `roi_calculator_cta_clicked`
-- [ ] Ajouter les events CF Analytics onboarding (optionnel V1) : `onboarding_{agent}_step_{N}_completed`
+  - Events CF Analytics : `roi_calculator_viewed`, `roi_calculator_interacted`, `roi_calculator_cta_clicked` (canonisés tracking-plan.md § 2.5c)
+- [ ] Events CF Analytics onboarding `onboarding_{agent}_step_{N}_completed` : NON implémentés V1 (retirés du scope — tracking sponsor humain hors North Star funnel agent, effort JS disproportionné). À reconsidérer V2 si taux complétion onboarding devient KPI prioritaire.
 - [ ] Vérifier que `POST /api/pack/purchase` (mentionné dans les tutoriels) est implémenté — sinon retirer la mention ou remplacer par le lien vers la page d'achat
 
 ### @growth

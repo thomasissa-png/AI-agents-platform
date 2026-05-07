@@ -7,7 +7,7 @@
 - Chaque template est un squelette. Remplacer les `[VARIABLE]` par des données réelles sourcées.
 - Avant d'utiliser : vérifier le registre anti-répétition du calendrier éditorial (même angle = rejet).
 - Toute `[VARIABLE chiffre]` doit citer sa source (cf. colonne "Source" du calendrier éditorial).
-- Aucun template ne contient de feature hors `v1-scope.md` (26 features V1 uniquement).
+- Aucun template ne contient de feature hors `v1-scope.md` (30 features V1 uniquement).
 - Anti-mots proscrits dans tous les templates : Exhaustif, Narratif, Stable, Humain-first, dashboard, subscription, unlimited, équipe, collaborateur.
 
 ---

@@ -16,7 +16,7 @@ Widget JavaScript embeddable (< 8 KB gzippé, zéro dépendance) qui calcule en 
 ### 1.1 Contraintes non négociables
 
 - **Calcul client-side strict** : zéro fetch réseau pendant le calcul. L'utilisateur ajuste les sliders → résultat instantané (< 16 ms).
-- **Zéro PII** : pas de `localStorage`, pas de cookie, pas d'event de tracking avec les valeurs des inputs (CF Analytics reçoit uniquement `roi_calculator_viewed` et `roi_calculator_cta_clicked` — aucune valeur numérique).
+- **Zéro PII** : pas de `localStorage`, pas de cookie, pas d'event de tracking avec les valeurs des inputs (CF Analytics reçoit uniquement `roi_calculator_viewed`, `roi_calculator_interacted` et `roi_calculator_cta_clicked` — aucune valeur numérique, cf. tracking-plan.md § 2.5c).
 - **Poids total widget** : < 8 KB gzippé JS + CSS inline. Pas de framework. Vanilla TS compilé.
 - **Embeddable** : un `<script>` tag + un `<div id="devrefs-roi-calc">` suffisent. Compatible iframes.
 - **Responsive** : fonctionne de 320 px (mobile) à 1440 px (desktop). Pas de breakpoints complexes — flexbox simple.

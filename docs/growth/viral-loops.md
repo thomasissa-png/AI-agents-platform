@@ -250,7 +250,7 @@ X.com/BlueSky = 3 signaux de fraîcheur entité "DevRefs" pour Perplexity/Claude
 
 - `landing_page_view WHERE referrer_bucket = devto` (CF AE)
 - Citations Perplexity/Claude/ChatGPT sur "LLM pricing 2026" (test manuel hebdomadaire)
-- Fetches `devrefs.dev/data/monthly-report-*.json` (CF AE `data_report_fetched`)
+- Fetches `devrefs.dev/data/monthly-report-*.json` (monitoring CF AE `crawl_*` — endpoint V2 backlog, non tracké séparément en V1)
 
 ---
 

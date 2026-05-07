@@ -132,15 +132,15 @@ de 402 → il continue à appeler sans friction. Le pack lui-même est un mécan
 
 ### 3.3 KPIs Rétention
 
-| KPI                                       | Formule CF AE                                                             | Cible M+1 | Cible M+6 |
-| ----------------------------------------- | ------------------------------------------------------------------------- | --------- | --------- |
-| Wallets récurrents (>= 2 paiements en 7j) | `COUNT(DISTINCT wallet_hash) >= 2 payments trailing_7d`                   | >= 3      | >= 30     |
-| Packs rechargés (2e pack même wallet)     | `pack_purchased WHERE wallet_hash_count > 1` / `DISTINCT wallet_hash`     | —         | >= 20 %   |
-| Audits récurrents (2e audit même wallet)  | `audit_paid_x402 WHERE prev_audit_wallet = true` / `DISTINCT wallet_hash` | —         | >= 10 %   |
-| Pack consumption rate                     | `AVG(pack_calls_used / pack_quota_total)`                                 | >= 40 %   | >= 60 %   |
+| KPI                                       | Formule CF AE                                                                                               | Cible M+1 | Cible M+6 |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------- | --------- |
+| Wallets récurrents (>= 2 paiements en 7j) | `COUNT(DISTINCT wallet_hash) >= 2 payments trailing_7d`                                                     | >= 3      | >= 30     |
+| Packs rechargés (2e pack même wallet)     | `pack_purchased WHERE wallet_hash_count > 1` / `DISTINCT wallet_hash`                                       | —         | >= 20 %   |
+| Audits récurrents (2e audit même wallet)  | `COUNT(audit_paid_x402) > 1 GROUP BY wallet_hash` / `COUNT(DISTINCT wallet_hash)`                           | —         | >= 10 %   |
+| Pack consumption rate                     | `AVG(pack_quota_consumed.quota_pct_used)` GROUP BY pack_type (depuis propriété `quota_pct_used` de l'event) | >= 40 %   | >= 60 %   |
 
-**Events tracking-plan.md** : `pack_quota_exhausted`, `pack_calls_used`, `audit_paid_x402`
-avec flag `prev_audit_wallet`.
+**Events tracking-plan.md** : `pack_quota_exhausted`, `pack_quota_consumed`, `audit_paid_x402`.
+Note : le filtre "2e audit même wallet" est calculé en SQL CF AE sur `wallet_hash` — pas une propriété event distincte.
 
 ---
 
@@ -224,7 +224,7 @@ avec `amount_usdc`, `pack_type`, `offer_type`.
 | `landing_cta_curl_copied`        | Activation           | Sponsor | Click "Copy curl"                    |
 | `sponsor_topup_stripe_initiated` | Activation           | Sponsor | Click Stripe top-up                  |
 | `sponsor_topup_stripe_completed` | Activation           | Sponsor | Stripe webhook paid                  |
-| `pack_calls_used`                | Rétention            | Agent   | Call avec pack actif                 |
+| `pack_quota_consumed`            | Rétention            | Agent   | Call avec pack actif                 |
 | `pack_quota_exhausted`           | Rétention            | Agent   | Quota pack = 0                       |
 | `audit_savings_realized`         | Rétention            | Agent   | J+30 post-audit (webhook ou re-call) |
 

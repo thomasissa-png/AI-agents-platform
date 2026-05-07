@@ -5,9 +5,9 @@
 ## Résumé exécutif
 
 - **Format** : template allégé Phase 0 (specs complètes en Phase 1 functional-specs).
-- **20 user stories V1** : US-01 à US-15 (conservées + mises à jour pivot) + US-16 à US-20 (audit endpoint, nouvelles v2).
+- **21 user stories V1** : US-01 à US-15 (conservées + mises à jour pivot) + US-16 à US-20 (audit endpoint, nouvelles v2) + US-08c (endpoint achat pack, officialisation 2026-05-07).
 - **Ajout v2** : US-16 à US-20 couvrent le 3e endpoint `/api/agent-audit` (parcours complet agent).
-- **Ajout v2** : US-08b (Pack pré-payé KV quota lookup) + US-10b (sponsor wallet top-up) remplacent le persona Stripe humain pilier.
+- **Ajout v2** : US-08b (Pack pré-payé KV quota lookup) + US-08c (route d'achat `POST /api/pack/purchase`) + US-10b (sponsor wallet top-up) remplacent le persona Stripe humain pilier.
 - **Persona principal** : agent IA autonome (US-01 à US-08, US-08b, US-16 à US-20).
 - **Persona secondaire** : dev humain SPONSOR wallet (US-09, US-10b, US-11 à US-15) — plus "dev humain payeur Stripe 4,99 €/jour".
 - **V4 verbatim archivé** : le scenario "dev qui paie 4,99 €/jour Stripe Link" est retiré des critères d'acceptance (pivot v2). Remplacé par scenario "sponsor top-up wallet USDC Base".
@@ -23,7 +23,7 @@
 - **Persona** : agent IA OU dev humain sponsor wallet
 - **JTBD** : job-to-be-done référencé depuis personas.md v2
 - **Opportunité** : O1-O5 du discovery-map.md v2
-- **Features liées** : F1 à F26 + F1b + F1c + F8b de roadmap.md v2
+- **Features liées** : F1 à F26 + F1b + F1c + F8b + F8c de roadmap.md v2
 - **Dépendances** : US précédentes ou "Aucune"
 - **Effort** : S (< 4 h IA), M (< 1 j IA), L (> 1 j IA)
 - **Critères acceptance** : 9 minimum (3 happy + 2 erreur + 2 limites + 1 permission + 1 données existantes)
@@ -203,6 +203,25 @@
   - Limite 2 : GIVEN agent achète Pack Pro $50 (60 000 calls) WHEN utilise < 50 ms p95 THEN OK perfo (KV read ultra-rapide)
   - Permission 1 : GIVEN pack wallet A WHEN agent wallet B tente utiliser quota THEN 402 (quota lié au wallet signataire)
   - Données existantes 1 : GIVEN pack acheté hier avec 8 000 calls restants WHEN agent re-fetch aujourd'hui THEN quota intact (pas de TTL journalier)
+
+### US-08c : Appeler `POST /api/pack/purchase` pour acheter un pack pré-payé (F8c — officialisé 2026-05-07)
+
+- **Persona** : Agent IA autonome (ou sponsor humain configurant son agent)
+- **JTBD** : Job 3 personas.md v2 — acquérir un quota pack en 1 signature x402 pour éviter la friction par-call
+- **Opportunité** : O3
+- **Features liées** : F8c (`POST /api/pack/purchase`), F8b (KV quota lookup activé après achat), F8 (middleware x402)
+- **Dépendances** : US-02 (middleware x402 en place), US-08b (quota KV pattern)
+- **Effort** : M
+- **Critères acceptance** :
+  - Happy 1 : GIVEN agent envoie `POST /api/pack/purchase` avec body `{"pack":"standard"}` et header x402 signé $10 USDC WHEN Coinbase facilitator settle THEN HTTP 200 + `{pack:"standard", calls_remaining:10000, expires_at, pack_id}`
+  - Happy 2 : GIVEN pack acheté via US-08c WHEN agent appelle `/api/llm-prices` sans header x402 THEN HTTP 200 direct (F8b KV lookup actif)
+  - Happy 3 : GIVEN agent choisit `{"pack":"pro"}` WHEN achat THEN HTTP 200 + `calls_remaining:60000`
+  - Erreur 1 : GIVEN body `{"pack":"enterprise"}` (valeur hors enum) WHEN Worker reçoit THEN HTTP 400 `INVALID_PACK_TYPE` — SANS déclencher paiement x402
+  - Erreur 2 : GIVEN pack "standard" déjà actif (3 000 calls restants) WHEN agent tente achat pack "standard" THEN HTTP 409 `PACK_ALREADY_ACTIVE` + `calls_remaining:3000` — SANS déclencher paiement x402
+  - Limite 1 : GIVEN Coinbase facilitator timeout > 5 s WHEN Worker attend settlement THEN HTTP 402 `facilitator_timeout` — quota KV NON créé
+  - Limite 2 : GIVEN double POST race condition < 500 ms WHEN 2 requêtes simultanées THEN 1 HTTP 200, 1 HTTP 409 (KV write atomique)
+  - Permission 1 : GIVEN body valide mais aucun header x402 WHEN endpoint THEN HTTP 402 standard avec `packs_available[]`
+  - Données existantes 1 : GIVEN pack "discovery" épuisé (0 calls restants) WHEN agent tente achat "standard" THEN HTTP 200 autorisé (pack précédent épuisé, pas actif)
 
 ---
 
@@ -445,37 +464,37 @@
 
 ## Mapping stories ↔ features V1 v2 (couverture complète)
 
-| Feature V1 v2 | User stories couvrant |
-|---|---|
-| F1 — `/api/llm-prices` | US-03, US-04, US-05, US-07 |
-| F1b — `/api/agent-audit` | US-16, US-17, US-18, US-19, US-20 |
-| F1c — Validation input audit | US-16 |
-| F2 — `/api/sdk-status` | US-06 |
-| F3 — JSON-LD Dataset + dateModified | US-04, US-07 |
-| F4 — Header Last-Modified | US-04 |
-| F5 — effective_cost_factor | US-05 |
-| F6 — Cron sources | US-04 (indirect) — backend |
-| F7 — IndexNow Bing | Backend — pas de story user directe |
-| F8 — Middleware x402 unifié 3 endpoints | US-02, US-03, US-06, US-16 |
-| F8b — Pack pré-payé KV quota lookup | US-08b |
-| F9 — Stripe top-up wallet sponsor | US-10b |
-| F10 — JWT HMAC (optionnel) | US-11 |
-| F11 — Cookie Secure JWT | US-11 |
-| F12 — Stripe Tax | US-10b |
-| F13 — Watermark HMAC | Backend (vérifié US-03 via _signature) |
-| F14 — Rate-limit | US-12 limites (compteur visible) |
-| F15 — llms.txt 3 endpoints | US-01 |
-| F16 — Landing v2 (2 heroes JSON) | US-09 |
-| F17 — Sitemap.xml + robots.txt | Backend SEO/GEO |
-| F18 — OpenAPI 3.1 (3 endpoints) | US-08 |
-| F19 — /about/data-sources | US-14 |
-| F20 — /about/data-schema | Backend doc |
-| F21 v2 — /legal/cgv + clause audit | US-13 |
-| F22 — /legal/privacy | US-13 |
-| F23 — /legal/mentions-legales | US-13 |
-| F24 — /bot | US-14 (mentionné) |
-| F25 v2 — Dashboard interne (pack_* + audit_*) | US-15 |
-| F26 v2 — /dashboard sponsor (quota + balance) | US-12, US-20 |
+| Feature V1 v2                                   | User stories couvrant                   |
+| ----------------------------------------------- | --------------------------------------- |
+| F1 — `/api/llm-prices`                          | US-03, US-04, US-05, US-07              |
+| F1b — `/api/agent-audit`                        | US-16, US-17, US-18, US-19, US-20       |
+| F1c — Validation input audit                    | US-16                                   |
+| F2 — `/api/sdk-status`                          | US-06                                   |
+| F3 — JSON-LD Dataset + dateModified             | US-04, US-07                            |
+| F4 — Header Last-Modified                       | US-04                                   |
+| F5 — effective_cost_factor                      | US-05                                   |
+| F6 — Cron sources                               | US-04 (indirect) — backend              |
+| F7 — IndexNow Bing                              | Backend — pas de story user directe     |
+| F8 — Middleware x402 unifié 3 endpoints         | US-02, US-03, US-06, US-16              |
+| F8b — Pack pré-payé KV quota lookup             | US-08b                                  |
+| F9 — Stripe top-up wallet sponsor               | US-10b                                  |
+| F10 — JWT HMAC (optionnel)                      | US-11                                   |
+| F11 — Cookie Secure JWT                         | US-11                                   |
+| F12 — Stripe Tax                                | US-10b                                  |
+| F13 — Watermark HMAC                            | Backend (vérifié US-03 via \_signature) |
+| F14 — Rate-limit                                | US-12 limites (compteur visible)        |
+| F15 — llms.txt 3 endpoints                      | US-01                                   |
+| F16 — Landing v2 (2 heroes JSON)                | US-09                                   |
+| F17 — Sitemap.xml + robots.txt                  | Backend SEO/GEO                         |
+| F18 — OpenAPI 3.1 (3 endpoints)                 | US-08                                   |
+| F19 — /about/data-sources                       | US-14                                   |
+| F20 — /about/data-schema                        | Backend doc                             |
+| F21 v2 — /legal/cgv + clause audit              | US-13                                   |
+| F22 — /legal/privacy                            | US-13                                   |
+| F23 — /legal/mentions-legales                   | US-13                                   |
+| F24 — /bot                                      | US-14 (mentionné)                       |
+| F25 v2 — Dashboard interne (pack*\* + audit*\*) | US-15                                   |
+| F26 v2 — /dashboard sponsor (quota + balance)   | US-12, US-20                            |
 
 **Couverture** : 100 % features avec parcours user direct couvertes. F7, F13, F17, F20 = features backend sans story user directe — à traiter en Phase 1 functional-specs comme stories techniques.
 
@@ -483,22 +502,22 @@
 
 ## Stories Phase 4 (post-launch — flags)
 
-| ID | Owner | Titre v2 | Effort |
-|---|---|---|---|
-| US-21 (Phase 4) | @sales-enablement | Playbook commercial : upsell audit post-pricing call (agent actif sans audit → relance audit $9.99) | M |
-| US-22 (Phase 4) | @sales-enablement | ROI calculator agent : break-even Pack Standard $10 vs tokens cramés (interactive pour sponsor) | M |
-| US-23 (Phase 4) | @growth | Data story earned media : "Opus 4.7 +35 % tokenizer — l'inflation silencieuse" | M |
-| US-24 (Phase 4) | @growth | Data story earned media : "Top 10 SDKs breaking changes Q1-Q2 2026 — ce que votre agent ne sait pas" | M |
+| ID              | Owner             | Titre v2                                                                                             | Effort |
+| --------------- | ----------------- | ---------------------------------------------------------------------------------------------------- | ------ |
+| US-21 (Phase 4) | @sales-enablement | Playbook commercial : upsell audit post-pricing call (agent actif sans audit → relance audit $9.99)  | M      |
+| US-22 (Phase 4) | @sales-enablement | ROI calculator agent : break-even Pack Standard $10 vs tokens cramés (interactive pour sponsor)      | M      |
+| US-23 (Phase 4) | @growth           | Data story earned media : "Opus 4.7 +35 % tokenizer — l'inflation silencieuse"                       | M      |
+| US-24 (Phase 4) | @growth           | Data story earned media : "Top 10 SDKs breaking changes Q1-Q2 2026 — ce que votre agent ne sait pas" | M      |
 
 ---
 
 ## Synthèse backlog v2
 
-| Élément | Valeur v2 |
-|---|---|
-| **Nb user stories V1** | 20 (US-01 à US-08, US-08b, US-09, US-10b, US-11 à US-20) |
-| **Nb stories Phase 4** | 4 (US-21 à US-24) |
-| **Personas couverts** | Agent IA autonome (US-01 à US-08b, US-16 à US-20) + Dev sponsor wallet (US-09 à US-15) |
-| **Couverture features V1 v2** | 100 % features avec parcours user direct |
-| **Delta v1→v2** | +6 stories (US-08b, US-16 à US-20), US-10→US-10b réécrit top-up wallet, US-02 enrichi body 402 augmenté, US-01 enrichi 3e endpoint, US-15 recalibré events pack+audit |
-| **Verbatim archivé** | V4 "dev qui paie 4,99 €/jour Stripe Link" — plus référencé dans aucune story v2 |
+| Élément                       | Valeur v2                                                                                                                                                             |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Nb user stories V1**        | 20 (US-01 à US-08, US-08b, US-09, US-10b, US-11 à US-20)                                                                                                              |
+| **Nb stories Phase 4**        | 4 (US-21 à US-24)                                                                                                                                                     |
+| **Personas couverts**         | Agent IA autonome (US-01 à US-08b, US-16 à US-20) + Dev sponsor wallet (US-09 à US-15)                                                                                |
+| **Couverture features V1 v2** | 100 % features avec parcours user direct                                                                                                                              |
+| **Delta v1→v2**               | +6 stories (US-08b, US-16 à US-20), US-10→US-10b réécrit top-up wallet, US-02 enrichi body 402 augmenté, US-01 enrichi 3e endpoint, US-15 recalibré events pack+audit |
+| **Verbatim archivé**          | V4 "dev qui paie 4,99 €/jour Stripe Link" — plus référencé dans aucune story v2                                                                                       |

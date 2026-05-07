@@ -462,7 +462,7 @@ Après Phase 2 close (gates 32+20 PASS), enchaîner Phase 3 :
 
 ### Étape 4 — @fullstack : V1 complète (Tasks producteur multiples, séquentiel par dépendance)
 
-**Mission** : implémenter 29 features V1 selon functional-specs + page-compositions + landing copy. Séquencement par chemin critique :
+**Mission** : implémenter 30 features V1 selon functional-specs + page-compositions + landing copy. Séquencement par chemin critique :
 
 - 4a (foundation) : middleware x402 unifié, KV namespaces, JWT HMAC, scaffolding Worker API + Worker cron + page Cloudflare statique HTML
 - 4b (endpoints) : `/api/llm-prices`, `/api/sdk-status`, `/api/agent-audit` avec watermark HMAC + KV pack quota
