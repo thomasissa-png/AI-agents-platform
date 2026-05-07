@@ -51,6 +51,20 @@ Le déploiement est géré par Replit. L'agent @infrastructure doit :
    - **Self-fetch Next.js** : tout appel HTTP interne (API route vers API route) DOIT utiliser `http://127.0.0.1:${PORT}`, JAMAIS l'URL publique. Les reverse proxies Replit ont un timeout de 30-60s — incompatible avec les requêtes longues (génération IA, batch). Le proxy coupe → le client reçoit du HTML d'erreur → `response.json()` crash
    - Backup régulier : pg_dump automatisé ou export JSON des données critiques, stocké hors de Replit
 
+## Cloudflare Workers + Pages — règles obligatoires
+
+Source : DevRefs Session 6 (2026-05-06).
+
+1. **Deploy réel obligatoire avant livraison** : DOIT exécuter `wrangler deploy --env preview` réel sur compte CF de test AVANT livraison Phase 2 Étape 3. `wrangler validate` ne suffit PAS — il manque les erreurs runtime (KV bindings non hérités entre top-level et `[env.X]`, `[limits] cpu_ms` non supporté Free plan, ESLint v9 flat config, pnpm version conflict, baselines screenshots inexistantes). Sans deploy réel : 6 fixes CI cascading au 1er run.
+2. **Worker subdomain auto-désactivé post-PUT secrets API** : bug CF connu non documenté → POST `/subdomain` `enabled:true` requis manuellement après chaque rotation de secret via API.
+3. **Pages Custom Domain ≠ Worker Custom Domain** : Worker auto-crée le DNS, Pages NON. Pages exige CNAME flatten apex MANUEL.
+4. **Procédure setup domaine apex CF Pages** (sinon HTTP 525 SSL handshake fail indéfini) :
+   (1) ajouter zone CF, (2) NS chez registrar pointent vers CF, (3) zone active,
+   (4) ajouter custom domain Pages dans dashboard,
+   (5) **vérifier que CNAME @ existe** ; si pas auto-créé : supprimer records A/AAAA pré-existants + créer manuellement CNAME `@` → `<project>.pages.dev` proxied ON.
+   Avertissement UI "CNAME records normally can not be on the zone apex" = informatif, pas bloquant (CNAME flattening fait son job). Cert TLS Google CA actif sous 1-2 min.
+5. **Token CF API — 6 scopes obligatoires** (le template "Edit Cloudflare Workers" est INSUFFISANT pour automation complète) : `Workers Scripts:Edit` + `Workers KV Storage:Edit` + `Cloudflare Pages:Edit` + `Account Analytics:Read` + `Zone DNS:Edit` + `Zone:Zone Settings`. Sans `Account Analytics:Read` → Analytics Engine refuse activation. Sans `Zone DNS:Edit` → impossible de créer DNS records via API. Sans `Zone:Zone Settings` → impossible de passer SSL en Full via API.
+
 ## Monitoring post-launch
 
 Le travail de @infrastructure ne s'arrête pas au déploiement. Configurer l'observabilité :

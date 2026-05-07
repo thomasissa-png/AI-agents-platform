@@ -3,6 +3,44 @@
 > Ce fichier liste les actions qui NE peuvent PAS être faites par les agents (clés secrètes, design d'images binaires, validation DNS).
 > Toute action listée ici DOIT être effectuée avant la mise en production.
 
+## Pré-requis Cloudflare — Token API + Apex domain (Source : DevRefs Session 6)
+
+### Token CF API — 6 scopes obligatoires
+
+Le template UI "Edit Cloudflare Workers" est INSUFFISANT pour automation complète. Créer un Custom Token avec les 6 scopes suivants :
+- `Workers Scripts:Edit`
+- `Workers KV Storage:Edit`
+- `Cloudflare Pages:Edit`
+- `Account Analytics:Read` (sinon Analytics Engine refuse activation)
+- `Zone DNS:Edit` (sinon impossible de creer DNS records via API)
+- `Zone:Zone Settings` (sinon impossible de passer SSL en Full via API)
+
+### Procedure setup apex domain CF Pages (HTTP 525 SSL handshake)
+
+Sans cela, le cert Google CA reste pending indefiniment :
+1. Ajouter zone CF dans dashboard
+2. NS chez registrar pointent vers CF
+3. Zone active (verification CF)
+4. Ajouter custom domain Pages (`devrefs.dev` apex)
+5. **Verifier que CNAME @ existe** dans la zone DNS. Si pas auto-cree :
+   a. Supprimer les records A/AAAA pre-existants sur `@`
+   b. Creer manuellement CNAME `@` -> `<project>.pages.dev` proxied ON
+   c. UI affiche "CNAME records normally can not be on the zone apex" -> cliquer Save quand meme (CNAME flattening fait son job)
+6. Cert TLS Google CA actif sous 1-2 min apres CNAME OK
+
+### Pre-deploiement Phase 2 Etape 3
+
+Avant toute livraison Phase 2 Etape 3, executer `wrangler deploy --env preview` reel sur compte CF de test (pas juste `wrangler validate`). Sinon : 6 fixes CI cascading au 1er run (pnpm version, ESLint v9 flat config, KV bindings, `[limits] cpu_ms`, baselines screenshots).
+
+### Securite tokens — rotation post-session
+
+Source : DevRefs Session 6 (2026-05-06). Thomas tolere le partage de tokens secrets temporaires en chat pour accelerer setup live, A CONDITION que :
+1. La rotation soit immediate post-session (sous 24h max)
+2. Les secrets partages soient explicitement listes dans le memo de reprise sous "A REVOQUER"
+3. Aucun token partage ne soit reutilise en session suivante sans rotation
+
+Liste tokens DevRefs sessions 4-6 (a revoquer post-S6) : CF API token, Coinbase API key, Stripe secret key.
+
 ## A. Cloudflare — Workers + KV
 
 ### A.1 Création des 6 namespaces KV (1 fois)

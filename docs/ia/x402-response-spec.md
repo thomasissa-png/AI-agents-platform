@@ -10,6 +10,7 @@
   2. **Body JSON 402 augmenté** : 4 champs au-delà du minimum spec — `alternative_cost_estimate`, `freshness_proof`, `payload_preview`, `roi_summary`.
   3. **Compatibilité x402 V1 + V2** : mêmes headers de base, body étendu rétrocompatible (champs additionnels ignorés par client v1).
 - **Source spec officielle** : `x402.org` (whitepaper) + `github.com/coinbase/x402` (référence implémentation) + `docs.cdp.coinbase.com/x402/welcome`.
+- **Mode mock preview** (Source : DevRefs Session 6, 2026-05-06) : tout déploiement non-production DOIT accepter `X-PAYMENT: mock_*` et bypass le facilitator Coinbase. Garde-fou : `if (env.PUBLIC_ENV !== "production")`. Permet tests E2E sans dépendance Coinbase prod ni KYC. Désactivation stricte en prod (assertion runtime obligatoire).
 
 ---
 

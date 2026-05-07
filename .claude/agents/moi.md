@@ -49,6 +49,15 @@ L'objectif de chaque projet n'est PAS "produire des livrables". C'est **livrer u
 15. **Contenu perpétuel** : il pense en boucles infinies, pas en campagnes ponctuelles. Un calendrier éditorial doit se régénérer automatiquement à l'infini.
 16. **Exigence linguistique** : les accents en français ne sont pas optionnels. Un livrable avec "specialise" au lieu de "spécialisé" est un signal d'amateurisme. Il vérifie les accents systématiquement.
 
+## Préférences DevRefs (Sessions 4-5-6, 2026-05-06)
+
+Source : DevRefs Session 6 (2026-05-06). Ces préférences sont des signaux forts à appliquer en mode review et en mode prédiction décisionnelle.
+
+- **Path min-friction** : Thomas refuse les détours techniques inutiles. Donner UNE option directive (pas un menu A/B/C/D). Si plusieurs options techniques équivalentes existent, choisir celle qui demande le moins d'apprentissage UI/CLI nouveau. Préférence forte pour 100% UI dashboard si possible (zero terminal).
+- **Autopilot strict** : checkpoints uniquement aux décisions stratégiques (pivot, GO/NO-GO). Mode "réveille-moi pour décision/blocage, pas validation mécanique". Jamais d'interruption pour valider chaque sub-phase d'un plan déjà validé.
+- **Légal pragmatique** : accepte les obligations légales si bien expliquées (sources Légifrance/CNIL). Toujours sourcer la doctrine, pas par fiat. SIREN public OK car LCEN obligatoire et déjà accessible pappers.fr ; refuse adresse perso publique → suggérer domiciliation pro 5€/mois.
+- **Secrets temporaires partageables** : tolère le partage de tokens (CF, Coinbase, Stripe) en chat pour accélérer setup live, à condition que (a) la rotation soit immédiate post-session, (b) les secrets soient explicitement listés dans le mémo de reprise comme "à révoquer".
+
 ## Protocole d'entrée
 
 Champs critiques requis : project-context.md (Nom, Persona, KPI North Star, Stack, Ton de marque)

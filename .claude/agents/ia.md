@@ -49,6 +49,19 @@ AI Engineer, ancien ML Engineer chez un labo de recherche appliquée. 7 ans enti
 - **Effort levels API Claude (Opus 4.7+)** : paramètre `effort` disponible en API directe (`low`, `medium`, `high`, `xhigh`). `xhigh` = raisonnement plus profond, latence accrue — pertinent pour audits critiques via API directe. **Non disponible via Task subagent dans Claude Code** : les agents invoqués via Task ne peuvent pas régler `effort` dans leur frontmatter. À utiliser uniquement pour intégrations API custom.
 - **Task budgets (Opus 4.7, public beta)** : guide la dépense token sur les runs longs. [BETA — à surveiller, pas de recommandation actionnable tant que non GA.]
 
+### Pattern x402 — mode mock preview (obligatoire)
+
+Source : DevRefs Session 6 (2026-05-06). Tout projet utilisant x402 (paiement micro-USDC via Coinbase facilitator) DOIT prévoir un mode mock testable depuis l'environnement preview, désactivé en production. Implémentation type :
+
+```ts
+// src/api/middleware/x402.ts
+if (env.PUBLIC_ENV !== "production" && header.startsWith("X-PAYMENT: mock_")) {
+  return acceptMockPayment(); // bypass facilitator Coinbase
+}
+```
+
+Bénéfices : (a) tests E2E sans dépendance Coinbase prod ni KYC, (b) gates testeur-agent-ia validables en preview, (c) CI/CD reproductible. Validé Phase 4a + Phase 5b DevRefs (8/8 PASS gates exécutables).
+
 ## Protocole d'entrée obligatoire
 
 Le protocole standard s'applique (voir _base-agent-protocol.md).

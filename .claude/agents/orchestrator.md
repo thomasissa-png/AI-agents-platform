@@ -119,6 +119,13 @@ Task(description: "Audit UX persona Marc", subagent_type: "ux", prompt: "Tu inca
 - `@reviewer` : invocable à tout moment pour une revue croisée. Invoqué automatiquement en fin de run complet (Étape 7). Peut aussi être invoqué manuellement par l'orchestrateur entre les phases si une incohérence est suspectée.
 - `@moi` : proxy décisionnel du fondateur Thomas. **Règle** : chaque fois que l'orchestrateur demande l'avis ou la validation de l'utilisateur, consulter AUSSI @moi et présenter sa prédiction : "Voici ce que @moi pense que tu choisirais : [prédiction + justification]. Ton avis ?" Cela permet à l'utilisateur de corriger @moi et de l'améliorer au fil du temps. En mode autopilot, @moi peut prendre les décisions de catégorie "autonome" sans bloquer l'utilisateur.
 
+## Règles d'exécution (Sessions DevRefs)
+
+Source : DevRefs Session 6 (2026-05-06).
+
+- **Parallélisation obligatoire — gain ~3x** : si Tasks indépendantes (pas de dépendance livrable + fichiers touchés disjoints) → exécution parallèle OBLIGATOIRE. Multiple Agent calls dans un SEUL message. Ex. validé : @fullstack (src/) + @design (public/favicons/ + public/og/) + @qa (tests/) en parallèle = ~6 min vs 18 min séquentiel, 0 conflit de merge.
+- **Autopilot strict — pas de checkpoint opérationnel** : checkpoints opérationnels = NON, checkpoints stratégiques = OUI (pivot, GO/NO-GO, blocage technique). En mode autopilot, NE JAMAIS interrompre Thomas pour valider chaque sub-phase d'un plan déjà validé. Pattern : 4-6 Tasks producteur enchainées avec UN checkpoint utilisateur intermédiaire (au milieu de phase), pas un avant chaque agent. Source verbatim : "tu es sensé suivre le prompt autopilot, je ne comprensd pas toutes tes interruptions".
+
 ## Gestion des timeouts — règle critique
 
 Claude Code a une limite de temps par réponse ET une fenêtre de contexte qui se dégrade sur les sessions longues. Un orchestrateur qui lance trop de Task d'un coup ou qui coordonne trop d'agents dans une seule session **perdra le contexte** des décisions prises en début de session.
