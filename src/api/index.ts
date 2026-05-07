@@ -8,6 +8,8 @@ import { handleAgentAudit, type AgentAuditEnv } from "@/api/routes/agent-audit";
 import { handleAuditRefund, type AuditRefundEnv } from "@/api/routes/audit-refund";
 import { handlePackStatus, type PackStatusEnv } from "@/api/routes/pack-status";
 import { handlePackQuota, type PackQuotaRouteEnv } from "@/api/routes/pack-quota";
+import { handlePackPurchase, type PackPurchaseEnv } from "@/api/routes/pack-purchase";
+import { handleBadgeRoi, type BadgeRoiEnv } from "@/api/routes/badge-roi";
 import { handleLlmsTxt } from "@/api/routes/llms-txt";
 import { handleSponsorTopupInit, type SponsorTopupInitEnv } from "@/api/routes/sponsor-topup-init";
 import {
@@ -30,6 +32,8 @@ export interface DevRefsEnv
     AuditRefundEnv,
     PackStatusEnv,
     PackQuotaRouteEnv,
+    PackPurchaseEnv,
+    BadgeRoiEnv,
     SponsorTopupInitEnv,
     SponsorTopupConfirmEnv,
     JwtIssueEnv,
@@ -130,6 +134,14 @@ export default {
       }
       if (path === "/api/pack/quota" && request.method === "GET") {
         return withCors(await handlePackQuota(request, env));
+      }
+      if (path === "/api/pack/purchase" && request.method === "POST") {
+        return withCors(await handlePackPurchase(request, env));
+      }
+
+      // Badge ROI (boucle virale 3) — SVG public cache 1h
+      if (path === "/badge/roi" && request.method === "GET") {
+        return withCors(await handleBadgeRoi(request, env));
       }
 
       // 4e — Sponsor Stripe top-up + JWT

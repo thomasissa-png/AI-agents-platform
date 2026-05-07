@@ -141,6 +141,28 @@ export async function handleAgentAudit(request: Request, env: AgentAuditEnv): Pr
   const refundEligible = !lowVolume; // condition C1 CGU 4ter
   const refundAmountUsdc = packOrigin === "audit_pack" ? Math.round((49 / 6 / 2) * 100) / 100 : 4.995;
 
+  // pr_snippet — markdown ready-to-paste pour PR description (boucle virale 1, viral-loops.md)
+  // Build avant signature pour qu'il fasse partie du payload signé HMAC.
+  const monthlySavingsUsd = Math.max(
+    0,
+    Math.round((result.monthly_cost_current_usd - result.monthly_cost_optimized_usd) * 100) / 100,
+  );
+  const top3Recos = result.recommendations
+    .slice(0, 3)
+    .map((r, i) => `${i + 1}. ${r.title}`)
+    .join("\n");
+  const prSnippet = [
+    `## DevRefs Audit — Score ${result.score}/100`,
+    "",
+    `- Estimated savings: $${monthlySavingsUsd}/month (${result.savings_pct}% reduction)`,
+    `- Top recommendations:`,
+    top3Recos || "1. (no actionable recommendations)",
+    "",
+    `[View full audit](https://devrefs.dev/audit/${auditId})`,
+  ]
+    .join("\n")
+    .slice(0, 500);
+
   const baseOutput: Omit<AuditOutput, "_signature"> = {
     audit_id: auditId,
     score: result.score,
@@ -158,6 +180,7 @@ export async function handleAgentAudit(request: Request, env: AgentAuditEnv): Pr
         "savings_pct_measured < 15",
       ],
     },
+    pr_snippet: prSnippet,
     _audit_id: auditId,
     schema_version: "1.0",
   };

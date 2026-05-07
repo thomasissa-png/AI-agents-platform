@@ -16,7 +16,15 @@ export type AeEventName =
   | "pack_quota_consumed"
   | "pack_quota_exhausted"
   | "pack_purchased"
+  | "pack_purchase_failed_400"
+  | "pack_purchase_failed_409"
   | "pack_expired"
+  | "badge_roi_rendered"
+  | "badge_roi_clicked"
+  | "roi_calculator_viewed"
+  | "roi_calculator_interacted"
+  | "roi_calculator_cta_clicked"
+  | "audit_share_clicked"
   | "audit_request_received"
   | "audit_input_validation_failed"
   | "audit_delivered"
@@ -84,6 +92,12 @@ export interface AeEventContext {
   webhook_id?: string;
   watermark_valid?: number; // 0 | 1
   consent_count?: number;
+  // Phase 4 viral / widget additions
+  price_usdc?: number;
+  quota_total?: number;
+  tx_hash?: string;
+  via?: string; // x402 | pack | none
+  savings_bucket?: string; // low | mid | high
 }
 
 /**

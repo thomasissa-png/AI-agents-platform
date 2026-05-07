@@ -76,6 +76,7 @@ export interface AuditOutput {
     refund_amount_usdc: number;
     conditions: string[];
   };
+  pr_snippet: string; // F1b — markdown ready-to-paste pour PR description (< 500 chars, viral loop 1)
   _signature: string; // HMAC-SHA256 hex
   _audit_id: string; // duplication de audit_id pour validation client
   schema_version: "1.0";
