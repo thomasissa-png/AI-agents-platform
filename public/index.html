@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>DevRefs — Cost intelligence for AI agents</title>
-<meta name="description" content="DevRefs — pre-flight LLM pricing $0.001/call, post-flight agent audit $9.99. x402 USDC native. JSON-typed, dateModified, no login, no subscription." />
+<meta name="description" content="DevRefs — atomic LLM pricing and SDK status API for AI agents, paid per call in x402 USDC on Base. Pre-flight $0.001/call, post-flight $9.99 audit. JSON-LD verified, under 50KB per query, no login, no subscription." />
 <meta name="robots" content="index,follow" />
 <link rel="canonical" href="https://devrefs.dev/" />
 
@@ -21,12 +21,12 @@
 <!-- OG / Twitter -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="DevRefs — Cost intelligence for AI agents" />
-<meta property="og:description" content="Know before you spend. Optimize after you ship. Pre-flight $0.001/call · Post-flight audit $9.99 USDC." />
+<meta property="og:description" content="DevRefs — atomic LLM pricing and SDK status API for AI agents, paid per call in x402 USDC on Base. Pre-flight $0.001/call, post-flight $9.99 audit. JSON-LD verified, under 50KB per query, no login, no subscription." />
 <meta property="og:url" content="https://devrefs.dev/" />
 <meta property="og:image" content="https://devrefs.dev/og/og-image.png" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="DevRefs — Cost intelligence for AI agents" />
-<meta name="twitter:description" content="Know before you spend. Optimize after you ship." />
+<meta name="twitter:description" content="DevRefs — atomic LLM pricing and SDK status API for AI agents, paid per call in x402 USDC on Base. Pre-flight $0.001/call, post-flight $9.99 audit. JSON-LD verified, under 50KB per query." />
 <meta name="twitter:image" content="https://devrefs.dev/og/og-image.png" />
 
 <!-- JSON-LD Organization + WebSite (Fix 7 — signal SEO @geo) -->
@@ -39,7 +39,8 @@
       "@id": "https://devrefs.dev/#organization",
       "name": "DevRefs",
       "url": "https://devrefs.dev/",
-      "description": "Cost intelligence for AI agents — pricing & SDK references API, x402-native.",
+      "logo": "https://devrefs.dev/favicons/android-chrome-512x512.png",
+      "description": "Atomic LLM pricing and SDK status API for AI agents, paid per call in x402 USDC on Base.",
       "sameAs": ["https://github.com/thomasissa-png/AI-agents-platform"]
     },
     {
@@ -47,12 +48,28 @@
       "@id": "https://devrefs.dev/#website",
       "url": "https://devrefs.dev/",
       "name": "DevRefs",
+      "inLanguage": "en",
       "publisher": { "@id": "https://devrefs.dev/#organization" },
       "potentialAction": {
         "@type": "SearchAction",
         "target": "https://devrefs.dev/llm-prices/?model={search_term_string}",
         "query-input": "required name=search_term_string"
       }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://devrefs.dev/#api",
+      "name": "DevRefs API",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Web",
+      "publisher": { "@id": "https://devrefs.dev/#organization" },
+      "offers": [
+        { "@type": "Offer", "name": "Per-call query", "price": "0.001", "priceCurrency": "USDC", "description": "Single atomic query for one LLM model or SDK status" },
+        { "@type": "Offer", "name": "Discovery pack", "price": "5", "priceCurrency": "USDC", "description": "5,000 calls prepaid pack" },
+        { "@type": "Offer", "name": "Standard pack", "price": "10", "priceCurrency": "USDC", "description": "10,000 calls prepaid pack" },
+        { "@type": "Offer", "name": "Pro pack", "price": "50", "priceCurrency": "USDC", "description": "60,000 calls prepaid pack" },
+        { "@type": "Offer", "name": "Cost audit", "price": "9.99", "priceCurrency": "USDC", "description": "One-shot post-flight cost optimization audit" }
+      ]
     }
   ]
 }
